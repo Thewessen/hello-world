@@ -1,4 +1,4 @@
-# hello-world
+# Hello-world
 Testrepository with all unused code and great ideas
 
 My name is Samuel Thewessen. I'm a teacher in mathematics and calculation skills. My goal on github is collaberatly making a website for supporting lessons in mathematics and calculation skills. The website must contain lots of exercises, vids and explanations.
