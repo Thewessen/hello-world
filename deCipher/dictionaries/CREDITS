@@ -1,0 +1,6 @@
+All this data is from:
+http://practicalcryptography.com/cryptanalysis/letter-frequencies-various-languages
+Thanks allot for sharing all the statistics on different n-grams, and words.
+The word-count is just amazing!!!
+
+Modified the data. Changed absolute occurence into relative occurence.
