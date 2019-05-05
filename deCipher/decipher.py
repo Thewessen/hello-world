@@ -14,7 +14,7 @@ DICTIONARY = "./dictionaries/dictionary.txt"
 
 # TOOLS
 # ---------------------------------------------------------
-def get_ngram(N=1,lang='EN'):
+def get_ngram(N=1):
     """Opens the corresponding ngram data from a file.
 And returns it as an dictionary object, e.g.:
 bigram = {
@@ -31,15 +31,7 @@ N       -- ngram integer, choices:
              1 - monogram (default)
              2 - bigram
              3 - trigram
-             4 - quadgram
-lang    -- language of the data as string, choices: 
-            'DA' - Danish
-            'EN' - English (default)
-            'FI' - Finnish
-            'FR' - French
-            'GE' - German
-            'IC' - Icelandic
-            'PO' - Polish"""
+             4 - quadgram"""
     ngrams = [
               'words',
               'monograms',
@@ -48,7 +40,7 @@ lang    -- language of the data as string, choices:
               'quadgrams'
              ]
     assert N < len(ngrams)
-    source = './dictionaries/{}/{}'.format(lang,ngrams[N])
+    source = './dictionaries/{}'.format(ngrams[N])
     with open(source) as fl:
         data = fl.read().splitlines()
     result = [d.split(' ') for d in data]
@@ -190,14 +182,14 @@ def column_print(data, head=[], nr_of_rows=0, max_width=79):
 # Chi-squared analyses
 # Simularity of two probability distributions
 # Comparing freq_analyses with dictionaries
-def chi_squared(freq_an,lang='EN'):
+def chi_squared(freq_an):
     for i in range(1,len(freq_an)):
         if len(freq_an[i][0]) != len(freq_an[i-1][0]):
             n = 0
             break
         else:
             n = len(freq_an[i][0])
-    dictio = get_ngram(n,lang)
+    dictio = get_ngram(n)
     total = sum(f[1] for f in freq_an)
     chi = 0
     for [l,c] in freq_an:
@@ -258,13 +250,13 @@ def score_english(text):
 # ---------------------------------------------------------
 # Caesar rotation value
 # returns: (ROT,chi-squared,text)
-def find_ROT(datastr,lang='EN'):
+def find_ROT(datastr):
     result = []
     for i in range(26):
         text = caesar_decrypt(datastr, i)
         result.append(
            (i,
-            chi_squared(block_freq(text.upper()),lang),
+            chi_squared(block_freq(text.upper())),
             text)
         )
     return sort_by_value(result, reverse=False)
@@ -313,7 +305,7 @@ with IC's greater then 0.06."""
     return list(filter(lambda ic: ic[1] > 0.06,ics))
 
 
-def gen_vin_keys(datastr,keylength,lang='EN',interactive=False):
+def gen_vin_keys(datastr,keylength,interactive=False):
     """With a given keylength, try and find the key for the Vinegere cipher. 
 This function uses a rotation on every nthletter-group, and calls find_ROT 
 too calculate the chi-squared statistic of the decrypted text.
@@ -321,7 +313,6 @@ too calculate the chi-squared statistic of the decrypted text.
 Arguments:
 datastr     -- string
 keylength   -- integer
-lang        -- language of the datastr (default 'EN')
 interactive -- boolean (default False)
 
 Returns list of tuples: [(key, mean IC, decypted datastr),...]
@@ -333,7 +324,7 @@ hence the optional argument 'interactive'."""
     groups = nthletter_group(datastr,keylength)
     nth_rot = []
     for b in groups:
-        nth_rot.append([(rot,ic) for rot,ic,_ in find_ROT(b,lang)[:2]])
+        nth_rot.append([(rot,ic) for rot,ic,_ in find_ROT(b)[:2]])
     data = []
     for p in product(*nth_rot):
         key = ''
@@ -467,13 +458,6 @@ def main():
             help='The length N of the key as an integer (Vinegere)')
     parser.add_argument('-c','--cipher', choices=['caesar','alphabetic','vinegere'],
             help='Force a specific cipher too use.')
-    parser.add_argument('-L','--language', 
-            metavar='language',
-            dest='lang',
-            # action='store_const',
-            choices=['DA','EN','FI','FR','GE','IC','PO','SP','SW'],
-            default='EN',
-            help='Give the language of the data text used for decryption (default is English).')
     parser.add_argument('-F','--frequency-analyses', metavar='N', nargs='?',
             dest='freq',
             const=True,type=int,
@@ -534,7 +518,7 @@ def main():
                 if not args.key:
                     if args.interactive:
                         start = time.time()
-                    result = find_ROT(dstr,args.lang)
+                    result = find_ROT(dstr)
                     (args.key, score, text) = result[0]
                     if args.interactive:
                         column_print(result, head=['ROT','chi-squared','text'])
@@ -553,7 +537,7 @@ def main():
             else:
                 # TODO: Find the key!!
                 freq = block_freq(dstr,3)
-                print(chi_squared(freq,args.lang))
+                print(chi_squared(freq))
                 # column_print(chi_squared(freq),head=['block','chi'])
         if args.cipher == "vinegere":
             if args.key != None:
@@ -585,7 +569,6 @@ def main():
                             print("The keylength is possibly {}.\n"\
                                     .format(args.length))
                     result = gen_vin_keys(dstr,args.length,
-                                          lang=args.lang,
                                           interactive=args.interactive)
                     (args.key, score, text) = result[0]
                     if args.interactive:
