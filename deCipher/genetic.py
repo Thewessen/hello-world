@@ -364,16 +364,16 @@ if __name__ == '__main__':
     ### chi-squared(3): 15272.4187
     ### chi-squared(4): 129903.5196
     ### score_english: 97.8177%
-    main()
-    # with open(sys.argv[1]) as fl:
-        # encr = fl.read()
+    # main()
+    with open(sys.argv[1]) as fl:
+        encr = fl.read()
         # print(decr)
         # print(fitness(decr))
     # keys = initial_keys(encr)
-    # key = 'FIQWRTNKZLMBYCHSEXVPGUJDOA'
+    key = 'FIQWRTNKZLMBYCHSEXVPGUJDOA'
     # key = CHARS[19:] + CHARS[:19]
-    # decr = alphabetic_decrypt(encr,key)
-    # print(decr)
+    decr = alphabetic_decrypt(encr,key)
+    print(decr)
     # print(fitness(decr))
     # print(keys)
     # print(swap_gen('FWZXIKCJPANRTYBOQSGDHVLMUE','K','C'))

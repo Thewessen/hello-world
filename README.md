@@ -1,8 +1,13 @@
 # Hello-world
-Testrepository with all unused code and great ideas
+Dumpster repository for unused code, small scripts and great ideas.
 
-My name is Samuel Thewessen. I'm a teacher in mathematics and calculation skills. My goal on github is collaberatly making a website for supporting lessons in mathematics and calculation skills. The website must contain lots of exercises, vids and explanations.
+This repository is my first Github repository. I will use it for small,
+completed or uncompleted, scripts that don't fit in some other repository.
 
-Im new to coding. And this repository is my first repository at github. In this repository ill store all great idea's and things if learned during the road of creating a website. Some of these idea's are directly related of creating an exercise containing website. Others are just great fun.
+Every completed script has it's own README.md file. Any new idea, comment or
+suggestions to the scripts in this repository are more then welcome. Most of
+them are in languages I've never programmed in. All advise is
+apperciated.
 
-Thanks to all people that share my passion and are willing to collaberate. And to all people who's work inspired me.
+Thanks to all people that share my passion and are willing to collaberate. And
+to all people who's work inspired me.
