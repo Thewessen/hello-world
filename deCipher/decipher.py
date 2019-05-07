@@ -72,6 +72,12 @@ def clean_datastr(datastr):
     return datastr.upper()
 
 
+def remove_extra_spaces(message):
+    """Removes extra (more then one) spaces in a string, often caused by
+indention"""
+    return re.sub(' +', ' ', message).strip()
+
+
 def IC(datastr):
     """Index of Coincidence.
 Calculates the IC (Index of Coincidence) of a given string.
@@ -330,13 +336,15 @@ Arguments:
 from_aplha  -- Old bijection.
 to_alpha    -- New bijection.
 
-If from_alpha doesn't contain enough (26) chars,
-the returned alphabeth is filled with remaining letters."""
+NOTE: If from_alpha doesn't contain enough (26) chars,
+the returned alphabeth is filled with remaining letters.
+Any whitespace or punctuations is removed from the key"""
+    # English alphabet in order of occurence in natural language
     EN_ALPHABET = "ETAONISRHLDUCMFWGPYBVKXJQZ"
     key = [''] * 26
-    # Make sure alphabets are uppercased
-    from_alpha = from_alpha.upper()
-    to_alpha = to_alpha.upper()
+    # Clean key's
+    from_alpha = clean_datastr(from_alpha)
+    to_alpha = clean_datastr(to_alpha)
     for i in range(len(from_alpha)):
         key[ord(from_alpha[i])-65] = to_alpha[i]
     # fill the gaps...
@@ -359,7 +367,7 @@ with IC's greater then 0.06."""
     return list(filter(lambda ic: ic[1] > 0.06, ics))
 
 
-def gen_vin_keys(datastr, keylength, interactive=False):
+def gen_vin_keys(datastr, keylength):
     """With a given keylength, try and find the key for the Vinegere cipher.
 This function uses a rotation on every nthletter-group, and calls find_ROT
 too calculate the chi-squared statistic of the decrypted text.
@@ -441,27 +449,40 @@ def vinegere_decrypt(datastr, key):
 
 # Mono aplhabetic substitution encryption
 def alphabetic_encrypt(datastr, key):
-    if len(key) != 26:
-        print("The length of the key ({}) is too small to use\
-               in mono alphabetic cipher, key given: {}".format(len(key), key))
-        exit(2)
-    if len(set(key)) != 26:
-        print("Not a complete alhabet found\
-               in mono alphabetic cipher key: {}".format(key))
-        exit(2)
-    key = key.upper()
-    skip = st.punctuation + st.whitespace + st.digits
+    """Mono alphabetic substitution cipher uses a bijection
+between one alphabet and another to encrypt a message, e.g.:
+Input: "Hello my dear friends!"
+Key: 'QLNEHPAYUZRGIBXKWDOJSCVFMT' (means: A -> Q, B -> L, etc.)
+Output: 'Yhggx im ehqd pduhbeo!'
+NOTE: All punctuation and whitespace is removed from the key.
+The key has to contain all letters of the (English) alphabet.
+Punctuations, whitespace and digits in the datastring are skipped.
+
+Arguments:
+datastr     -- string containing the text to encrypt
+key         -- string of letters containing the alphabet bijection"""
+    key = clean_datastr(key)
     result = ''
     for c in datastr:
-        if c in skip:
-            result += c
+        if c in st.ascii_letters:
+            r = key[ord(c.upper()) - 65]
+            if c.isupper():
+                result += r
+            else:
+                result += r.lower()
         else:
-            result += key[ord(c.upper()) - 65].lower()
+            result += c
     return result
 
 
 # Mono aplhabetic substitution decryption
 def alphabetic_decrypt(datastr, key):
+    """Decrypting a mono-alphabetic substitution cipher.
+The given key is inversed.
+
+Arguments:
+datastr     -- string containing the text to decrypt
+key         -- string containing the alphabet bijection for encryption"""
     decr_key = alphabetic_compose_key(key, st.ascii_uppercase)
     return alphabetic_encrypt(datastr, decr_key)
 
@@ -472,7 +493,12 @@ def caesar_encrypt(datastr, rott=13):
 in the (English) alphabet, e.g.:
 Input: "Hello world!"
 key: 9
-Output: Qntt"""
+Output: Qnuux fxaum!
+If key 13 is used, the cipher is also called ROT13
+
+Arguments:
+datastr     -- string containing the text to encrypt
+rott        -- the rotating key too use (default 13)"""
     result = ''
     for c in datastr:
         result += rot(c, rott)
@@ -480,12 +506,20 @@ Output: Qntt"""
 
 
 def caesar_decrypt(datastr, rott=13):
+    """Decrypting a Caesar cipher, by rotating the datastring back.
+See caesar_encrypt.__doc__ for more information.
+
+Arguments:
+datastr     -- string containing the text to encrypt
+rott        -- the rotating key too use (default 13)"""
     return caesar_encrypt(datastr, 26-rott)
 
 
 # DETECT ENCRYPTION
 # ---------------------------------------------------------
 def detect_cipher(datastr, key, interactive=False):
+    """Trying to detect which decryption to use for a given text."""
+    # TODO Finish this function and __doc__
     cipher = ''
     if key:
         if key.isdigit():
@@ -517,16 +551,20 @@ def detect_cipher(datastr, key, interactive=False):
 # MAIN PROGRAM
 # ---------------------------------------------------------
 def args_settings(args, parser):
-    """Helper function for input handling and error messages"""
+    """Helper function for input handling and error messages.
+Arguments:
+args    -- parser.parse_args() object
+parser  -- argparse.ArgumentParser"""
     # obfuscate implies encyption
     if args.obfuscate:
         args.encrypt = True
     # keylength and length key should correspond
     if args.key and args.length and len(args.key) != args.length:
         message = "Error: the given key '{}' and the given length {}\
-                   are not the same!\n Ommiting the keylength..."
-        print(re.sub(' +', ' ', message).format(args.key, args.length).strip(),
-              file=sys.stderr)
+                   are not the same!\n Ommiting the keylength..."\
+                   .format(args.key, args.length)
+        message = remove_extra_spaces(message)
+        print(message, file=sys.stderr)
         args.length = None
     # No punctuations and/or whitespace in a given key
     if args.key:
@@ -547,6 +585,28 @@ def args_settings(args, parser):
         message = "You need an integer key to use with a caesar cipher!\n"
         message += "Key given: " + args.key
         parser.error(message)
+    # An alphabetic key has to contain all letters of the alphabet
+    if args.cipher == 'alphabetic' and args.key:
+        key = args.key
+        if len(key) != 26:
+            message = "The length of the key ({}) is too small to use\
+                       in mono alphabetic cipher, key given: {}"\
+                       .format(len(key), key)
+            parser.error(message)
+        elif len(set(key)) != 26:
+            message = "Not a complete alhabet found\
+                       in mono alphabetic cipher key: {}"\
+                       .format(key)
+            parser.error(message)
+    # A key for the Vineger cipher can't contain digits...
+    # Already checked for punctuations in any given key
+    if args.cipher == 'vinegere' and args.key:
+        digits = re.compile('[' + st.digits + ']')
+        match = digits.findall(args.key)
+        if digits.search(args.key):
+            message = "You can't use digits in a Vigenere cipher key!\n"
+            message += 'Key given: ' + args.key
+            parser.error(message)
 
 
 def main():
@@ -616,10 +676,11 @@ See decipher.py -h for a brief help of it's functionality"""
                                      head=['ROT', 'chi-squared', 'text'])
                         message = "Rotation {} was used with an chi-squared\
                                    score of {}.\n\
-                                   Decrypting the message took {} seconds.\n"
-                        message = message.format(args.key, round(score, 2),
-                                                 round(time.time() - start, 3))
-                        message = re.sub(' +', ' ', message)
+                                   Decrypting the message took {} seconds.\n"\
+                                   .format(args.key,
+                                           round(score, 2),
+                                           round(time.time() - start, 3))
+                        message = remove_extra_spaces(message)
                         print(message)
                     return text
                 else:
@@ -687,15 +748,15 @@ See decipher.py -h for a brief help of it's functionality"""
                                 reverse=False
                             )
                         column_print(
-                                [(args.key, score, text)]
-                                + more_keys,
+                                [(args.key, score, text)] + more_keys,
                                 head=['key', 'chi-squared (mean)', 'text'])
                         message = "The key {} was used with an average\
-                                  chi-squared score of {}.\n"\
-                                  .format(args.key, round(score, 2))
-                        message += "Decrypting the message took {} seconds.\n"\
-                                   .format(round(time.time() - start, 3))
-                        message = re.sub(' +', ' ', message)
+                                   chi-squared score of {}.\n\
+                                   Decrypting the message took {} seconds.\n"\
+                                  .format(args.key,
+                                          round(score, 2),
+                                          round(time.time() - start, 3))
+                        message = remove_extra_spaces(message)
                         print(message)
                     return text
     datastr = ''
