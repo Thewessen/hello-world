@@ -11,12 +11,25 @@ from itertools import product
 
 # PARAMS
 # ---------------------------------------------------------
+# files
 DICTIONARY = "./dictionaries/dictionary.txt"
+WORDS = "./dictionaries/words"
+MONOGRAMS = "./dictionaries/monograms"
+BIGRAMS = "./dictionaries/bigrams"
+TRIGRAMS = "./dictionaries/trigrams"
+QUADGRAMS = "./dictionaries/quadgrams"
+
+# caching
+NGRAMS = {0: None,
+          1: None,
+          2: None,
+          3: None,
+          4: None}
 
 
 # TOOLS
 # ---------------------------------------------------------
-def get_ngram(N=1, ngram={0: None, 1: None, 2: None, 3: None, 4: None}):
+def get_ngram(N=1):
     """Returns corresponding ngram as an dictionary object, e.g.:
 bigram = {
     'TH':   0.0270569804001
@@ -32,25 +45,24 @@ N       -- ngram integer, choices:
              1 - monogram (default)
              2 - bigram
              3 - trigram
-             4 - quadgram
-Optional parameter ngram is used for memory optimization"""
-    wrd = [
-              'words',
-              'monograms',
-              'bigrams',
-              'trigrams',
-              'quadgrams'
+             4 - quadgram"""
+    sources = [
+                WORDS,
+                MONOGRAMS,
+                BIGRAMS,
+                TRIGRAMS,
+                QUADGRAMS
              ]
-    assert N < len(wrd)
-    if not ngram[N]:
-        ngram[N] = {}
-        source = './dictionaries/{}'.format(wrd[N])
-        with open(source) as fl:
+    assert N < len(sources)
+    if not NGRAMS[N]:
+        NGRAMS[N] = {}
+        print("Reading from file {}...".format(sources[N]))
+        with open(sources[N]) as fl:
             data = fl.read().splitlines()
         result = [d.split(' ') for d in data]
         for a, b in result:
-            ngram[N][a.strip()] = float(b)
-    return ngram[N]
+            NGRAMS[N][a.strip()] = float(b)
+    return NGRAMS[N]
 
 
 def clean_datastr(datastr):
@@ -173,7 +185,7 @@ max_width   --  integer for the maximum total width (default 79)"""
     if not nr_of_rows:
         nr_of_rows = len(data)
     if head:
-        data = [head, *data]
+        data = [head] + data
         nr_of_rows += 1
     # calculate the column width for each column
     column_width = [max(map(len, map(str, col))) + 2 for col in zip(*data)]
