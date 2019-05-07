@@ -16,13 +16,7 @@ DICTIONARY = "./dictionaries/dictionary.txt"
 
 # TOOLS
 # ---------------------------------------------------------
-def get_ngram(N=1, ngram={
-                        'words': {},
-                        'monograms': {},
-                        'bigrams': {},
-                        'trigrams': {},
-                        'quadgrams': {}
-                        }):
+def get_ngram(N=1, ngram={0: None, 1: None, 2: None, 3: None, 4: None}):
     """Returns corresponding ngram as an dictionary object, e.g.:
 bigram = {
     'TH':   0.0270569804001
@@ -40,23 +34,23 @@ N       -- ngram integer, choices:
              3 - trigram
              4 - quadgram
 Optional parameter ngram is used for memory optimization"""
-    ngrams = [
+    wrd = [
               'words',
               'monograms',
               'bigrams',
               'trigrams',
               'quadgrams'
              ]
-    assert N < len(ngrams)
-    dictio = ngram[ngrams[N]]
-    if not dictio:
-        source = './dictionaries/{}'.format(ngrams[N])
+    assert N < len(wrd)
+    if not ngram[N]:
+        ngram[N] = {}
+        source = './dictionaries/{}'.format(wrd[N])
         with open(source) as fl:
             data = fl.read().splitlines()
         result = [d.split(' ') for d in data]
         for a, b in result:
-            dictio[a.strip()] = float(b)
-    return dictio
+            ngram[N][a.strip()] = float(b)
+    return ngram[N]
 
 
 def clean_datastr(datastr):
@@ -462,6 +456,11 @@ def alphabetic_decrypt(datastr, key):
 
 # Simple Caesar cipher (ROT#)
 def caesar_encrypt(datastr, rott=13):
+    """A Caesar cipher uses rotation of the characters as they appear
+in the (English) alphabet, e.g.:
+Input: "Hello world!"
+key: 9
+Output: Qntt"""
     result = ''
     for c in datastr:
         result += rot(c, rott)
@@ -505,8 +504,8 @@ def detect_cipher(datastr, key, interactive=False):
 
 # MAIN PROGRAM
 # ---------------------------------------------------------
-# Some input handling and error messages
 def args_settings(args, parser):
+    """Helper function for input handling and error messages"""
     # obfuscate implies encyption
     if args.obfuscate:
         args.encrypt = True
@@ -518,26 +517,29 @@ def args_settings(args, parser):
               file=sys.stderr)
         args.length = None
     # No punctuations and/or whitespace in a given key
-    punctuations = re.compile('['+st.punctuation+st.whitespace+']')
-    match = punctuations.findall(args.key)
-    if match:
-        match = set(sorted(match))
-        subst = '{} or ' * (len(match) - 1) + '{}'
-        subst = "You can't use " + subst + ' in a cipher key!'
-        parser.error(subst.format(*match) + '\nKey given: ' + args.key)
+    if args.key:
+        punctuations = re.compile('['+st.punctuation+st.whitespace+']')
+        match = punctuations.findall(args.key)
+        if match:
+            match = set(sorted(match))
+            subst = '{} or ' * (len(match) - 1) + '{}'
+            subst = "You can't use " + subst + ' in a cipher key!\n'
+            message = subst.format(*match)
+            message += 'Key given: ' + args.key
+            parser.error(message)
     # An integer key means a rot cipher visa versa
-    if args.key.isdigit():
+    if args.key and args.key.isdigit():
         args.key = int(args.key)
         args.cipher = 'caesar'
-    elif args.cipher == 'caesar' and args.key:
-        parser.print_usage()
-        print("You need an integer key to use with a caesar cipher!")
-        print("Key given: {}".format(args.key))
-        parser.exit(2, message="Aborting...")
+    elif args.key and args.cipher == 'caesar':
+        message = "You need an integer key to use with a caesar cipher!\n"
+        message += "Key given: " + args.key
+        parser.error(message)
 
 
-# The program decipher.py reads from sys.args
 def main():
+    """Main function of the program. Uses argparse too read from stdin.
+See decipher.py -h for a brief help of it's functionality"""
     parser = argparse.ArgumentParser(prog='decipher',
                                      description='A commandline\
                                              deCipher tool.',
@@ -605,7 +607,7 @@ def main():
                                    Decrypting the message took {} seconds.\n"
                         message = message.format(args.key, round(score, 2),
                                                  round(time.time() - start, 3))
-                        message = re.sub(' +', '', message)
+                        message = re.sub(' +', ' ', message)
                         print(message)
                     return text
                 else:
@@ -681,6 +683,7 @@ def main():
                                   .format(args.key, round(score, 2))
                         message += "Decrypting the message took {} seconds.\n"\
                                    .format(round(time.time() - start, 3))
+                        message = re.sub(' +', ' ', message)
                         print(message)
                     return text
     datastr = ''
