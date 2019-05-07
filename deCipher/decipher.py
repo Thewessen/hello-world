@@ -54,7 +54,7 @@ N       -- ngram integer, choices:
                 QUADGRAMS
              ]
     assert N < len(sources)
-    if not NGRAMS[N]:
+    if NGRAMS[N] is None:
         NGRAMS[N] = {}
         print("Reading from file {}...".format(sources[N]))
         with open(sources[N]) as fl:
