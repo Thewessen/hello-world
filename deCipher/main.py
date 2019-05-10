@@ -1,143 +1,18 @@
 #!/usr/bin/python3
 
-import time
+import utils
 import re
-import random
 import string as st
 import numpy as np
+import time
 import argparse
 import sys
 from itertools import zip_longest
 from itertools import product
 
-# PARAMS
+
+# CAESAR ROT
 # ---------------------------------------------------------
-# files
-DICTIONARY = "./dictionaries/dictionary.txt"
-WORDS = "./dictionaries/words"
-MONOGRAMS = "./dictionaries/monograms"
-BIGRAMS = "./dictionaries/bigrams"
-TRIGRAMS = "./dictionaries/trigrams"
-QUADGRAMS = "./dictionaries/quadgrams"
-
-# caching
-NGRAMS = {0: None,
-          1: None,
-          2: None,
-          3: None,
-          4: None}
-
-
-# TOOLS
-# ---------------------------------------------------------
-def get_ngram(N=1):
-    """Returns corresponding ngram as an dictionary object, e.g.:
-bigram = {
-    'TH':   0.0270569804001
-    'HE':   0.0232854497343
-    'IN':   0.0202755339125
-    ...
-    string: float
-}
-
-Arguments:
-N       -- ngram integer, choices:
-             0 - words
-             1 - monogram (default)
-             2 - bigram
-             3 - trigram
-             4 - quadgram"""
-    sources = [
-                WORDS,
-                MONOGRAMS,
-                BIGRAMS,
-                TRIGRAMS,
-                QUADGRAMS
-             ]
-    assert N < len(sources)
-    if NGRAMS[N] is None:
-        NGRAMS[N] = {}
-        print("Reading from file {}...".format(sources[N]))
-        with open(sources[N]) as fl:
-            data = fl.read().splitlines()
-        result = [d.split(' ') for d in data]
-        for a, b in result:
-            NGRAMS[N][a.strip()] = float(b)
-    return NGRAMS[N]
-
-
-def clean_datastr(datastr):
-    """Removes whitespace and punctuations and returns string uppercased."""
-    remove = st.punctuation + st.whitespace
-    datastr = re.sub('['+remove+']', '', datastr)
-    return datastr.upper()
-
-
-def remove_extra_spaces(message):
-    """Removes extra (more then one) spaces in a string, often caused by
-indention"""
-    return re.sub(' +', ' ', message).strip()
-
-
-def IC(datastr):
-    """Index of Coincidence.
-Calculates the IC (Index of Coincidence) of a given string.
-Formula: IC = sum( n  * (n - 1) / (N * (N - 1)) )
-With...
-n: frequency of letter from alphabet in string
-N: total number of letters in string
-Alphabet: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-
-Input: string
-Return: float
-
-Used for cipher and/or keylength detection"""
-    datastr = clean_datastr(datastr)
-    n = 0.0
-    t = len(datastr)
-    t = t * (t - 1)
-    for c in st.ascii_uppercase:
-        o = datastr.count(c)
-        n += o * (o - 1)
-    return float(n) / t
-
-
-def group(datastr, blocksize=1, shift=False):
-    """Generate groups of characters in given string, e.g.:
-block: 'ABCDE' => 'AB','CD','E' <iterator>
-shift: 'ABCDE' => 'AB','BC','CD','DE' <iterator>
-Arguments:
-datastr     -- string
-blocksize   -- integer (default 1)
-shift       -- boolean (default False)"""
-    datastr = clean_datastr(datastr)
-    if shift:
-        rng = range(len(datastr)-blocksize+1)
-    else:
-        rng = range(0, len(datastr), blocksize)
-    for i in rng:
-        yield datastr[i:i+blocksize]
-
-
-def nthletter_group(datastr, blocksize):
-    """Yielding every nth-letter-group of each block of given blocksize, e.g.:
-"AAABBBCCCDDDD" => 'ABCDD','ABCD','ABCD' (with blocksize=3)
-Used for keylength ciphers like Vineger,
-too thread every nth letter as their own rot-cipher.
-Arguments:
-datastr     -- string
-blocksize   -- integer (keylength)"""
-    datastr = clean_datastr(datastr)
-    for i in range(blocksize):
-        nthletters = [datastr[c] for c in range(i, len(datastr), blocksize)]
-        yield "".join(nthletters)
-
-
-def sort_by_value(tuples, reverse=True):
-    """Sort list of tuples by their second element (used alot)"""
-    return sorted(tuples, key=lambda k: k[1], reverse=reverse)
-
-
 def rot(char, rotate):
     """Rotates an alphabetic char, e.g.:
 'A',2 => 'C'
@@ -161,88 +36,6 @@ rotate  -- integer used for rotation."""
     return chr(nr)
 
 
-def block_freq(datastr, blocksize=1, shift=True):
-    """Returns a sorted list of frequencies of each block/group of characters
-contained in the datastring, e.g.: [('TH',1337),(str,int),...]
-
-Arguments:
-datastr     -- string
-blocksize   -- integer of group size (default 1)
-shift       -- boolean if a group(,,shift) is to be used (default True)"""
-    datastr = clean_datastr(datastr)
-    blocks = group(datastr, blocksize, shift)
-    diction = {}
-    for b in blocks:
-        if b not in diction:
-            diction[b] = 1
-        else:
-            diction[b] += 1
-    return diction
-
-
-def column_print(data, head=[], nr_of_rows=0, max_width=79):
-    """Prints the given data in nice columns.
-
-Arguments:
-data        --  list of rows (list of list)
-head        --  optional list of heading for columns (default [])
-nr_of_rows  --  optional integer of rows to be printed,
-                not including the head (default everything)
-max_width   --  integer for the maximum total width (default 79)"""
-    if not nr_of_rows:
-        nr_of_rows = len(data)
-    if head:
-        data = [head] + data
-        nr_of_rows += 1
-    # calculate the column width for each column
-    column_width = [max(map(len, map(str, col))) + 2 for col in zip(*data)]
-    # Reduce column size for max-width, largest column first
-    while sum(column_width) > max_width:
-        i = column_width.index(max(column_width))
-        column_width[i] -= 1
-
-    def adjust(string, length):
-        if len(string) < length:
-            return string.ljust(length)
-        else:
-            # Padding is reduced too 1!
-            return string[:length-3] + ".. "
-
-    for row in data[:nr_of_rows]:
-        print("".join([adjust(str(attr), column_width[i])
-                      for i, attr in enumerate(row)]))
-
-
-# ANALYSE
-# ---------------------------------------------------------
-def chi_squared(datastr, blocksize=1):
-    """Calculate the chi-squared statistic of a given data string.
-This statistic is used to compare two distributions.
-Formula: chi-squared = sum( (Fd - Fe)**2 / Fe )
-With...
-Fd: Frequency of block/char in the datastring
-Fe: Expected frequency of block/char in the datastring
-
-Arguments:
-datastr     -- string with data
-blocksize   -- size of the grouped letters (default 1)
-ngram       -- ngram to use for reference
-
-The expected frequency is calculated by: len(datastring)*ngram-statistic(char),
-where ngram-statistic is the relative frequency in the english dictionary."""
-    ngram = get_ngram(blocksize)
-    freq = block_freq(datastr, blocksize)
-    total = len(datastr)
-    chi = 0
-    for k, v in freq.items():
-        if k in ngram.keys():
-            e = total * ngram[k]
-        else:
-            e = 0.01
-        chi += (v-e)**2/e
-    return chi
-
-
 def keylength_analyses(datastr, keylength=1):
     """Calculate the IC of each nthletter-grouped block.
 For finding the correct Vinegere keylength.
@@ -250,54 +43,20 @@ For finding the correct Vinegere keylength.
 Arguments:
 datastr     -- string with data
 keylength   -- size of the grouped letters (default 1)"""
-    datastr = clean_datastr(datastr)
+    datastr = utils.clean_datastr(datastr)
     if keylength > len(datastr):
         return (0.0, 0.0)
-    blocks = nthletter_group(datastr, keylength)
+    blocks = utils.nthletter_group(datastr, keylength)
     ics = []
     for b in blocks:
         if len(b) >= keylength:
-            ics.append(IC(b))
+            ics.append(utils.IC(b))
     if len(ics) > 1:
         return (np.mean(ics), np.std(ics))
     elif len(ics) == 1:
         return (ics[0], 0.0)
     else:
         return (0.0, 0.0)
-
-
-def relative_block_freq(datastr, blocksize=1):
-    """Calculate the block-frequency (shifted) in a datastr
-and appends the relative frequency to the data
-
-Arguments:
-datastr     -- string with data
-blocksize   -- size of the grouped letters (default 1)"""
-    freq = block_freq(datastr, blocksize)
-    total = len(datastr)
-    for b, f in freq.items():
-        freq[b] = (f, float(f*len(b))/total)
-    return freq
-
-
-def score_english(text):
-    """Try and determin if a text is English. Returns the precentage (float)
-of English words found in the text."""
-    # Get all the words from the DICTIONARY file
-    with open(DICTIONARY) as f:
-        english_words = f.read().split()
-    # and make sorted list, largest word first
-    english_words.sort(key=lambda s: len(s), reverse=True)
-    # Calculate a score based on the remaining text
-    t = text
-    for w in english_words:
-        if len(w) > len(t):
-            continue
-        if w in t:
-            t = "".join(t.split(w))
-        if len(t) == 0:
-            break
-    return float(len(text) - len(t)) / len(text) * 100
 
 
 # FIND KEYS
@@ -314,11 +73,11 @@ Returning, sorted by lowest chi-squared first:
         result.append(
            (
             i,
-            chi_squared(text),
+            utils.chi_squared(text),
             text
            )
         )
-    return sort_by_value(result, reverse=False)
+    return utils.sort_by_value(result, reverse=False)
 
 
 def alphabetic_compose_key(from_alpha, to_alpha):
@@ -344,8 +103,8 @@ Any whitespace or punctuations is removed from the key"""
     EN_ALPHABET = "ETAONISRHLDUCMFWGPYBVKXJQZ"
     key = [''] * 26
     # Clean key's
-    from_alpha = clean_datastr(from_alpha)
-    to_alpha = clean_datastr(to_alpha)
+    from_alpha = utils.clean_datastr(from_alpha)
+    to_alpha = utils.clean_datastr(to_alpha)
     for i in range(len(from_alpha)):
         key[ord(from_alpha[i])-65] = to_alpha[i]
     # fill the gaps...
@@ -383,7 +142,7 @@ If not interactive, the list only contains one tuple.
 Asuming the best key is the right key,
 generating more key's is very performance heavy,
 hence the optional argument 'interactive'."""
-    groups = nthletter_group(datastr, keylength)
+    groups = utils.nthletter_group(datastr, keylength)
     nth_rot = []
     for b in groups:
         nth_rot.append([(rot, ic) for rot, ic, __ in find_ROT(b)[:2]])
@@ -406,8 +165,8 @@ hence the optional argument 'interactive'."""
 def obfuscate(datastr):
     """Removes punctuations and whitespace,
 makes uppercase, and groups by 5 chars/letters"""
-    datastr = clean_datastr(datastr)
-    groups = list(group(datastr, 5))
+    datastr = utils.clean_datastr(datastr)
+    groups = list(utils.group(datastr, 5))
     return " ".join(groups)
 
 
@@ -427,7 +186,7 @@ key         -- key containing ascii uppercase letters
 fn          -- function for calculating ROT (encrypt/decrypt)
 Only letters whill be encrypted, everything else is skipped!"""
     result = ''
-    key = clean_datastr(key)
+    key = utils.clean_datastr(key)
     i = 0
     for c in datastr:
         if c in st.ascii_letters:
@@ -461,7 +220,7 @@ Punctuations, whitespace and digits in the datastring are skipped.
 Arguments:
 datastr     -- string containing the text to encrypt
 key         -- string of letters containing the alphabet bijection"""
-    key = clean_datastr(key)
+    key = utils.clean_datastr(key)
     result = ''
     for c in datastr:
         if c in st.ascii_letters:
@@ -475,6 +234,7 @@ key         -- string of letters containing the alphabet bijection"""
     return result
 
 
+# Mono aplhabetic substitution decryption
 def alphabetic_decrypt(datastr, key):
     """Decrypting a mono-alphabetic substitution cipher.
 The given key is inversed.
@@ -486,6 +246,7 @@ key         -- string containing the alphabet bijection for encryption"""
     return alphabetic_encrypt(datastr, decr_key)
 
 
+# Simple Caesar cipher (ROT#)
 def caesar_encrypt(datastr, rott=13):
     """A Caesar cipher uses rotation of the characters as they appear
 in the (English) alphabet, e.g.:
@@ -546,67 +307,6 @@ def detect_cipher(datastr, key, interactive=False):
     return cipher
 
 
-def decrypt_caesar_without_key(datastr, interactive=False):
-    if interactive:
-        start = time.time()
-    result = find_ROT(datastr)
-    (key, score, text) = result[0]
-    if interactive:
-        column_print(result,
-                     head=['ROT', 'chi-squared', 'text'])
-        message = "Rotation {} was used with an chi-squared\
-                   score of {}.\n\
-                   Decrypting the message took {} seconds.\n"\
-                   .format(key,
-                           round(score, 2),
-                           round(time.time() - start, 3))
-        message = remove_extra_spaces(message)
-        print(message)
-    return text
-
-
-def decrypt_vinegere_without_key(datastr, length=None, interactive=False):
-    if interactive:
-        start = time.time()
-    if length is None:
-        key_ls = find_vin_keylength(datastr)
-        length = np.gcd.reduce([kl[0] for kl in key_ls])
-        if interactive:
-            column_print(key_ls,
-                         head=[
-                            'KL',
-                            'IC-analyses (mean)',
-                            'IC-analyses (standard deviation)'
-                         ])
-            if len(key_ls) > 1:
-                message = "The keylength is possibly {}.\n"\
-                          .format(length)
-                print(message)
-            else:
-                print('')
-    result = gen_vin_keys(datastr, length)
-    (key, score, text) = next(result)
-    if interactive:
-        # Generate more key's just to be fancy ; )
-        more_keys = sort_by_value(
-                [next(result) for __ in range(2*length)],
-                reverse=False
-            )
-        column_print(
-                [(key, score, text)] + more_keys,
-                head=['key', 'chi-squared (mean)', 'text'])
-        message = "The key {} was used with an average\
-                   chi-squared score of {}.\n\
-                   Decrypting the message took {} seconds."\
-                  .format(key,
-                          round(score, 2),
-                          round(time.time() - start, 3))
-        message = remove_extra_spaces(message)
-        print(message)
-        print('')
-    return text
-
-
 # MAIN PROGRAM
 # ---------------------------------------------------------
 def args_settings(args, parser):
@@ -618,17 +318,15 @@ parser  -- argparse.ArgumentParser"""
     if args.obfuscate:
         args.encrypt = True
     # keylength and length key should correspond
-    if args.key is not None\
-        and args.length is not None\
-            and len(args.key) != args.length:
+    if args.key and args.length and len(args.key) != args.length:
         message = "Error: the given key '{}' and the given length {}\
                    are not the same!\n Ommiting the keylength..."\
                    .format(args.key, args.length)
-        message = remove_extra_spaces(message)
+        message = utils.remove_extra_spaces(message)
         print(message, file=sys.stderr)
         args.length = None
     # No punctuations and/or whitespace in a given key
-    if args.key is not None:
+    if args.key:
         punctuations = re.compile('['+st.punctuation+st.whitespace+']')
         match = punctuations.findall(args.key)
         if match:
@@ -639,15 +337,15 @@ parser  -- argparse.ArgumentParser"""
             message += 'Key given: ' + args.key
             parser.error(message)
     # An integer key means a rot cipher visa versa
-    if args.key is not None and args.key.isdigit():
+    if args.key and args.key.isdigit():
         args.key = int(args.key)
         args.cipher = 'caesar'
-    elif args.key is not None and args.cipher == 'caesar':
+    elif args.key and args.cipher == 'caesar':
         message = "You need an integer key to use with a caesar cipher!\n"
         message += "Key given: " + args.key
         parser.error(message)
     # An alphabetic key has to contain all letters of the alphabet
-    if args.cipher == 'alphabetic' and args.key is not None:
+    if args.cipher == 'alphabetic' and args.key:
         key = args.key
         if len(key) != 26:
             message = "The length of the key ({}) is too small to use\
@@ -661,44 +359,13 @@ parser  -- argparse.ArgumentParser"""
             parser.error(message)
     # A key for the Vineger cipher can't contain digits...
     # Already checked for punctuations in any given key
-    if args.cipher == 'vinegere' and args.key is not None:
+    if args.cipher == 'vinegere' and args.key:
         digits = re.compile('[' + st.digits + ']')
+        match = digits.findall(args.key)
         if digits.search(args.key):
             message = "You can't use digits in a Vigenere cipher key!\n"
             message += 'Key given: ' + args.key
             parser.error(message)
-    # Generate a random key when no key is given...
-    if args.cipher == 'caesar' and args.encode and args.key is None:
-        message = "No rotation given for encoding the data using a\
-                   Caesar rotation cipher!\n"
-        sec_random = random.SystemRandom()
-        args.key = sec_random.randint(1, 26)
-        message += "Using rotation: {}".format(args.key)
-        message = remove_extra_spaces(message)
-        print(message, file=sys.stderr)
-    if args.cipher == 'alphabetic' and args.encode and args.key is None:
-        message = "No key given for encoding the data using mono\
-                   alphabetic substitution cipher!\
-                   Generating a random key...\n"
-        alpha = list(st.ascii_uppercase)
-        random.shuffle(alpha)
-        args.key = "".join(alpha)
-        message += "Using key: {}".format(args.key)
-        message = remove_extra_spaces(message)
-        print(message, file=sys.stderr)
-    if args.cipher == 'vinegere' and args.encode and args.key is None:
-        message = "No key given for encoding the data using Vineger\
-                   encryption! Generating a random key using a word list\
-                   ...\n"
-        with open(DICTIONARY) as di:
-            words = di.read().splitlines()
-        sec_random = random.SystemRandom()
-        args.key = ''
-        while len(args.key) < 9:
-            args.key += sec_random.choice(words)
-        message += "Using key: {}".format(args.key)
-        message = remove_extra_spaces(message)
-        print(message, file=sys.stderr)
 
 
 def main():
@@ -738,53 +405,119 @@ See decipher.py -h for a brief help of it's functionality"""
                         help='Give the frequency analyses of block size N\
                               for the given data.')
     args = parser.parse_args()
+    args_settings(args, parser)
     if args.interactive:
         print("Arguments:")
         for k in vars(args):
             v = getattr(args, k)
             print("{} = {}".format(k, v))
         print('')
-    args_settings(args, parser)
-
     # Setup the right function to use
+
     def fn(dstr):
-        if args.cipher == "caesar" and args.encode:
-            result = caesar_encrypt(dstr, args.key)
-            if args.obfuscate:
-                return obfuscate(result)
+        if args.cipher == "caesar":
+            if args.encode:
+                if not args.key:
+                    args.key = 13
+                result = caesar_encrypt(dstr, args.key)
+                if args.obfuscate:
+                    return obfuscate(result)
+                else:
+                    return result
             else:
-                return result
-        if args.cipher == "caesar" and not args.encode:
-            if not args.key:
-                return decrypt_caesar_without_key(dstr, args.interactive)
-            else:
-                return caesar_decrypt(dstr, args.key)
-        if args.cipher == "alphabetic" and args.encode:
-            result = alphabetic_encrypt(dstr, args.key)
-            if args.obfuscate:
-                return obfuscate(result)
-            else:
-                return result
-        if args.cipher == 'alphabetic' and not args.encode:
+                if not args.key:
+                    if args.interactive:
+                        start = time.time()
+                    result = find_ROT(dstr)
+                    (args.key, score, text) = result[0]
+                    if args.interactive:
+                        utils.column_print(
+                                result,
+                                head=['ROT', 'chi-squared', 'text'])
+                        message = "Rotation {} was used with an chi-squared\
+                                   score of {}.\n\
+                                   Decrypting the message took {} seconds.\n"\
+                                   .format(args.key,
+                                           round(score, 2),
+                                           round(time.time() - start, 3))
+                        message = utils.remove_extra_spaces(message)
+                        print(message)
+                    return text
+                else:
+                    return caesar_decrypt(dstr, args.key)
+        if args.cipher == "alphabetic":
             if args.key:
-                return alphabetic_decrypt(dstr, args.key)
+                if args.encode:
+                    result = alphabetic_encrypt(dstr, args.key)
+                    if args.obfuscate:
+                        return obfuscate(result)
+                    else:
+                        return result
+                else:
+                    return alphabetic_decrypt(dstr, args.key)
             else:
                 # TODO: Find the key!!
                 # freq = block_freq(dstr,3)
-                print(chi_squared(dstr, 3))
-                # column_print(chi_squared(freq),head=['block','chi'])
-        if args.cipher == "vinegere" and args.encode:
-            result = vinegere_encrypt(dstr, args.key)
-            if args.obfuscate:
-                return obfuscate(result)
-            else:
-                return result
-        if args.cipher == "vinegere" and not args.encode:
+                print(utils.chi_squared(dstr, 3))
+                # utils.column_print(utils.chi_squared(freq),head=['block','chi'])
+        if args.cipher == "vinegere":
             if args.key:
-                return vinegere_decrypt(dstr, args.key)
+                if args.encode:
+                    result = vinegere_encrypt(dstr, args.key)
+                    if args.obfuscate:
+                        return obfuscate(result)
+                    else:
+                        return result
+                else:
+                    return vinegere_decrypt(dstr, args.key)
             else:
-                return decrypt_vinegere_without_key(
-                           dstr, args.length, args.interactive)
+                if args.encode:
+                    print("Give an alphabetic key too use for encoding:")
+                    args.key = input()
+                    result = vinegere_encrypt(dstr, args.key)
+                    if args.obfuscate:
+                        return obfuscate(result)
+                    else:
+                        return result
+                else:
+                    if args.interactive:
+                        start = time.time()
+                    if not args.length:
+                        key_ls = find_vin_keylength(dstr)
+                        args.length = np.gcd.reduce([kl[0] for kl in key_ls])
+                        if args.interactive:
+                            utils.column_print(
+                                key_ls,
+                                head=['KL', 'IC-analyses (mean)',
+                                      'IC-analyses (standard deviation)']
+                            )
+                            if len(key_ls) > 1:
+                                message = "The keylength is possibly {}.\n"\
+                                          .format(args.length)
+                                print(message)
+                            else:
+                                print('')
+                    result = gen_vin_keys(dstr, args.length)
+                    (args.key, score, text) = next(result)
+                    if args.interactive:
+                        # Generate more key's just to be fancy ; )
+                        more_keys = utils.sort_by_value(
+                                [next(result) for __ in range(2*args.length)],
+                                reverse=False
+                            )
+                        utils.column_print(
+                                [(args.key, score, text)] + more_keys,
+                                head=['key', 'chi-squared (mean)', 'text'])
+                        message = "The key {} was used with an average\
+                                   chi-squared score of {}.\n\
+                                   Decrypting the message took {} seconds.\n"\
+                                  .format(args.key,
+                                          round(score, 2),
+                                          round(time.time() - start, 3))
+                        message = utils.remove_extra_spaces(message)
+                        print(message)
+                        print('')
+                    return text
     datastr = ''
     for d in args.files:
         try:
@@ -796,8 +529,10 @@ See decipher.py -h for a brief help of it's functionality"""
             exit(2)
         datastr = datastr.strip()
         if args.freq:
-            dstr = clean_datastr(datastr)
-            freq = sort_by_value(relative_block_freq(dstr, args.freq))
+            dstr = utils.clean_datastr(datastr)
+            freq = utils.sort_by_value(
+                    utils.relative_block_freq(dstr, args.freq)
+                   )
             # devide over four columns for printing...
             col_L = int(np.ceil(len(freq)/4))
             rows = [c1 + c2 + c3 + c4 for c1, c2, c3, c4 in zip_longest(
@@ -807,9 +542,11 @@ See decipher.py -h for a brief help of it's functionality"""
                         freq[3*col_L:],
                         fillvalue=('', '')
                     )]
-            column_print(rows,
-                         head=['blk', 'frequency']*4,
-                         max_width=79)
+            utils.column_print(
+                rows,
+                head=['blk', 'frequency']*4,
+                max_width=79
+            )
         if args.interactive:
             print("Input data:\n {} \n".format(datastr))
         if not args.cipher:
