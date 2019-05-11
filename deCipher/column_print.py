@@ -1,27 +1,7 @@
 #!/usr/bin/python3
 
-# Example...
 
-# monogram:      found1:              found2:              found3:
-# blk  relative  blk  freq  relative  blk  freq  relative  blk  freq  relative
-# THE  0.01814   JDS  19    0.044     JDS  33    0.056     JDS  9     0.058
-# AND  0.007252  DSN  11    0.026     SQN  16    0.027     QGW  7     0.045
-# ING  0.007178  QGW  11    0.026     UDQ  12    0.02      SNS  4     0.026
-# ENT  0.004188  SUQ  10    0.023     JSN  12    0.02      CGE  4     0.026
-# ION  0.004157  JCB  10    0.023     SNS  11    0.019     DSN  3     0.019
-# HER  0.003574  CBG  10    0.023     QNS  11    0.019     NQG  3     0.019
-# FOR  0.003436  DCU  10    0.023     DQF  10    0.017     GWQ  3     0.019
-# THA  0.003327  ZCY  8     0.019     QFS  10    0.017     JDQ  3     0.019
-# NTH  0.003303  CYD  8     0.019     FSU  10    0.017     UZQ  3     0.019
-
-# Data:
-# head = ['monogram:', 'found1:', 'found2:', 'found3:']
-# data =
-# import string as st
-import re
-# from itertools import zip_longest
-
-
+# Maybe a pointer is necessary?
 class Cell:
     def __init__(self, value):
         self.value = value
@@ -38,21 +18,73 @@ class Cell:
 
 
 class Table:
-    def __init__(self, rows=0, columns=0, title='', fill=''):
-        self._rows = [[Cell(fill) for j in range(columns)]
-                      for i in range(rows)]
+    def __init__(self, rows=0, columns=0, max_width=None,
+                 title='', head=None, fill='',
+                 col_sep='|', row_sep='+-'):
+        self._head = head
+        self._rows = [[Cell(fill) for __ in range(columns)]
+                      for __ in range(rows)]
+        if len(col_sep) > 1:
+            raise ValueError("The column seperator can't be greater then one!")
+        if len(row_sep) > 2:
+            message =\
+                "Max two chars are used for a row seperator"
+            raise ValueError(message)
+        self._col_sep = col_sep + ' '
+        if len(row_sep) == 1:
+            self._row_sep = row_sep * 2
+        elif row_sep == '':
+            self._row_sep = None
+        else:
+            self._row_sep = row_sep
+        self.max_width = max_width
 
     def __str__(self):
-        return "This is a test"
+        M = []
+        for column in zip(*self._rows):
+            M.append(max(len(str(c)) + len(self._col_sep) - 1
+                     for c in column))
+        # Trunk the width of each column
+        # Starting with the largest column
+        if self.max_width is not None:
+            col_max = self.max_width - len(self._col_sep) * (len(M) - 1)
+            while sum(M) > col_max:
+                i = M.index(max(M))
+                M[i] -= 1
+        string = ''
+        if self._head is not None:
+            string += self._col_sep.join(
+                            [self._adjust(str(h), M[i])
+                             for i, h in enumerate(self._head)])
+            string += '\n'
+            # Fill with row seperator
+            if self._row_sep is not None:
+                for i, j in enumerate(M):
+                    string += self._row_sep[1:] * j
+                    if i < len(M) - 1:
+                        string += self._row_sep
+                string += '\n'
+        for j, row in enumerate(self._rows):
+            string += self._col_sep.join(
+                            [self._adjust(str(c), M[i])
+                             for i, c in enumerate(row)])
+            if j < len(self._rows) - 1:
+                string += '\n'
+        return string
 
     def __repr__(self):
-        message = "<ColumnPrint object:\
-                    currencly holding {} columns and {} rows>"\
-                    .format(len(self._rows[0]), len(self._rows))
-        return re.sub(' +', ' ', message)
+        # message =\
+        #     "<ColumnPrint object: currencly holding {} columns and {} rows>"\
+        #     .format(len(self._rows[0]), len(self._rows))
+        return "<Table>"
 
     def __len__(self):
-        return 5
+        M = []
+        for column in zip(*self._rows):
+            M.append(max(len(str(c)) + len(self._col_sep) + 1
+                     for c in column))
+        # Returns the total length of the table
+        return sum(M) - len(self._col_sep)
 
     def log(self, row=None, column=None):
         if row is None and column is None:
@@ -75,9 +107,12 @@ class Table:
         else:
             return self._rows[row][column]
 
-    def add_row(self, head='', data=[], fill=''):
+    def add_row(self, data=[], fill=''):
         row = []
-        width = len(self._rows[0])
+        if len(self._rows) == 0:
+            width = len(data)
+        else:
+            width = len(self._rows[0])
         while len(data) > width:
             self.add_column()
         for i in range(width):
@@ -88,22 +123,49 @@ class Table:
             row.append(Cell(value))
         self._rows.append(row)
 
-    def add_column(self, head='', data=[], fill=''):
-        col = []
+    def add_head(self, data=[], fill=''):
+        head = []
+        for i in range(len(data)):
+            head.append(Cell(data[i]))
+        self._head = head
+
+    def add_column(self, head=None, data=[], fill=''):
         length = len(self._rows)
         while len(data) > length:
             self.add_row()
+            length = len(self._rows)
+        print(length)
         for i in range(length):
             if i < len(data):
                 value = data[i]
             else:
                 value = fill
             self._rows[i].append(value)
+        if self._head is None and head is not None:
+            raise Exception("Head is not yet set!")
+        if head is not None:
+            while len(self._head) < len(self._rows[0]) - 1:
+                self._head.append('')
+            self._head.append(head)
+
+    def _adjust(self, string, length):
+        if repr(string) == '<Table>':
+            string.max_width = length + len(self._col_sep)
+        elif len(str(string)) > length:
+            # Padding is reduced too 1!
+            return str(string)[:length-2] + '..'
+        else:
+            return str(string).ljust(length)
 
 
-# def calc_max_width(iteratable):
+# def calcmax_width(iteratable):
 if __name__ == '__main__':
-    C = Table(5, 5, fill='hello')
-    C.add_row(data=[1, 2, 3], fill='hey')
-    C.add_row(data=[1, 2, 3], fill='hey')
-    C.log(row=5)
+    T = Table()
+    T.add_head(data=['found1', 'found2', 'found3'])
+    alph = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    F1 = Table()
+    F1.add_column(head='blk',
+                  data=[alph[i:i+2] for i in range(0, len(alph), 2)])
+    F1.add_column(head='freq', data=[i for i in range(13)])
+    F1.add_column(head='mean', data=[float(i) for i in range(15, 80, 5)])
+    print(F1)
