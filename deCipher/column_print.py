@@ -22,9 +22,25 @@ import re
 # from itertools import zip_longest
 
 
-class ColumnPrint:
-    def __init__(self):
-        self._rows = []
+class Cell:
+    def __init__(self, value):
+        self.value = value
+
+    def __repr__(self):
+        return "<Cell object: value='{}'>"\
+                .format(self.value)
+
+    def __str__(self):
+        return str(self.value)
+
+    def __len__(self):
+        return len(str(self.value))
+
+
+class Table:
+    def __init__(self, rows=0, columns=0, title='', fill=''):
+        self._rows = [[Cell(fill) for j in range(columns)]
+                      for i in range(rows)]
 
     def __str__(self):
         return "This is a test"
@@ -32,12 +48,62 @@ class ColumnPrint:
     def __repr__(self):
         message = "<ColumnPrint object:\
                     currencly holding {} columns and {} rows>"\
-                    .format(len(self._cols), len(self._rows))
+                    .format(len(self._rows[0]), len(self._rows))
         return re.sub(' +', ' ', message)
+
+    def __len__(self):
+        return 5
+
+    def log(self, row=None, column=None):
+        if row is None and column is None:
+            print(self._rows)
+        elif row is None:
+            for row in self._rows:
+                print(row[column])
+        elif column is None:
+            print(' '.join(str(cell) for cell in self._rows[row]))
+        else:
+            print(self._rows[row][column])
+
+    def get(self, row=None, column=None):
+        if row is None and column is None:
+            return self
+        elif row is None:
+            return [c[column] for c in zip(*self._rows)]
+        elif column is None:
+            return self._rows[row]
+        else:
+            return self._rows[row][column]
+
+    def add_row(self, head='', data=[], fill=''):
+        row = []
+        width = len(self._rows[0])
+        while len(data) > width:
+            self.add_column()
+        for i in range(width):
+            if i < len(data):
+                value = data[i]
+            else:
+                value = fill
+            row.append(Cell(value))
+        self._rows.append(row)
+
+    def add_column(self, head='', data=[], fill=''):
+        col = []
+        length = len(self._rows)
+        while len(data) > length:
+            self.add_row()
+        for i in range(length):
+            if i < len(data):
+                value = data[i]
+            else:
+                value = fill
+            self._rows[i].append(value)
 
 
 # def calc_max_width(iteratable):
 if __name__ == '__main__':
-    C = ColumnPrint()
-    print(C)
-    print(str(C))
+    C = Table(5, 5, fill='hello')
+    C.add_row(data=[1, 2, 3], fill='hey')
+    C.add_row(data=[1, 2, 3], fill='hey')
+    C.log(row=5)
