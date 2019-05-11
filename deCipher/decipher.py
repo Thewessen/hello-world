@@ -74,9 +74,12 @@ def clean_datastr(datastr):
 
 def remove_extra_spaces(message):
     """Removes extra (more then one) spaces in a string, often caused by
-indention"""
+indention. Indention is converted to a space."""
     message = re.sub('^ ', '', message)
-    return re.sub(' +', ' ', message)
+    message = re.sub(r'([\n\r]+) ', r'\1', message)
+    message = re.sub(r'\t', ' ', message)
+    message = re.sub(' +', ' ', message)
+    return message
 
 
 def IC(datastr):
@@ -795,6 +798,7 @@ See decipher.py -h for a brief help of it's functionality"""
             freq = relative_block_freq(dstr, args.freq)
             freq = [(k, f, round(r, 3)) for k, (f, r) in freq.items()]
             freq = sort_by_value(freq)
+            # Collect data for column_print
             clm_rows.append(freq)
             continue
         if args.interactive:
@@ -809,6 +813,7 @@ See decipher.py -h for a brief help of it's functionality"""
         print(output)
     if args.freq is not None:
         rows = []
+        # The corresponding regular English ngram in the first column
         first_col = [(b, round(r, 6))
                      for b, r in get_ngram(args.freq).items()]
         # The first column has to be the longest column, otherwise the fill
