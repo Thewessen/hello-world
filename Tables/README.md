@@ -117,11 +117,13 @@ methods:
                    (starting at 0)
     nr_of_rows()
         Returns the numbers of rows in the Table as integer.
-      nr_of_columns()
-          Returns the numbers of columns in the Table as integer.
-      set_max_width(i)
-          Sets the max_width of the Table
-          i       -- Integer of maxs width (in chars)
+    
+    nr_of_columns()
+        Returns the numbers of columns in the Table as integer.
+
+    set_max_width(i)
+        Sets the max_width of the Table
+        i       -- Integer of maxs width (in chars)
 
 ### Notes
 - When setting max_width Table tries too shrink largest column first,
