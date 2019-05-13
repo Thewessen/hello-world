@@ -11,16 +11,36 @@ There are better tested modules on the web:
 But they can't do what this baby can do ; )
 Look at this awesome print!
 ```
-found1                       | found2        
-=============================+===============
-blk| f..| mean               | blk| f..| mean
----+----+-----               | ---+----+-----
-AB | 0  | 80                 | AB | 0  | 80  
-CD | 1  | 75                 | CD | 1  | 75  
-EF | 2  | 70                 | EF | 2  | 70  
-GH | 3  | 65                 | GH | 3  | 65  
-IJ | 4  | 60                 | IJ | 4  | 60  
-\n is allowed inside a cell! | the end...    
+This column contains a table with       This column also contains some fancy   
+three columns each containing a table   nested tables!                         
+with three columns!                                                            
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+found1            | found2              found1             | found2            
+==================+===================  ===================+===================
+blk| f..| m..| w..| blk| f..| m..| h..  blk| f..| mean| w..| blk| f..| m..| h..
+---+----+----+----| ---+----+----+----  ---+----+-----+----| ---+----+----+----
+AB | 0  | 8  | \n | AB | 0  | 8  | \n   AB | 0  | 8.9 | \n | AB | 0  | 8  | \n 
+   |    |    | \n |    |    |    | \n      |    |     | \n |    |    |    | \n 
+   |    |    | \n |    |    |    | \n      |    |     | \n |    |    |    | \n 
+   |    |    |    |    |    |    |         |    |     |    |    |    |    |    
+CD | 1  | 8  | \n | CD | 1  | 8  | \n   CD | 1  | 8.3 | \n | CD | 1  | 8  | \n 
+   |    |    | \n |    |    |    | \n      |    |     | \n |    |    |    | \n 
+   |    |    | \n |    |    |    | \n      |    |     | \n |    |    |    | \n 
+   |    |    |    |    |    |    |         |    |     |    |    |    |    |    
+EF | 2  | 7  | \n | EF | 2  | 7  | \n   EF | 2  | 7.8 | \n | EF | 2  | 7  | \n 
+   |    |    | \n |    |    |    | \n      |    |     | \n |    |    |    | \n 
+   |    |    | \n |    |    |    | \n      |    |     | \n |    |    |    | \n 
+   |    |    |    |    |    |    |         |    |     |    |    |    |    |    
+GH | 3  | 7  | \n | GH | 3  | 7  | \n   GH | 3  | 7.2 | \n | GH | 3  | 7  | \n 
+   |    |    | \n |    |    |    | \n      |    |     | \n |    |    |    | \n 
+   |    |    | \n |    |    |    | \n      |    |     | \n |    |    |    | \n 
+   |    |    |    |    |    |    |         |    |     |    |    |    |    |    
+IJ | 4  | 6  | \n | IJ | 4  | 6  | \n   IJ | 4  | 6.7 | \n | IJ | 4  | 6  | \n 
+   |    |    | \n |    |    |    | \n      |    |     | \n |    |    |    | \n 
+   |    |    | \n |    |    |    | \n      |    |     | \n |    |    |    | \n 
+   |    |    |    |    |    |    |         |    |     |    |    |    |    |    
+\n is allowed     | the end...          \n is allowed      | the end...        
+inside a cell!    |                     inside a cell!     |                   
 ```
 ### Goodies
 + Nested tables are allowed!
