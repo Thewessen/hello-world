@@ -10,7 +10,7 @@ There are better tested modules on the web:
 
 But they can't do what this baby can do ; )
 Look at this awesome print!
-
+```
 found1                       | found2        
 =============================+===============
 blk| f..| mean               | blk| f..| mean
@@ -21,7 +21,7 @@ EF | 2  | 70                 | EF | 2  | 70
 GH | 3  | 65                 | GH | 3  | 65  
 IJ | 4  | 60                 | IJ | 4  | 60  
 \n is allowed inside a cell! | the end...    
-
+```
 ### Goodies
 + Nested tables are allowed!
 + Newlines in a cell are allowed
@@ -34,15 +34,16 @@ IJ | 4  | 60                 | IJ | 4  | 60
 (Inspired by prettytable)
 1. Create a new table object:
    mytable = Table()
-2. Add rows, columns as you like:
-   mytable.add_row(['A', 'row', 'with', 'five', 'columns'])
-   mytable.add_column(head='column',
-                      data=['A', 'column', 'with', 'five', 'rows'])
+2. Add rows 
+```mytable.add_row(['A', 'row', 'with', 'five', 'columns'])```
+   and/or columns 
+```mytable.add_column(head='column', data=['A', 'column', 'with', 'five', 'rows'])```
 3. Add/replace heading:
-   mytable.add_head(['This', 'table', 'looks', 'awesome'])
+```mytable.add_head(['This', 'table', 'looks', 'awesome'])```
 4. Print the table:
-   print(mytable)
+```print(mytable)```
 
+```
 T..| ta..| looks| awe..|         |
 ---+-----+------+------+---------+-------
 A  | row | with | five | columns | A
@@ -50,7 +51,7 @@ A  | row | with | five | columns | A
    |     |      |      |         | with
    |     |      |      |         | five
    |     |      |      |         | rows
-
+```
 Note: You can see the head isn't taken into account when calculating
 the column_width for printing, see Notes.
 
