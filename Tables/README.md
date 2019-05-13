@@ -84,12 +84,14 @@ methods:
           data    -- List containing the headings
           fill    -- Empty heading fill for excesive columns.
                      Note: If none given, the Table fill param is used!
+    
     add_row(data=[], fill=None)
         Add a list of row data to the table.
         data    -- List containing cell data.
         fill    -- The filling too use when creating more cells to fit
                    the Table size.
                    Note: If none given, the Table fill param is used!
+    
     add_column(head=None, data=[], fill=None)
         Add a list of column data to the table.
         head    -- The table heading of this column.
@@ -97,6 +99,7 @@ methods:
         fill    -- The filling too use when creating more cells to fit
                    the Table size.
                    Note: If none given, the Table fill param is used!
+    
     get(row=None, column=None)
         Returns an instance of the Table containing the heading and
         Cell(s) from the Table.
@@ -106,6 +109,7 @@ methods:
                    (index start at 0)
         column  -- Integer or range of the corresponding column
                    (index start at 0)
+    
     log(row=None, column=None)
         Prints the Cell, row or column.
         Same as print(Table.get(row, column))
@@ -115,6 +119,7 @@ methods:
                    (starting at 0)
         column  -- Integer or range of the corresponding column
                    (starting at 0)
+    
     nr_of_rows()
         Returns the numbers of rows in the Table as integer.
     
