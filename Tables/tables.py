@@ -18,7 +18,6 @@ class _Cell:
         else:
             value = self.set_max_width(value, max_width)
         self._max_width = max_width
-        self._height = len(str(value).split('\n'))
 
     def __repr__(self):
         """Representation of this object"""
@@ -37,6 +36,11 @@ class _Cell:
             return len(self.value)
         else:
             return max(len(v) for v in str(self.value).split('\n'))
+
+    def __iter__(self):
+        """Iterate over each trunked row of cells value"""
+        for line in str(self.value).split('\n'):
+            yield line
 
     def set_max_width(self, i):
         """Sets the maximum width of this Cell"""
@@ -63,7 +67,7 @@ class _Cell:
                     v = int(v)
             else:
                 v = str(v)
-        # If! not elif, because float still needs to be trunked!
+        # If, not elif, because float still needs to be trunked!
         if isinstance(v, int) and i is not None:
             if i is not None and len(str(round(v))) > i:
                 counter = 0
@@ -74,7 +78,7 @@ class _Cell:
                 v = str(v) + 'e' + str(counter)
             else:
                 v = str(v)
-        # If! not elif,
+        # If, not elif,
         # Tries to devide list (containing spaces) in multiple rows
         # Also further trunks integer after 'e' if needed
         if isinstance(v, str):
@@ -384,17 +388,12 @@ class Table:
                 M[i] -= 1
         return M
 
-    def _row_height(self, row):
-        return max(c._height for c in row)
-
     def _convert_row_to_string(self, row, sep):
-        cols = []
         string = ''
         W = self._calc_column_widths()
         for i, c in enumerate(row):
             c.set_max_width(W[i])
-            cols.append(str(c).split('\n'))
-        for line in zip_longest(*cols, fillvalue=self.fill):
+        for line in zip_longest(*row, fillvalue=''):
             for ii, l in enumerate(line):
                 string += l.ljust(W[ii])
                 if ii < len(W) - 1:
