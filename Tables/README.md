@@ -11,8 +11,8 @@ There are better tested modules on the web:
 But they can't do what this baby can do ; )
 Look at this awesome print!
 ```
-This column contains a table with       This column also contains some fancy   
-three columns each containing a table   nested tables!                         
+This column contains a table with       This column contains a copy of the left   
+three columns each containing a table   column!                         
 with three columns!                                                            
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 found1            | found2              found1             | found2            
