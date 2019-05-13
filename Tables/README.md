@@ -1,4 +1,4 @@
-#Making pretty column printed tables in Python
+# Making pretty column printed tables in Python
 
 For some of my projects I needed support for nested tables.
 I'm still learning Python, so I desided to wrote a module myself.
@@ -22,7 +22,7 @@ GH | 3  | 65                 | GH | 3  | 65
 IJ | 4  | 60                 | IJ | 4  | 60  
 \n is allowed inside a cell! | the end...    
 
-###Goodies
+### Goodies
 + Nested tables are allowed!
 + Newlines in a cell are allowed
 + Tries to break a long line into multiple lines before printing
@@ -30,7 +30,7 @@ IJ | 4  | 60                 | IJ | 4  | 60
 + Piping the output in terminal is possible, e.g. ... | head -10
 + Well documented.
 
-###Usages
+### Usages
 (Inspired by prettytable)
 1. Create a new table object:
    mytable = Table()
@@ -54,7 +54,7 @@ A  | row | with | five | columns | A
 Note: You can see the head isn't taken into account when calculating
 the column_width for printing, see Notes.
 
-###Module info
+### Module info
 tables.Table()
     Keyword arguments:
         rows        -- Number of initial rows (default 0)
@@ -117,7 +117,7 @@ Table object:
             Sets the max_width of the Table
             i       -- Integer of maxs width (in chars)
 
-###Notes
+### Notes
 - When setting max_width Table tries too shrink largest column first,
   This isn't always desirable, especially with nested tables of different
   sizes.
