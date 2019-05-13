@@ -57,24 +57,28 @@ the column_width for printing, see Notes.
 
 ### Module info
 tables.Table()
-    Keyword arguments:
-        rows        -- Number of initial rows (default 0)
-        columns     -- Number of initial columns (default 0)
-        fill        -- Empty cell fill (default '')
-        max_width   -- Max width of the Table for printing (default None)
-        col_sep     -- Seperator between columns (default '|')
-        head_sep    -- Seperator for heading/table.
+
+Keyword arguments:
+
+    rows        -- Number of initial rows (default 0)
+    columns     -- Number of initial columns (default 0)
+    fill        -- Empty cell fill (default '')
+    max_width   -- Max width of the Table for printing (default None)
+    col_sep     -- Seperator between columns (default '|')
+    head_sep    -- Seperator for heading/table.
                        First char is the char at crossing of head_sep with
                        col_sep, second char is the fillchar (default '+-')
                        When one char is given, crosschar and fillchar are
                        the same.
-Table object:
-    properties:
-        fill    -- String of the default fill for empty cells.
-        col_sep -- String of the column seperator used.
-        head_sep-- String of the head/table seperator used.
-    methods:
-        add_head(data=[], fill=None)
+Table object properties:
+
+    fill    -- String of the default fill for empty cells.
+    col_sep -- String of the column seperator used.
+    head_sep-- String of the head/table seperator used.
+
+methods:
+
+    add_head(data=[], fill=None)
             Add a list of column headings to the table.
             data    -- List containing the headings
             fill    -- Empty heading fill for excesive columns.
