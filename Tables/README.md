@@ -33,7 +33,7 @@ IJ | 4  | 60                 | IJ | 4  | 60
 ### Usages
 (Inspired by prettytable)
 1. Create a new table object:
-   mytable = Table()
+```mytable = Table()```
 2. Add rows 
 ```mytable.add_row(['A', 'row', 'with', 'five', 'columns'])```
    and/or columns 
@@ -66,10 +66,11 @@ Keyword arguments:
     max_width   -- Max width of the Table for printing (default None)
     col_sep     -- Seperator between columns (default '|')
     head_sep    -- Seperator for heading/table.
-                       First char is the char at crossing of head_sep with
-                       col_sep, second char is the fillchar (default '+-')
-                       When one char is given, crosschar and fillchar are
-                       the same.
+                   First char is the char at crossing of head_sep with
+                   col_sep, second char is the fillchar (default '+-')
+                   When one char is given, crosschar and fillchar are
+                   the same.
+
 Table object properties:
 
     fill    -- String of the default fill for empty cells.
@@ -79,48 +80,48 @@ Table object properties:
 methods:
 
     add_head(data=[], fill=None)
-            Add a list of column headings to the table.
-            data    -- List containing the headings
-            fill    -- Empty heading fill for excesive columns.
-                       Note: If none given, the Table fill param is used!
-        add_row(data=[], fill=None)
-            Add a list of row data to the table.
-            data    -- List containing cell data.
-            fill    -- The filling too use when creating more cells to fit
-                       the Table size.
-                       Note: If none given, the Table fill param is used!
-        add_column(head=None, data=[], fill=None)
-            Add a list of column data to the table.
-            head    -- The table heading of this column.
-            data    -- List containing cell data.
-            fill    -- The filling too use when creating more cells to fit
-                       the Table size.
-                       Note: If none given, the Table fill param is used!
-        get(row=None, column=None)
-            Returns an instance of the Table containing the heading and
-            Cell(s) from the Table.
-            Note: If both row and column are ommited, return an instance of
-            the Table.
-            row     -- Integer or range of the corresponding row
-                       (index start at 0)
-            column  -- Integer or range of the corresponding column
-                       (index start at 0)
-        log(row=None, column=None)
-            Prints the Cell, row or column.
-            Same as print(Table.get(row, column))
-            Note: If both row and column are ommited, prints the whole
-            Table.
-            row     -- Integer or range of the corresponding row
-                       (starting at 0)
-            column  -- Integer or range of the corresponding column
-                       (starting at 0)
-        nr_of_rows()
-            Returns the numbers of rows in the Table as integer.
-        nr_of_columns()
-            Returns the numbers of columns in the Table as integer.
-        set_max_width(i)
-            Sets the max_width of the Table
-            i       -- Integer of maxs width (in chars)
+          Add a list of column headings to the table.
+          data    -- List containing the headings
+          fill    -- Empty heading fill for excesive columns.
+                     Note: If none given, the Table fill param is used!
+    add_row(data=[], fill=None)
+        Add a list of row data to the table.
+        data    -- List containing cell data.
+        fill    -- The filling too use when creating more cells to fit
+                   the Table size.
+                   Note: If none given, the Table fill param is used!
+    add_column(head=None, data=[], fill=None)
+        Add a list of column data to the table.
+        head    -- The table heading of this column.
+        data    -- List containing cell data.
+        fill    -- The filling too use when creating more cells to fit
+                   the Table size.
+                   Note: If none given, the Table fill param is used!
+    get(row=None, column=None)
+        Returns an instance of the Table containing the heading and
+        Cell(s) from the Table.
+        Note: If both row and column are ommited, return an instance of
+        the Table.
+        row     -- Integer or range of the corresponding row
+                   (index start at 0)
+        column  -- Integer or range of the corresponding column
+                   (index start at 0)
+    log(row=None, column=None)
+        Prints the Cell, row or column.
+        Same as print(Table.get(row, column))
+        Note: If both row and column are ommited, prints the whole
+        Table.
+        row     -- Integer or range of the corresponding row
+                   (starting at 0)
+        column  -- Integer or range of the corresponding column
+                   (starting at 0)
+    nr_of_rows()
+        Returns the numbers of rows in the Table as integer.
+      nr_of_columns()
+          Returns the numbers of columns in the Table as integer.
+      set_max_width(i)
+          Sets the max_width of the Table
+          i       -- Integer of maxs width (in chars)
 
 ### Notes
 - When setting max_width Table tries too shrink largest column first,
