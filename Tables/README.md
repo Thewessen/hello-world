@@ -150,6 +150,12 @@ methods:
         Sets the max_width of the Table
         i       -- Integer of maxs width (in chars)
 
+### ToDo
+- Add insert_column and insert_row to insert between excisting columns or rows
+- Add sort method?
+- Cells containing functions, for calculating sum, product etc.. of range of
+  Cells
+
 ### Notes
 - When setting max_width Table tries too shrink largest column first,
   This isn't always desirable, especially with nested tables of different
