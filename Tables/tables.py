@@ -157,7 +157,7 @@ class Table:
 
     def __repr__(self):
         message =\
-            "<Table object: currencly holding {} columns and {} rows>"\
+            "<Table object: {} columns and {} rows>"\
             .format(self.nr_of_columns(), self.nr_of_rows())
         return message
 
@@ -254,6 +254,37 @@ class Table:
                 self._head.append(_Cell(''))
             self._head.append(_Cell(head))
         self._column_widths = self._calc_column_widths()
+
+    def remove_head(self):
+        """Removes the head of the table. Data is lost!"""
+        self._head = None
+
+    def remove_row(self, row=None):
+        """Removes the row(s) of the table.
+        Keyarguments:
+        row -- Integer or range of row(s) to be removed.
+               (default last row)
+        Note: index start at 0"""
+        if row is None:
+            row = self.nr_of_rows() - 1
+        if type(row) == int:
+            row = [row]
+        for r, i in enumerate(row):
+            self._data = self._data[:i-r] + self._data[i-r+1:]
+
+    def remove_column(self, column=None):
+        """Removes the column(s) of the table.
+        Keyarguments:
+        column -- Integer or range of column(s) to be removed.
+                  (default last column)
+        Note: index start at 0"""
+        if column is None:
+            column = self.nr_of_columns() - 1
+        if type(column) == int:
+            column = [column]
+        for r, i in enumerate(column):
+            self._data = [row[:i-r] + row[i-r+1:] for row in self._data]
+            self._head = self._head[:i-r] + self._head[i-r+1:]
 
     def get(self, row=None, column=None):
         """Returns an instance of the Table containing the heading and
