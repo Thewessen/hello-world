@@ -1,7 +1,7 @@
 # Making pretty column printed tables in Python
 
 For some of my projects I needed support for nested tables.
-I'm still learning Python, so I desided to wrote a module myself.
+I'm still learning Python, so I decided to write a module myself.
 
 There are better tested modules on the web:
 - [PrettyTable](https://pypi.org/project/PrettyTable/ "PrettyTable at pypi.org")
@@ -12,8 +12,8 @@ But they can't do what this baby can do ; )
 Look at this awesome print!
 ```
 This column contains a table with       This column contains a copy of the left   
-three columns each containing a table   column!                         
-with three columns!                                                            
+two columns each containing a table     column!                         
+with four columns!                                                            
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 found1            | found2              found1             | found2            
 ==================+===================  ===================+===================
@@ -44,10 +44,10 @@ inside a cell!    |                     inside a cell!     |
 ```
 ### Goodies
 + Nested tables are allowed!
-+ Newlines in a cell are allowed
-+ Tries to break a long line into multiple lines before printing
++ Newlines in a cell are allowed.
++ Tries to break a long line into multiple lines before printing.
 + Trunking also available for lists, floats, ints, and of coures tables!
-+ Piping the output in terminal is possible, e.g. ... | head -10
++ Piping the output in terminal is possible, e.g. ... | head -10.
 + Well documented.
 
 ### Usages
@@ -73,7 +73,7 @@ A  | row | with | five | columns | A
    |     |      |      |         | rows
 ```
 Note: You can see the head isn't taken into account when calculating
-the column_width for printing, see Notes.
+the column_width for printing, see notes.
 
 ### Module info
 tables.Table()
@@ -151,7 +151,7 @@ methods:
         i       -- Integer of maxs width (in chars)
 
 ### ToDo
-- Add insert_column and insert_row to insert between excisting columns or rows
+- Add insert_column and insert_row to insert between existing columns or rows
 - Add sort method?
 - Cells containing functions, for calculating sum, product etc.. of range of
   Cells
@@ -162,6 +162,6 @@ methods:
   sizes.
 - Head isn't taken into account when setting/calculating column width.
   Is this the desired behaviour?
-- Nested tables side by side won't line row by row... This leaves room for
+- Nested tables side by side won't line up row by row... This leaves room for
   discussion. At the end, it's a cell containing a table, not a splitted
   cell...
