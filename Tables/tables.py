@@ -33,7 +33,7 @@ class _Cell:
 
     def __len__(self):
         """Returns the total width of this cell (before trunking)"""
-        if type(self.value) == Table:
+        if isinstance(self.value, Table):
             return len(self.value)
         else:
             return max(len(v) for v in str(self.value).split('\n'))
@@ -50,11 +50,11 @@ class _Cell:
         Adds newline chars where possible."""
         v = self.value
         i = self._max_width
-        if type(v) == Table:
+        if isinstance(v, Table):
             v.set_max_width(i)
-        elif type(v) == list:
+        elif isinstance(v, list):
             v = str(v)
-        elif type(v) == float:
+        elif isinstance(v, float):
             if i is not None:
                 r = i - len(str(round(v))) - 2
                 if r > 0:
@@ -64,7 +64,7 @@ class _Cell:
             else:
                 v = str(v)
         # If! not elif, because float still needs to be trunked!
-        if type(v) == int and i is not None:
+        if isinstance(v, int) and i is not None:
             if i is not None and len(str(round(v))) > i:
                 counter = 0
                 while len(str(round(v))) > i - len(str(counter)) - 1:
@@ -77,7 +77,7 @@ class _Cell:
         # If! not elif,
         # Tries to devide list (containing spaces) in multiple rows
         # Also further trunks integer after 'e' if needed
-        if type(v) == str:
+        if isinstance(v, str):
             if i is not None and len(self) > i:
                 # Try splitting in words first
                 v = v.split(' ')
@@ -176,9 +176,12 @@ class Table:
         return string.strip('\n')
 
     def __len__(self):
-        length = sum(w for w in self._calc_column_widths())\
-                 + len(self.col_sep)\
-                 * (self.nr_of_columns() - 1)
+        if self.nr_of_columns() == 0:
+            return 0
+        else:
+            length = sum(w for w in self._calc_column_widths())\
+                     + len(self.col_sep)\
+                     * (self.nr_of_columns() - 1)
         return length
 
     def add_head(self, data=[], fill=None):
@@ -258,8 +261,10 @@ class Table:
         Note: If both row and column are ommited, return an instance of
         the Table.
         Keyword arguments:
-        row     -- Integer or range of the corresponding row (default None)
-        column  -- Integer or range of the corresponding column (default None)
+        row     -- Integer, range or list of the corresponding row(s)
+                   (default None)
+        column  -- Integer, range or list of the corresponding column(s)
+                   (default None)
         Note: index start at 0"""
         if type(row) == int:
             row = [row]
@@ -276,8 +281,10 @@ class Table:
                 head_sep=self.head_sep
         )
         if row is None and column is None:
-            T._rows = list(self._data)
-            T._column_widths = list(self._column_widths)
+            T._data = list(self._data)
+            T._head = list(self._head)
+            if self._column_widths is not None:
+                T._column_widths = list(self._column_widths)
         elif row is None:
             for c in column:
                 col = [r[c] for r in self._data]
@@ -298,8 +305,10 @@ class Table:
         """Prints the Cell, row or column.
         Same as print(Table.get(row, column))
         Keyword arguments:
-        row     -- Integer or range of the corresponding row (default None)
-        column  -- Integer or range of the corresponding column (default None)
+        row     -- Integer or range of the corresponding row(s)
+                   (default None)
+        column  -- Integer or range of the corresponding column(s)
+                   (default None)
         Note: index start at 0"""
         print(self.get(row=row, column=column))
 
@@ -352,7 +361,6 @@ class Table:
         string = ''
         W = self._calc_column_widths()
         for i, c in enumerate(row):
-            print(repr(c))
             c.set_max_width(W[i])
             cols.append(str(c).split('\n'))
         for line in zip_longest(*cols, fillvalue=self.fill):
