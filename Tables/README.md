@@ -1,7 +1,7 @@
 # Making pretty column printed tables in Python
 
 For some of my projects I needed support for nested tables.
-I'm still learning Python, so I desided to wrote a module myself.
+I'm still learning Python, so I decided to wrote a module myself.
 
 There are better tested modules on the web:
 - [PrettyTable](https://pypi.org/project/PrettyTable/ "PrettyTable at pypi.org")
