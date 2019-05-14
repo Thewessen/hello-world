@@ -157,7 +157,7 @@ methods:
   Cells
 
 ### Notes
-- When setting max_width Table tries too shrink largest column first,
+- When setting max_width Table tries too shrink largest column first.
   This isn't always desirable, especially with nested tables of different
   sizes.
 - Head isn't taken into account when setting/calculating column width.
