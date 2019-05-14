@@ -161,9 +161,13 @@ class Table:
         # TODO More chars for seperators?
         # TODO Row seperator?
         if len(col_sep) > 1:
-            raise ValueError("The column seperator can't be greater then one!")
+            raise ValueError("The column seperator can't be greater then one.")
         if len(head_sep) > 2:
-            raise ValueError("Max two chars are used for a row seperator")
+            raise ValueError("Max two chars are used for a row seperator.")
+        if rows < 0:
+            raise ValueError("Number of rows can't be less then zero.")
+        if columns < 0:
+            raise ValueError("Number of columns can't be less then zero.")
         self.col_sep = col_sep + ' '
         if len(head_sep) == 1:
             self.head_sep = head_sep * 2
@@ -503,24 +507,7 @@ class Table:
 
 
 if __name__ == '__main__':
-    # print("This module is supposed to be imported!")
-    T = Table(data=[[(0, i) for i in range(5)],
-                    [(1, i) for i in range(5)],
-                    [(2, i) for i in range(5)],
-                    [(3, i) for i in range(5)],
-                    [(4, i) for i in range(5)]],
-              rows=10, columns=10, fill='love')
-    print(T)
-    # T.add_row([(0, i) for i in range(5)])
-    # T.add_row([(1, i) for i in range(5)])
-    # T.add_row([(2, i) for i in range(5)])
-    # T.add_row([(3, i) for i in range(5)])
-    # T.add_row([(4, i) for i in range(5)])
-    # T.add_head(['world']*3)
-    # C = T.copy(row=range(2), column=range(2))
-    # C.add_row(['hello']*3)
-    # C._data[0][0].value = ['hello'] * 3
-    # print(C)
+    print("This module is supposed to be imported!")
 # TODO:
 # - When setting max_width Table tries too shrink largest column first,
 #   This isn't always desirable, especially with nested tables of different
