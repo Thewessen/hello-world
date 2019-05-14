@@ -232,6 +232,7 @@ class Table:
             width = self.nr_of_columns()
         while len(data) > width:
             self.add_column()
+            width = self.nr_of_columns()
         for i in range(width):
             if i < len(data):
                 value = data[i]
@@ -337,24 +338,26 @@ class Table:
         elif row is None:
             for c in column:
                 col = [r[c].copy() for r in self._data]
-                if self._head is not None and c < len(self._head):
+                head = None
+                if self._head is not None:
                     head = self._head[c].copy()
                 T.add_column(head=head, data=col)
                 if self._column_widths is not None:
                     T._column_widths.append(self._column_widths[c])
         elif column is None:
             for r in row:
-                T.add_head(data=[c.copy() for c in self._head])
                 T.add_row(data=[c.copy() for c in self._data[r]])
             if self._column_widths is not None:
                 T._column_widths = self._column_widths.copy()
+            if self._head is not None:
+                T.add_head(data=[c.copy() for c in self._head])
         else:
             T._data = []
             for r in row:
                 T._data.append([self._data[r][c].copy() for c in column])
             if self._column_widths is not None:
                 T._column_widths = self._column_widths.copy()
-            if self._head is not None and max(column) < len(self._head):
+            if self._head is not None:
                 T.add_head(data=[self._head[c].copy() for c in column])
         return T
 
@@ -367,6 +370,7 @@ class Table:
         column  -- Integer or range of the corresponding column(s)
                    (default None)
         Note: index start at 0"""
+        # TODO: Make logging more efficient...
         print(self.copy(row=row, column=column))
 
     def nr_of_rows(self):
@@ -427,9 +431,18 @@ class Table:
 
 if __name__ == '__main__':
     # print("This module is supposed to be imported!")
-    T = Table(rows=5, columns=5, fill='hello')
-    # T.add_head(['world']*5)
-    print(T.copy(row=range(2), column=range(3)))
+    T = Table()
+    T.add_row([(0, i) for i in range(5)])
+    T.add_row([(1, i) for i in range(5)])
+    T.add_row([(2, i) for i in range(5)])
+    T.add_row([(3, i) for i in range(5)])
+    T.add_row([(4, i) for i in range(5)])
+    T.add_head(['world']*3)
+    C = T.copy(row=range(2), column=range(2))
+    C.add_row(['hello']*3)
+    # C._data[0][0].value = ['hello'] * 3
+    print(C)
+    print(T)
 # TODO:
 # - When setting max_width Table tries too shrink largest column first,
 #   This isn't always desirable, especially with nested tables of different
