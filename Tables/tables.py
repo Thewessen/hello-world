@@ -139,10 +139,12 @@ class Table:
         set_max_width   -- Sets the max_width of the Table
     """
 
-    def __init__(self, rows=0, columns=0, max_width=None,
+    def __init__(self, data=None, rows=0, columns=0, max_width=None,
                  fill='', col_sep='|', head_sep='+-'):
         """
         Keyword arguments:
+            data        -- Initial data. Needs to be an iterable object of
+                           iterable objects (default None)
             rows        -- Number of initial rows (default 0)
             columns     -- Number of initial columns (default 0)
             max_width   -- Max width of the Table for printing (default None)
@@ -155,8 +157,6 @@ class Table:
                            the same.
         """
         self._head = None
-        self._data = [[_Cell(fill) for __ in range(columns)]
-                      for __ in range(rows)]
         self.fill = fill
         # TODO More chars for seperators?
         # TODO Row seperator?
@@ -175,6 +175,23 @@ class Table:
         self._column_widths = None
         if max_width is not None:
             self._column_widths = self._calc_column_widths()
+        if data is None:
+            self._data = [[_Cell(fill) for __ in range(columns)]
+                          for __ in range(rows)]
+        else:
+            self._data = []
+            for i, row in enumerate(data):
+                if i >= rows and rows != 0:
+                    break
+                self._data.append([])
+                for j, c in enumerate(row):
+                    if j >= columns and columns != 0:
+                        break
+                    self._data[i].append(_Cell(data[i][j]))
+                while len(self._data[i]) < columns:
+                    self._data[i].append(_Cell(fill))
+            while len(self._data) < rows:
+                self.add_row(fill=fill)
 
     def __repr__(self):
         """Representation of this object. Nr of columns and rows are added."""
@@ -487,18 +504,23 @@ class Table:
 
 if __name__ == '__main__':
     # print("This module is supposed to be imported!")
-    T = Table()
-    T.add_row([(0, i) for i in range(5)])
-    T.add_row([(1, i) for i in range(5)])
-    T.add_row([(2, i) for i in range(5)])
-    T.add_row([(3, i) for i in range(5)])
-    T.add_row([(4, i) for i in range(5)])
-    T.add_head(['world']*3)
+    T = Table(data=[[(0, i) for i in range(5)],
+                    [(1, i) for i in range(5)],
+                    [(2, i) for i in range(5)],
+                    [(3, i) for i in range(5)],
+                    [(4, i) for i in range(5)]],
+              rows=10, columns=10, fill='love')
+    print(T)
+    # T.add_row([(0, i) for i in range(5)])
+    # T.add_row([(1, i) for i in range(5)])
+    # T.add_row([(2, i) for i in range(5)])
+    # T.add_row([(3, i) for i in range(5)])
+    # T.add_row([(4, i) for i in range(5)])
+    # T.add_head(['world']*3)
     # C = T.copy(row=range(2), column=range(2))
     # C.add_row(['hello']*3)
     # C._data[0][0].value = ['hello'] * 3
     # print(C)
-    print(T.copy(range(1), 1))
 # TODO:
 # - When setting max_width Table tries too shrink largest column first,
 #   This isn't always desirable, especially with nested tables of different
@@ -508,6 +530,7 @@ if __name__ == '__main__':
 # - Nested tables side by side won't line row by row... This leaves room for
 #   discussion. At the end, it's a cell containing a table, not a splitted
 #   cell...
-# - More chars for seperators?
-# - Row seperator?
 # - Make logging more efficient...
+# - More chars for seperators?
+# - Add row seperator?
+# - Add max height?
