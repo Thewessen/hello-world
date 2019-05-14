@@ -14,10 +14,7 @@ class _Cell:
 
     def __init__(self, value, max_width=None):
         """Set value and calculates the max_width and height"""
-        if max_width is None:
-            self.value = value
-        else:
-            value = self.set_max_width(value, max_width)
+        self.value = value
         self._max_width = max_width
 
     def __repr__(self):
@@ -43,12 +40,6 @@ class _Cell:
         for line in str(self.value).split('\n'):
             yield line
 
-    def __add__(self, x):
-        if isinstance(x, _Cell):
-            return self.value + x.value
-        else:
-            return self.value + x
-
     def set_max_width(self, i):
         """Sets the maximum width of this Cell"""
         if self._max_width != i:
@@ -62,6 +53,12 @@ class _Cell:
         elif isinstance(self.value, (list, dict, tuple, object)):
             return _Cell(value=copy.deepcopy(self.value),
                          max_width=self._max_width)
+
+    def get_value(self):
+        if isinstance(self.value, (int, float, str)):
+            return self.value
+        elif isinstance(self.value, (list, dict, tuple, object)):
+            return copy.deepcopy(self.value)
 
     def _trunk(self):
         """Trunks the value in the cell before printing.
@@ -126,14 +123,20 @@ class Table:
         col_sep -- String of the column seperator used.
         head_sep-- String of the head/table seperator used.
     methods:
-        add_head   -- Add a list of column headings to the table.
-        add_row    -- Add a list of row data to the table.
-        add_column -- Add a list of column data to the table.
-        copy        -- Returns an instance of the Table
-        log        -- Same as print(Table.copy(row, column))
-        nr_of_rows -- Returns the numbers of rows in the Table as integer.
-        nr_of_columns-- Returns the numbers of columns in the Table as integer.
-        set_max_width-- Sets the max_width of the Table
+        add_head        -- Add a list of column headings to the table.
+        add_row         -- Add a list of row data to the table.
+        add_column      -- Add a list of column data to the table.
+        remove_head     -- Add a list of column headings to the table.
+        remove_row      -- Add a list of row data to the table.
+        remove_column   -- Add a list of column data to the table.
+        copy            -- Returns an instance Table containing specified
+                           row(s) and/or column(s)
+        log             -- Same as print(Table.copy(row, column))
+        get             -- Returns a copy of the value(s) from the Table
+        nr_of_rows      -- Returns the numbers of rows in the Table as integer.
+        nr_of_columns   -- Returns the numbers of columns in the Table as
+                           an integer.
+        set_max_width   -- Sets the max_width of the Table
     """
 
     def __init__(self, rows=0, columns=0, max_width=None,
@@ -142,8 +145,8 @@ class Table:
         Keyword arguments:
             rows        -- Number of initial rows (default 0)
             columns     -- Number of initial columns (default 0)
-            fill        -- Empty cell fill (default '')
             max_width   -- Max width of the Table for printing (default None)
+            fill        -- Empty cell fill (default '')
             col_sep     -- Seperator between columns (default '|')
             head_sep    -- Seperator for heading/table.
                            First char is the char at crossing of head_sep with
@@ -155,12 +158,12 @@ class Table:
         self._data = [[_Cell(fill) for __ in range(columns)]
                       for __ in range(rows)]
         self.fill = fill
+        # TODO More chars for seperators?
+        # TODO Row seperator?
         if len(col_sep) > 1:
             raise ValueError("The column seperator can't be greater then one!")
         if len(head_sep) > 2:
-            message =\
-                "Max two chars are used for a row seperator"
-            raise ValueError(message)
+            raise ValueError("Max two chars are used for a row seperator")
         self.col_sep = col_sep + ' '
         if len(head_sep) == 1:
             self.head_sep = head_sep * 2
@@ -174,18 +177,23 @@ class Table:
             self._column_widths = self._calc_column_widths()
 
     def __repr__(self):
-        message =\
-            "<Table object: {} columns and {} rows>"\
-            .format(self.nr_of_columns(), self.nr_of_rows())
+        """Representation of this object. Nr of columns and rows are added."""
+        message = "<Table object: {} rows and {} columns>"\
+                  .format(self.nr_of_rows(), self.nr_of_columns())
         return message
 
     def __str__(self):
+        """A performance heavy operation. Returns a string representation,
+        of the current table. Trunks values as needed (set by max_width).
+        Also adds seperators specified by head_sep and col_sep."""
         string = ''
         if self._head is not None:
             while len(self._head) < self.nr_of_columns():
                 self._head.append(_Cell(''))
             string += self._convert_row_to_string(self._head, self.col_sep)
-        if self.head_sep is not None:
+        if self.head_sep is not None and self.head_sep != '':
+            if len(self.head_sep) == 1:
+                self.head_sep = head_sep * 2
             sep_row = [_Cell(self.head_sep[1:] * j)
                        for j in self._calc_column_widths()]
             string += self._convert_row_to_string(sep_row, self.head_sep)
@@ -194,6 +202,7 @@ class Table:
         return string.strip('\n')
 
     def __len__(self):
+        """Returns the total width of the table when printed"""
         if self.nr_of_columns() == 0:
             return 0
         else:
@@ -370,8 +379,55 @@ class Table:
         column  -- Integer or range of the corresponding column(s)
                    (default None)
         Note: index start at 0"""
-        # TODO: Make logging more efficient...
+        # TODO Make logging more efficient...
         print(self.copy(row=row, column=column))
+
+    def get(self, row=None, column=None):
+        """Returns the data contained in the range of row and column.
+        Returns as single value or (multi-dimensional) list of values,
+        depending on the keyargument values of row and column. Values
+        (like lists, or tupples) are always copied.
+        Note: if both row and column are ommited, return an multidimensional
+        of list the whole Table.
+        Note: doesn't return the head of the table.
+        Keyword arguments:
+        row     -- Integer, range or list of the corresponding row(s)
+                   (default None)
+        column  -- Integer, range or list of the corresponding column(s)
+                   (default None)
+        Note: index start at 0"""
+        if type(row) == int:
+            row = [row]
+        if type(column) == int:
+            column = [column]
+        if row is not None and max(row) >= self.nr_of_rows():
+            raise IndexError("Exceeding max rows!\n" + repr(self))
+        if column is not None and max(column) >= self.nr_of_columns():
+            raise IndexError("Exceeding max columns!\n" + repr(self))
+        if row is None and column is None:
+            return [[c.get_value() for c in r] for r in self._data]
+        elif row is None:
+            # Should return a list (or multi) of column values.
+            # Inverse of the _data list, which is made of list(s) of rows.
+            if len(column) == 1:
+                return [r[column[0]].get_value() for r in self._data]
+            else:
+                return [[r[c].get_value() for r in self._data] for c in column]
+        elif column is None:
+            if len(row) == 1:
+                return [c.get_value() for c in self._data[row[0]]]
+            else:
+                return [[c.get_value() for c in self._data[r]] for r in row]
+        else:
+            if len(row) == 1 and len(column) == 1:
+                return self._data[row[0]][column[0]].get_value()
+            elif len(column) == 1:
+                return [self._data[r][column[0]].get_value() for r in row]
+            elif len(row) == 1:
+                return [self._data[row[0]][c].get_value() for c in column]
+            else:
+                return [[self._data[r][c].get_value() for c in column]
+                        for r in row]
 
     def nr_of_rows(self):
         """Returns the numbers of rows in the Table as integer."""
@@ -438,11 +494,11 @@ if __name__ == '__main__':
     T.add_row([(3, i) for i in range(5)])
     T.add_row([(4, i) for i in range(5)])
     T.add_head(['world']*3)
-    C = T.copy(row=range(2), column=range(2))
-    C.add_row(['hello']*3)
+    # C = T.copy(row=range(2), column=range(2))
+    # C.add_row(['hello']*3)
     # C._data[0][0].value = ['hello'] * 3
-    print(C)
-    print(T)
+    # print(C)
+    print(T.copy(range(1), 1))
 # TODO:
 # - When setting max_width Table tries too shrink largest column first,
 #   This isn't always desirable, especially with nested tables of different
@@ -452,3 +508,6 @@ if __name__ == '__main__':
 # - Nested tables side by side won't line row by row... This leaves room for
 #   discussion. At the end, it's a cell containing a table, not a splitted
 #   cell...
+# - More chars for seperators?
+# - Row seperator?
+# - Make logging more efficient...
