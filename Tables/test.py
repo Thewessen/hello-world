@@ -96,7 +96,7 @@ class TestTable(unittest.TestCase):
         # col_sep
         for k, v in self.types.items():
             for x in v:
-                if k == 'str' and len(x) > 1:
+                if k != 'str' or (k == 'str' and len(x) > 1):
                     with self.assertRaises((ValueError, TypeError, KeyError),
                                            msg='col_sep='+str(x)):
                         Table(col_sep=x)
@@ -108,7 +108,7 @@ class TestTable(unittest.TestCase):
         # head_sep
         for k, v in self.types.items():
             for x in v:
-                if k == 'str' and len(x) > 2:
+                if k != 'str' or (k == 'str' and len(x) > 2):
                     with self.assertRaises((ValueError, TypeError, KeyError),
                                            msg='head_sep='+str(x)):
                         Table(head_sep=x)
@@ -126,13 +126,31 @@ class TestTable(unittest.TestCase):
     def table_regex(self, rows, columns, head=0):
         # fill='', col_sep='|', head_sep='+-'):
         sep = '(-+\\+)*-+\n'
-        row = '([^\n]*? \\| ){'+str(columns-1)+'}[^ \n]*? *?\n'
-        last = '([^\n]*? \\| ){'+str(columns-1)+'}[^ \n]*? *?$'
+        row = '([^\n]*? \\| ){'+str(columns-1)+'}[^\n]*? *?\n'
+        last = '([^\n]*? \\| ){'+str(columns-1)+'}[^\n]*? *?$'
         regex = '^'
         if head != 0:
             return '^' + row * head + sep + row * (rows - 1) + last
         else:
             return '^' + row * (rows - 1) + last
+
+    def onerow_fill_test_regex(self, fullempty):
+        # fullempty = (nr_of_full, nr_of_empty, nr_of_full, etc...)
+        full = 'test \\| '
+        empty = ' *?\\| '
+        end_full = 'test *?\n'
+        end_empty = ' *?\n'
+        regex = '^'
+        for i, fe in enumerate(fullempty[:-1]):
+            if i % 2 == 0:
+                regex += full * fe
+                if i == len(fullempty) - 1:
+                    regex += empty * fullempty[i+1]
+            else:
+                regex += empty * fe
+                if i == len(fullempty) - 1:
+                    regex += full * fullempty[i+1]
+        return regex
 
     def test__str__(self):
         expect = [
@@ -236,6 +254,46 @@ class TestTable(unittest.TestCase):
             self.assertRegex(str(T), regex,
                              msg='data={}, head={}'
                              .format(str(data), str(head)))
+
+    def test_remove_head(self):
+        expect = [
+                (None, (0, 5)),
+                (0, (0, 1, 4)),
+                (1, (1, 1, 3)),
+                (range(2), (0, 2, 3)),
+                ([1, 3], (1, 1, 1, 1, 1))
+        ]
+        for (inp, fullempty) in expect:
+            T = Table(rows=1, columns=5)
+            T.add_head(fill='test')
+            T.remove_head(index=inp)
+            regex = self.onerow_fill_test_regex(fullempty)
+            self.assertRegex(str(T), regex,
+                             msg='index='+str(inp))
+
+        autoremove_expect = [
+                (None, (0, 5)),
+                (0, (4, 1)),
+                (1, (4, 1)),
+                (range(2), (3, 2)),
+                ([1, 3], (3, 2))
+        ]
+        for (inp, fullempty) in autoremove_expect:
+            T = Table(rows=1, columns=5)
+            T.add_head(fill='test')
+            T.remove_head(index=inp, autoremove=True)
+            regex = self.onerow_fill_test_regex(fullempty)
+            self.assertRegex(str(T), regex,
+                             msg='index='+str(inp))
+
+        for k, v in self.types.items():
+            for x in v:
+                if k != 'positive_int' or (k == 'positive_int' and x > 5):
+                    T = Table(rows=1, columns=5)
+                    T.add_head(fill='test')
+                    with self.assertRaises(ValueError,
+                                           msg='index='+str(x)):
+                        T.remove_head(index=x)
 
 
 if __name__ == '__main__':

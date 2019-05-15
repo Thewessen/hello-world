@@ -319,30 +319,40 @@ class Table:
             self._head.append(_Cell(head))
         self._column_widths = self._calc_column_widths()
 
-    def remove_head(self, index=None):
+    def remove_head(self, index=None, autoremove=False):
         """Removes range of head(s) of the table. Data is lost!
         Keywordarguments:
         index -- Integer or range of the columnhead(s) to be removed.
                  (default total heading removed)
+        autoremove -- Boolean: if false, only the value of the head is removed,
+                      leaving an empty cell. If true, complete cell is removed,
+                      shifting remaining cells to the left (default false)
         Note: index start at 0"""
-        if index is None:
-            self._head = None
-        elif self._head is not None:
+        if self._head is not None:
             if type(index) == int:
                 index = [index]
-            if max(index) >= len(self._head):
+            if index is not None and max(index) >= len(self._head):
                 raise ValueError("Head index out of range")
-            else:
+            if autoremove and index is None:
+                self._head = None
+            elif autoremove:
                 for r, i in enumerate(index):
                     self._head = self._head[:i-r] + self._head[i-r+1:]
+                    self._head.append(_Cell(self.fill))
+            elif index is None:
+                for h in self._head:
+                    h.value = self.fill
+            else:
+                for i in index:
+                    self._head[i] = _Cell(self.fill)
 
-    def remove_row(self, row=None, removehead=True):
+    def remove_row(self, row=None, autoremove=True):
         """Removes the row(s) of the table.
         Keyarguments:
         row -- Integer or range of row(s) to be removed.
                (default last row)
-        removehead -- Boolean: remove head when there are no rows left.
-                      (default True)
+        autoremove -- Boolean: remove head when there are no rows left,
+                      leaving an empty table (default True)
         Note: index start at 0"""
         if row is None:
             row = self.nr_of_rows() - 1
@@ -352,15 +362,17 @@ class Table:
             raise ValueError("Row index out of range")
         for r, i in enumerate(row):
             self._data = self._data[:i-r] + self._data[i-r+1:]
-        if removehead and self.nr_of_rows() == 0:
-            self.remove_head()
+        if autoremove and self.nr_of_rows() == 0:
+            self.remove_head(autoremove=True)
 
-    def remove_column(self, column=None, removehead=True):
+    def remove_column(self, column=None, autoremove=True):
         """Removes the column(s) of the table.
         Keyarguments:
         column -- Integer or range of column(s) to be removed.
                   (default last column)
-        removehead -- Boolean: remove head when there are no rows left.
+        autoremove -- Boolean: if true, entire column is removed.
+                      If false, column still excists, but is filled
+                      with the default fill value.
                       (default True)
         Note: index start at 0"""
         if column is None:
@@ -369,10 +381,14 @@ class Table:
             column = [column]
         if max(column) >= self.nr_of_columns():
             raise ValueError("Column index out of range")
-        for r, i in enumerate(column):
-            self._data = [row[:i-r] + row[i-r+1:] for row in self._data]
-        if removehead:
-            self.remove_head(column)
+        if autoremove:
+            for r, i in enumerate(column):
+                self._data = [row[:i-r] + row[i-r+1:] for row in self._data]
+            self.remove_head(index=column, autoremove=True)
+        else:
+            for i in column:
+                for row in self_data:
+                    row[i] = _Cell(self.fill)
 
     def copy(self, row=None, column=None):
         """Returns an instance of the Table containing the heading and
@@ -510,7 +526,12 @@ class Table:
 
     def _calc_column_widths(self):
         M = []
-        for column in zip(*self._data):
+        # Add head when calculating max-widths?
+        if self._head is not None:
+            z = zip(self._head, *self._data)
+        else:
+            z = zip(*self._data)
+        for column in z:
             # One space extra...
             mx = max(len(c) + len(self.col_sep) - 1 for c in column)
             if mx < 3:
