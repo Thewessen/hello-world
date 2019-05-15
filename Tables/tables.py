@@ -37,7 +37,8 @@ class _Cell:
 
     def __iter__(self):
         """Iterate over each trunked row of cells value"""
-        for line in str(self.value).split('\n'):
+        v = self._trunk()
+        for line in str(v).split('\n'):
             yield line
 
     def set_max_width(self, i):
@@ -65,7 +66,9 @@ class _Cell:
         Adds newline chars where possible."""
         v = self.value
         i = self._max_width
-        if isinstance(v, Table):
+        if v is None:
+            v = ''
+        elif isinstance(v, Table):
             v.set_max_width(i)
         elif isinstance(v, list):
             v = str(v)
@@ -95,14 +98,13 @@ class _Cell:
         if isinstance(v, str):
             if i is not None and len(self) > i:
                 # Try splitting in words first
-                v = v.split(' ')
-                if max(len(w) for w in v) > i:
+                words = v.split(' ')
+                if max(len(w) for w in words) > i:
                     # Didn't work for largest word
-                    v = self.value[:i-2] + '..'
+                    v = v[:i-2] + '..'
                 else:
                     # Break into multiple lines
                     line = ''
-                    words = v[:]
                     length = 0
                     for w in words:
                         length += len(w) + 1
@@ -176,9 +178,10 @@ class Table:
         else:
             self.head_sep = head_sep
         self._max_width = max_width
-        self._column_widths = None
         if max_width is not None:
             self._column_widths = self._calc_column_widths()
+        else:
+            self._column_widths = None
         if data is None:
             self._data = [[_Cell(fill) for __ in range(columns)]
                           for __ in range(rows)]
@@ -212,12 +215,12 @@ class Table:
             while len(self._head) < self.nr_of_columns():
                 self._head.append(_Cell(''))
             string += self._convert_row_to_string(self._head, self.col_sep)
-        if self.head_sep is not None and self.head_sep != '':
-            if len(self.head_sep) == 1:
-                self.head_sep = head_sep * 2
-            sep_row = [_Cell(self.head_sep[1:] * j)
-                       for j in self._calc_column_widths()]
-            string += self._convert_row_to_string(sep_row, self.head_sep)
+            if self.head_sep is not None and self.head_sep != '':
+                if len(self.head_sep) == 1:
+                    self.head_sep = head_sep * 2
+                sep_row = [_Cell(self.head_sep[1:] * j)
+                           for j in self._calc_column_widths()]
+                string += self._convert_row_to_string(sep_row, self.head_sep)
         for row in self._data:
             string += self._convert_row_to_string(row, self.col_sep)
         return string.strip('\n')
@@ -232,23 +235,31 @@ class Table:
                      * (self.nr_of_columns() - 1)
         return length
 
-    def add_head(self, data=[], fill=None):
+    def add_head(self, data=None, fill=None):
         """Add a list of column headings to the table.
         Keyword arguments:
-        data    -- List containing the headings (default [])
+        data    -- List containing the headings (default None)
         fill    -- Empty heading fill for excesive columns (default None)
         Note: If none given, the Table fill param is used!"""
         head = []
+        if data is None:
+            data = ''
         for i in range(len(data)):
-            head.append(_Cell(data[i]))
+            if data[i] is None:
+                value = ''
+            else:
+                value = data[i]
+            head.append(_Cell(value))
         while len(head) < self.nr_of_columns():
             if fill is None:
                 head.append(_Cell(self.fill))
             else:
                 head.append(_Cell(fill))
+        while self.nr_of_columns() < len(head):
+            self.add_column(self.fill)
         self._head = head
 
-    def add_row(self, data=[], fill=None):
+    def add_row(self, data=None, fill=None):
         """Add a list of row data to the table.
         Keyword arguments:
         data    -- List containing cell data (default [])
@@ -256,6 +267,8 @@ class Table:
                    the Table size (default None)
         Note: If none given, the Table fill param is used!"""
         row = []
+        if data is None:
+            data = ''
         if self.nr_of_columns() == 0:
             width = len(data)
         else:
@@ -275,7 +288,7 @@ class Table:
         self._data.append(row)
         self._column_widths = self._calc_column_widths()
 
-    def add_column(self, head=None, data=[], fill=None):
+    def add_column(self, head=None, data=None, fill=None):
         """Add a list of column data to the table.
         Keyword arguments:
         head    -- The table heading of this column (default None)
@@ -284,6 +297,8 @@ class Table:
                    the Table size (default None)
         Note: If none given, the Table fill param is used!"""
         length = self.nr_of_rows()
+        if data is None:
+            data = ''
         while len(data) > length:
             self.add_row()
             length = self.nr_of_rows()
