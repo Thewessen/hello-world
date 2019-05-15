@@ -319,36 +319,60 @@ class Table:
             self._head.append(_Cell(head))
         self._column_widths = self._calc_column_widths()
 
-    def remove_head(self):
-        """Removes the head of the table. Data is lost!"""
-        self._head = None
+    def remove_head(self, index=None):
+        """Removes range of head(s) of the table. Data is lost!
+        Keywordarguments:
+        index -- Integer or range of the columnhead(s) to be removed.
+                 (default total heading removed)
+        Note: index start at 0"""
+        if index is None:
+            self._head = None
+        elif self._head is not None:
+            if type(index) == int:
+                index = [index]
+            if max(index) >= len(self._head):
+                raise ValueError("Head index out of range")
+            else:
+                for r, i in enumerate(index):
+                    self._head = self._head[:i-r] + self._head[i-r+1:]
 
-    def remove_row(self, row=None):
+    def remove_row(self, row=None, removehead=True):
         """Removes the row(s) of the table.
         Keyarguments:
         row -- Integer or range of row(s) to be removed.
                (default last row)
+        removehead -- Boolean: remove head when there are no rows left.
+                      (default True)
         Note: index start at 0"""
         if row is None:
             row = self.nr_of_rows() - 1
         if type(row) == int:
             row = [row]
+        if max(row) >= self.nr_of_rows():
+            raise ValueError("Row index out of range")
         for r, i in enumerate(row):
             self._data = self._data[:i-r] + self._data[i-r+1:]
+        if removehead and self.nr_of_rows() == 0:
+            self.remove_head()
 
-    def remove_column(self, column=None):
+    def remove_column(self, column=None, removehead=True):
         """Removes the column(s) of the table.
         Keyarguments:
         column -- Integer or range of column(s) to be removed.
                   (default last column)
+        removehead -- Boolean: remove head when there are no rows left.
+                      (default True)
         Note: index start at 0"""
         if column is None:
             column = self.nr_of_columns() - 1
         if type(column) == int:
             column = [column]
+        if max(column) >= self.nr_of_columns():
+            raise ValueError("Column index out of range")
         for r, i in enumerate(column):
             self._data = [row[:i-r] + row[i-r+1:] for row in self._data]
-            self._head = self._head[:i-r] + self._head[i-r+1:]
+        if removehead:
+            self.remove_head(column)
 
     def copy(self, row=None, column=None):
         """Returns an instance of the Table containing the heading and

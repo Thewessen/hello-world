@@ -169,6 +169,29 @@ class TestTable(unittest.TestCase):
             self.assertRegex(str(T), regex,
                              msg='data='+str(inp))
 
+    def test_add_row(self):
+        expect = [
+                (None, (4, 3)),
+                ([], (4, 3)),
+                ([''], (4, 3)),
+                ('hey', (4, 3)),
+                ('', (4, 3)),
+                ([None], (4, 3)),
+                (['']*4, (4, 4)),
+                (['']*10, (4, 10)),
+                ('helloworld', (4, 10)),
+                (['\n'], (5, 3)),
+                ('\n', (5, 3)),
+                (['\n\n\n'], (7, 3)),
+                ('\n\n\n\n\n', (5, 5))
+        ]
+        for (inp, (rows, columns)) in expect:
+            T = Table(rows=3, columns=3)
+            T.add_row(data=inp)
+            regex = self.table_regex(rows, columns)
+            self.assertRegex(str(T), regex,
+                             msg='data='+str(inp))
+
     def test_add_column(self):
         expect = [
                 (None, (3, 4)),
@@ -213,29 +236,6 @@ class TestTable(unittest.TestCase):
             self.assertRegex(str(T), regex,
                              msg='data={}, head={}'
                              .format(str(data), str(head)))
-
-    def test_add_row(self):
-        expect = [
-                (None, (4, 3)),
-                ([], (4, 3)),
-                ([''], (4, 3)),
-                ('hey', (4, 3)),
-                ('', (4, 3)),
-                ([None], (4, 3)),
-                (['']*4, (4, 4)),
-                (['']*10, (4, 10)),
-                ('helloworld', (4, 10)),
-                (['\n'], (5, 3)),
-                ('\n', (5, 3)),
-                (['\n\n\n'], (7, 3)),
-                ('\n\n\n\n\n', (5, 5))
-        ]
-        for (inp, (rows, columns)) in expect:
-            T = Table(rows=3, columns=3)
-            T.add_row(data=inp)
-            regex = self.table_regex(rows, columns)
-            self.assertRegex(str(T), regex,
-                             msg='data='+str(inp))
 
 
 if __name__ == '__main__':
