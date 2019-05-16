@@ -148,7 +148,7 @@ class Table:
         log             -- Same as print(Table.copy(row, column))
         get             -- Returns a copy of the value(s) from the Table
         nr_of_rows      -- Returns the numbers of rows in the Table as integer.
-        nr_of_columns   -- Returns the numbers of columns in the Table as
+        column_count    -- Returns the numbers of columns in the Table as
                            an integer.
     """
 
@@ -224,7 +224,7 @@ class Table:
     def __repr__(self):
         """Representation of this object. Nr of columns and rows are added."""
         message = "<Table object: {} rows and {} columns>"\
-                  .format(self.nr_of_rows(), self.nr_of_columns())
+                  .format(self.row_count, self.column_count)
         return message
 
     def __str__(self):
@@ -233,7 +233,7 @@ class Table:
         Also adds seperators specified by head_sep and col_sep."""
         string = ''
         if self._head is not None:
-            while len(self._head) < self.nr_of_columns():
+            while len(self._head) < self.column_count:
                 self._head.append(_Cell(''))
             string += self._convert_row_to_string(self._head, self.col_sep)
             if self.head_sep is not None and self.head_sep != '':
@@ -248,12 +248,12 @@ class Table:
 
     def __len__(self):
         """Returns the total width of the table when printed"""
-        if self.nr_of_columns() == 0:
+        if self.column_count == 0:
             return 0
         else:
             length = sum(w for w in self.column_widths)\
                      + len(self.col_sep)\
-                     * (self.nr_of_columns() - 1)
+                     * (self.column_count - 1)
         return length
 
     def add_head(self, data=None, fill=None):
@@ -271,12 +271,12 @@ class Table:
             else:
                 value = data[i]
             head.append(_Cell(value))
-        while len(head) < self.nr_of_columns():
+        while len(head) < self.column_count:
             if fill is None:
                 head.append(_Cell(self.fill))
             else:
                 head.append(_Cell(fill))
-        while self.nr_of_columns() < len(head):
+        while self.column_count < len(head):
             self.add_column(self.fill)
         self._head = head
 
@@ -290,13 +290,13 @@ class Table:
         row = []
         if data is None:
             data = ''
-        if self.nr_of_columns() == 0:
+        if self.column_count == 0:
             width = len(data)
         else:
-            width = self.nr_of_columns()
+            width = self.column_count
         while len(data) > width:
             self.add_column()
-            width = self.nr_of_columns()
+            width = self.column_count
         for i in range(width):
             if i < len(data):
                 value = data[i]
@@ -316,12 +316,12 @@ class Table:
         fill    -- The filling too use when creating more cells to fit
                    the Table size (default None)
         Note: If none given, the Table fill param is used!"""
-        length = self.nr_of_rows()
+        length = self.row_count
         if data is None:
             data = ''
         while len(data) > length:
             self.add_row()
-            length = self.nr_of_rows()
+            length = self.row_count
         for i in range(length):
             if i < len(data):
                 value = data[i]
@@ -334,7 +334,7 @@ class Table:
         if self._head is None and head is not None:
             self._head = []
         if head is not None:
-            while len(self._head) < self.nr_of_columns() - 1:
+            while len(self._head) < self.column_count - 1:
                 self._head.append(_Cell(''))
             self._head.append(_Cell(head))
 
@@ -374,14 +374,14 @@ class Table:
                       leaving an empty table (default True)
         Note: index start at 0"""
         if row is None:
-            row = self.nr_of_rows() - 1
+            row = self.row_count - 1
         if type(row) == int:
             row = [row]
-        if max(row) >= self.nr_of_rows():
+        if max(row) >= self.row_count:
             raise ValueError("Row index out of range")
         for r, i in enumerate(row):
             self._data = self._data[:i-r] + self._data[i-r+1:]
-        if autoremove and self.nr_of_rows() == 0:
+        if autoremove and self.row_count == 0:
             self.remove_head(autoremove=True)
 
     def remove_column(self, column=None, autoremove=True):
@@ -395,10 +395,10 @@ class Table:
                       (default True)
         Note: index start at 0"""
         if column is None:
-            column = self.nr_of_columns() - 1
+            column = self.column_count - 1
         if type(column) == int:
             column = [column]
-        if max(column) >= self.nr_of_columns():
+        if max(column) >= self.column_count:
             raise ValueError("Column index out of range")
         if autoremove:
             for r, i in enumerate(column):
@@ -424,9 +424,9 @@ class Table:
             row = [row]
         if type(column) == int:
             column = [column]
-        if row is not None and max(row) >= self.nr_of_rows():
+        if row is not None and max(row) >= self.row_count:
             raise IndexError("Exceeding max rows!\n" + repr(self))
-        if column is not None and max(column) >= self.nr_of_columns():
+        if column is not None and max(column) >= self.column_count:
             raise IndexError("Exceeding max columns!\n" + repr(self))
         T = Table(
                 max_width=self._max_width,
@@ -495,9 +495,9 @@ class Table:
             row = [row]
         if type(column) == int:
             column = [column]
-        if row is not None and max(row) >= self.nr_of_rows():
+        if row is not None and max(row) >= self.row_count:
             raise IndexError("Exceeding max rows!\n" + repr(self))
-        if column is not None and max(column) >= self.nr_of_columns():
+        if column is not None and max(column) >= self.column_count:
             raise IndexError("Exceeding max columns!\n" + repr(self))
         if row is None and column is None:
             return [[c.get_value() for c in r] for r in self._data]
@@ -524,13 +524,15 @@ class Table:
                 return [[self._data[r][c].get_value() for c in column]
                         for r in row]
 
-    def nr_of_rows(self):
+    @property
+    def row_count(self):
         """Returns the numbers of rows in the Table as integer."""
         return len(self._data)
 
-    def nr_of_columns(self):
+    @property
+    def column_count(self):
         """Returns the numbers of columns in the Table as integer."""
-        if self.nr_of_rows() == 0:
+        if self.row_count == 0:
             return 0
         else:
             return len(self._data[0])
