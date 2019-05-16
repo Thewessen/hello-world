@@ -292,13 +292,13 @@ class Table:
         """Add a list of column data to the table.
         Keyword arguments:
         head    -- The table heading of this column (default None)
-        data    -- List containing cell data (default [])
+        data    -- List containing cell data (default None)
         fill    -- The filling too use when creating more cells to fit
                    the Table size (default None)
         Note: If none given, the Table fill param is used!"""
         length = self.nr_of_rows()
         if data is None:
-            data = ''
+            data = []
         while len(data) > length:
             self.add_row()
             length = self.nr_of_rows()
@@ -319,15 +319,14 @@ class Table:
             self._head.append(_Cell(head))
         self._column_widths = self._calc_column_widths()
 
-    def remove_head(self, column=None, autoremove=True):
+    def remove_head(self, column=None):
         """Removes range of head(s) of the table. Data is lost!
         Keywordarguments:
         column -- Integer or range of the columnhead(s) to be removed.
                   (default None: total heading removed)
-        autoremove -- Boolean: if false, only the value of the head is removed,
-                      leaving an empty cell. If true, complete cell is removed,
-                      shifting remaining cells to the left (default True)
         Note: index start at 0"""
+        # Table should always contain equal length rows and head!
+        # Do not shift!
         if self._head is not None:
             if column is not None:
                 if isinstance(column, int):
@@ -338,27 +337,21 @@ class Table:
                     raise ValueError("Dicts not supported for removing head.")
                 if isinstance(column, list):
                     column = set(column)
-            if autoremove and column is None:
+            if column is None:
                 self._head = None
-            elif autoremove:
-                for r, i in enumerate(column):
-                    self._head = self._head[:i-r] + self._head[i-r+1:]
-                    self._head.append(_Cell(self.fill))
-            elif column is None:
-                for h in self._head:
-                    h.value = self.fill
             else:
                 for i in column:
                     self._head[i] = _Cell(self.fill)
 
-    def remove_row(self, row=None, autoremove=True):
+    def remove_row(self, row=None, removehead=True):
         """Removes the row(s) of the table.
         Keyarguments:
         row -- Integer or range of row(s) to be removed.
                (default last row)
-        autoremove -- Boolean: remove head when there are no rows left,
+        removehead -- Boolean: remove head when there are no rows left,
                       leaving an empty table (default True)
         Note: index start at 0"""
+        # Table should always contain equal length rows and head!
         if row is None:
             row = self.nr_of_rows() - 1
         if isinstance(row, dict):
@@ -371,15 +364,15 @@ class Table:
             raise ValueError("Row index out of range")
         for r, i in enumerate(row):
             self._data = self._data[:i-r] + self._data[i-r+1:]
-        if autoremove and self.nr_of_rows() == 0:
-            self.remove_head(autoremove=True)
+        if removehead and self.nr_of_rows() == 0:
+            self.remove_head()
 
-    def remove_column(self, column=None, autoremove=True):
+    def remove_column(self, column=None, removehead=True):
         """Removes the column(s) of the table.
         Keyarguments:
         column -- Integer or range of column(s) to be removed.
                   (default last column)
-        autoremove -- Boolean: if true, entire column is removed.
+        removehead -- Boolean: if true, head is also removed.
                       If false, column still excists, but is filled
                       with the default fill value.
                       (default True)
@@ -394,10 +387,11 @@ class Table:
             column = [column]
         if max(column) >= self.nr_of_columns() or min(column) < 0:
             raise ValueError("Column index out of range")
-        if autoremove:
+        if removehead:
             for r, i in enumerate(column):
                 self._data = [row[:i-r] + row[i-r+1:] for row in self._data]
-            self.remove_head(column=column, autoremove=True)
+                if self._head is not None:
+                    self._head = self._head[:i-r] + self._head[i-r+1:]
         else:
             for i in column:
                 for row in self._data:
@@ -524,8 +518,11 @@ class Table:
 
     def nr_of_columns(self):
         """Returns the numbers of columns in the Table as integer."""
-        if self.nr_of_rows() == 0:
+        # Table should always contain equal length rows and head!
+        if self.nr_of_rows() == 0 and self._head is None:
             return 0
+        elif self._head is not None:
+            return len(self._head)
         else:
             return len(self._data[0])
 

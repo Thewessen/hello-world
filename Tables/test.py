@@ -226,6 +226,7 @@ class TestTable(unittest.TestCase):
                 ('\n\n\n\n\n', (10, 4))
         ]
         for (inp, (rows, columns)) in expect:
+            print(inp)
             T = Table(rows=3, columns=3)
             T.add_column(data=inp)
             regex = self.table_regex(rows, columns)
@@ -255,20 +256,6 @@ class TestTable(unittest.TestCase):
                              .format(str(data), str(head)))
 
     def test_remove_head(self):
-        autoremove_expect = [
-                (None, (0, 5)),
-                (0, (4, 1)),
-                (1, (4, 1)),
-                (range(2), (3, 2)),
-                ([1, 3], (3, 2))
-        ]
-        for (inp, fullempty) in autoremove_expect:
-            T = Table(rows=1, columns=5)
-            T.add_head(fill='test')
-            T.remove_head(column=inp, autoremove=True)
-            regex = self.onerow_fill_test_regex(fullempty)
-            self.assertRegex(str(T), regex,
-                             msg='column='+str(inp))
         expect = [
                 (None, (0, 5)),
                 (0, (0, 1, 4)),
@@ -281,10 +268,10 @@ class TestTable(unittest.TestCase):
         for (inp, fullempty) in expect:
             T = Table(rows=1, columns=5)
             T.add_head(fill='test')
-            T.remove_head(column=inp, autoremove=False)
+            T.remove_head(column=inp)
             regex = self.onerow_fill_test_regex(fullempty)
             self.assertRegex(str(T), regex,
-                             msg='column={},autoremove=False'
+                             msg='column={},removehead=False'
                                  .format(str(inp)))
         for k, v in self.types.items():
             for x in v:
@@ -299,7 +286,7 @@ class TestTable(unittest.TestCase):
     def test_remove_row(self):
         # TODO: Make sure the proper row is removed!
         # Starting with three rows and three columns
-        autoremove_expect = [
+        removehead_expect = [
                 (None, (2, 3)),
                 (0, (2, 3)),
                 (1, (2, 3)),
@@ -308,14 +295,14 @@ class TestTable(unittest.TestCase):
                 ([0, 0], (2, 3)),
                 ([0, 0, 1, 1], (1, 2))
         ]
-        for (inp, (rows, columns)) in autoremove_expect:
+        for (inp, (rows, columns)) in removehead_expect:
             T = Table(rows=3, columns=3)
-            T.remove_row(row=inp, autoremove=True)
+            T.remove_row(row=inp, removehead=True)
             regex = self.table_regex(rows, columns)
             self.assertRegex(str(T), regex,
-                             msg='row={},autoremove=True'
+                             msg='row={},removehead=True'
                                  .format(str(inp)))
-        # TODO: Same as autoremove=True??
+        # TODO: Same as removehead=True??
         expect = [
                 (None, (2, 3)),
                 (0, (2, 3)),
@@ -327,10 +314,10 @@ class TestTable(unittest.TestCase):
         ]
         for (inp, (rows, columns)) in expect:
             T = Table(rows=3, columns=3)
-            T.remove_row(row=inp, autoremove=False)
+            T.remove_row(row=inp, removehead=False)
             regex = self.table_regex(rows, columns)
             self.assertRegex(str(T), regex,
-                             msg='row={},autoremove=False'
+                             msg='row={},removehead=False'
                                  .format(str(inp)))
         for k, v in self.types.items():
             for x in v:
@@ -344,7 +331,7 @@ class TestTable(unittest.TestCase):
     def test_remove_column(self):
         # TODO: Make sure the proper column is removed!
         # Starting with three columns and three columns
-        autoremove_expect = [
+        removehead_expect = [
                 (None, (3, 2)),
                 (0, (3, 2)),
                 (1, (3, 2)),
@@ -353,14 +340,14 @@ class TestTable(unittest.TestCase):
                 ([0, 0], (3, 2)),
                 ([0, 0, 1, 1], (2, 1))
         ]
-        for (inp, (columns, columns)) in autoremove_expect:
+        for (inp, (columns, columns)) in removehead_expect:
             T = Table(rows=3, columns=3)
-            T.remove_column(column=inp, autoremove=True)
+            T.remove_column(column=inp, removehead=True)
             regex = self.table_regex(columns, columns)
             self.assertRegex(str(T), regex,
-                             msg='column={},autoremove=True'
+                             msg='column={},removehead=True'
                                  .format(str(inp)))
-        # TODO: Same as autoremove=True??
+        # TODO: Same as removehead=True??
         expect = [
                 (None, (3, 2)),
                 (0, (3, 2)),
@@ -372,10 +359,10 @@ class TestTable(unittest.TestCase):
         ]
         for (inp, (columns, columns)) in expect:
             T = Table(rows=3, columns=3)
-            T.remove_column(column=inp, autoremove=False)
+            T.remove_column(column=inp, removehead=False)
             regex = self.table_regex(columns, columns)
             self.assertRegex(str(T), regex,
-                             msg='column={},autoremove=False'
+                             msg='column={},removehead=False'
                                  .format(str(inp)))
         for k, v in self.types.items():
             for x in v:
