@@ -160,7 +160,9 @@ class Table:
             data        -- Initial data. Needs to be an iterable object of
                            iterable objects (default None)
             rows        -- Number of initial rows (default 0)
+                           Creates one row if columns != 0
             columns     -- Number of initial columns (default 0)
+                           Creates one column if rows != 0
             max_width   -- Max width of the Table for printing (default None)
             fill        -- Empty cell fill (default '')
             col_sep     -- Seperator between columns (default '|')
@@ -191,6 +193,10 @@ class Table:
             self.head_sep = None
         else:
             self.head_sep = head_sep
+        if columns != 0 and rows == 0:
+            rows = 1
+        elif rows != 0 and columns == 0:
+            columns = 1
         self.max_width = max_width
         if data is None:
             self._data = [[_Cell(fill) for __ in range(columns)]
@@ -540,8 +546,6 @@ class Table:
         # Table should always contain equal length rows and head!
         if self.row_count == 0 and self._head is None:
             return 0
-        elif self._head is not None:
-            return len(self._head)
         else:
             return len(self._data[0])
 

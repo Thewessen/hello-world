@@ -160,82 +160,102 @@ class TestTable(unittest.TestCase):
             self.assertRegex(str(T), regex,
                              msg='fill='+str(inp))
 
+    def test_column_count(self):
+        for i in self.types['positive_int']:
+            T = Table(columns=i)
+            self.assertEqual(T.column_count, i)
+
+    def test_row_count(self):
+        for i in self.types['positive_int']:
+            T = Table(rows=i)
+            self.assertEqual(T.row_count, i)
+
     def test_add_head(self):
         # Starting with three columns and three rows (no head)
         expect = [
-                (None, (3, 3, 1)),
-                ([], (3, 3, 1)),
-                ([''], (3, 3, 1)),
-                ('hey', (3, 3, 1)),
-                ('', (3, 3, 1)),
-                ([None], (3, 3, 1)),
-                (['']*4, (3, 4, 1)),
-                (['']*10, (3, 10, 1)),
-                ('helloworld', (3, 10, 1)),
-                (['\n'], (3, 3, 2)),
-                ('\n', (3, 3, 2)),
-                (['\n\n\n'], (3, 3, 4)),
-                ('\n\n\n\n\n', (3, 5, 2))
+                (None, (3, 5)),
+                ([], (3, 5)),
+                ([''], (3, 5)),
+                ('hey', (3, 5)),
+                ('', (3, 5)),
+                ([None], (3, 5)),
+                (['']*4, (4, 5)),
+                (['']*10, (10, 5)),
+                ('helloworld', (10, 5)),
+                (['\n'], (3, 6)),
+                ('\n', (3, 6)),
+                (['\n\n\n'], (3, 8)),
+                ('\n\n\n\n\n', (5, 6))
         ]
-        for (inp, (rows, columns, head)) in expect:
+        for inp, (columns, lines) in expect:
             T = Table(rows=3, columns=3)
             T.add_head(data=inp)
-            regex = self.table_regex(rows, columns, head)
-            self.assertRegex(str(T), regex,
-                             msg='data='+str(inp))
+            msg = f'Not three rows, with add_head(data={inp})'
+            self.assertEqual(T.row_count, 3, msg=msg)
+            msg = f'Not {columns} columns, with add_head(data={inp})'
+            self.assertEqual(T.column_count, columns, msg=msg)
+            msg = f'Not {columns} column head, with add_head(data={inp})'
+            self.assertEqual(len(T._head), columns, msg=msg)
+            msg = f'Not {lines} lines in table, with add_head(data={inp})'
+            self.assertEqual(len(str(T).splitlines()), lines, msg=msg)
 
     def test_add_row(self):
         # Starting with three rows and three columns
         expect = [
-                (None, (4, 3)),
-                ([], (4, 3)),
-                ([''], (4, 3)),
-                ('hey', (4, 3)),
-                ('', (4, 3)),
-                ([None], (4, 3)),
-                (['']*4, (4, 4)),
-                (['']*10, (4, 10)),
-                ('helloworld', (4, 10)),
-                (['\n'], (5, 3)),
-                ('\n', (5, 3)),
-                (['\n\n\n'], (7, 3)),
-                ('\n\n\n\n\n', (5, 5))
+                (None, (4, 3, 4)),
+                ([], (4, 3, 4)),
+                ([''], (4, 3, 4)),
+                ('hey', (4, 3, 4)),
+                ('', (4, 3, 4)),
+                ([None], (4, 3, 4)),
+                (['']*4, (4, 4, 4)),
+                (['']*10, (4, 10, 4)),
+                ('helloworld', (4, 10, 4)),
+                (['\n'], (4, 3, 5)),
+                ('\n', (4, 3, 5)),
+                (['\n\n\n'], (4, 3, 7)),
+                ('\n\n\n\n\n', (4, 5, 5))
         ]
-        for (inp, (rows, columns)) in expect:
+        for inp, (rows, columns, lines) in expect:
             T = Table(rows=3, columns=3)
             T.add_row(data=inp)
-            regex = self.table_regex(rows, columns)
-            self.assertRegex(str(T), regex,
-                             msg='data='+str(inp))
+            msg = f'Not {rows} rows, with add_head(data={inp})'
+            self.assertEqual(T.row_count, rows, msg=msg)
+            msg = f'Not {columns} columns, with add_head(data={inp})'
+            self.assertEqual(T.column_count, columns, msg=msg)
+            msg = f'Not {lines} lines in table, with add_head(data={inp})'
+            self.assertEqual(len(str(T).splitlines()), lines, msg=msg)
 
     def test_add_column(self):
         # Starting with three rows and three columns
         expect = [
-                (None, (3, 4)),
-                ([], (3, 4)),
-                ([''], (3, 4)),
-                ('hey', (3, 4)),
-                ('', (3, 4)),
-                ([None], (3, 4)),
-                (['']*4, (4, 4)),
-                (['']*10, (10, 4)),
-                ('helloworld', (10, 4)),
-                (['\n'], (4, 4)),
-                ('\n', (4, 4)),
-                (['\n\n\n'], (6, 4)),
-                ('\n\n\n\n\n', (10, 4))
+                (None, (3, 4, 3)),
+                ([], (3, 4, 3)),
+                ([''], (3, 4, 3)),
+                ('hey', (3, 4, 3)),
+                ('', (3, 4, 3)),
+                ([None], (3, 4, 3)),
+                (['']*4, (4, 4, 4)),
+                (['']*10, (10, 4, 10)),
+                ('helloworld', (10, 4, 10)),
+                (['\n'], (3, 4, 4)),
+                ('\n', (3, 4, 4)),
+                (['\n\n\n'], (3, 4, 6)),
+                ('\n\n\n\n\n', (5, 4, 10))
         ]
-        for (inp, (rows, columns)) in expect:
-            print(inp)
+        for inp, (rows, columns, lines) in expect:
             T = Table(rows=3, columns=3)
             T.add_column(data=inp)
-            regex = self.table_regex(rows, columns)
-            self.assertRegex(str(T), regex,
-                             msg='data='+str(inp))
+            msg = f'Not {rows} rows, with add_head(data={inp})'
+            self.assertEqual(T.row_count, rows, msg=msg)
+            msg = f'Not {columns} columns, with add_head(data={inp})'
+            self.assertEqual(T.column_count, columns, msg=msg)
+            msg = f'Not {lines} lines in table, with add_head(data={inp})'
+            self.assertEqual(len(str(T).splitlines()), lines, msg=msg)
         expect_width_head = [
-                (None, None, (3, 4, 0)),
-                ([], [], (3, 4, 1)),
-                ([''], [''], (3, 4, 1)),
+                (None, None, (3, 4, 3)),
+                ([], [], (3, 4, 5)),
+                ([''], [''], (3, 4, 5)),
                 ('hey', 'hey', (3, 4, 1)),
                 ('', '', (3, 4, 1)),
                 ([None], [None], (3, 4, 1)),
@@ -247,13 +267,15 @@ class TestTable(unittest.TestCase):
                 (['\n\n\n'], ['\n\n\n'], (6, 4, 1)),
                 ('\n\n\n\n\n', '\n\n\n\n\n', (10, 4, 6))
         ]
-        for (data, head, (rows, columns, heads)) in expect_width_head:
+        for (data, head, (rows, columns, lines)) in expect_width_head:
             T = Table(rows=3, columns=3)
             T.add_column(data=data, head=head)
-            regex = self.table_regex(rows, columns, heads)
-            self.assertRegex(str(T), regex,
-                             msg='data={}, head={}'
-                             .format(str(data), str(head)))
+            msg = f'Not {rows} rows, with add_head(data={inp})'
+            self.assertEqual(T.row_count, rows, msg=msg)
+            msg = f'Not {columns} columns, with add_head(data={inp})'
+            self.assertEqual(T.column_count, columns, msg=msg)
+            msg = f'Not {lines} lines in table, with add_head(data={inp})'
+            self.assertEqual(len(str(T).splitlines()), lines, msg=msg)
 
     def test_remove_head(self):
         expect = [
@@ -286,6 +308,7 @@ class TestTable(unittest.TestCase):
     def test_remove_row(self):
         # TODO: Make sure the proper row is removed!
         # Starting with three rows and three columns
+        # TODO: Same as removehead=True??
         removehead_expect = [
                 (None, (2, 3)),
                 (0, (2, 3)),
@@ -302,7 +325,6 @@ class TestTable(unittest.TestCase):
             self.assertRegex(str(T), regex,
                              msg='row={},removehead=True'
                                  .format(str(inp)))
-        # TODO: Same as removehead=True??
         expect = [
                 (None, (2, 3)),
                 (0, (2, 3)),
@@ -338,24 +360,24 @@ class TestTable(unittest.TestCase):
                 (range(2), (3, 1)),
                 ([0, 2], (3, 1)),
                 ([0, 0], (3, 2)),
-                ([0, 0, 1, 1], (2, 1))
+                ([0, 0, 1, 1], (3, 1))
         ]
-        for (inp, (columns, columns)) in removehead_expect:
+        for (inp, (rows, columns)) in removehead_expect:
             T = Table(rows=3, columns=3)
             T.remove_column(column=inp, removehead=True)
-            regex = self.table_regex(columns, columns)
+            regex = self.table_regex(rows, columns)
             self.assertRegex(str(T), regex,
                              msg='column={},removehead=True'
                                  .format(str(inp)))
         # TODO: Same as removehead=True??
         expect = [
-                (None, (3, 2)),
-                (0, (3, 2)),
-                (1, (3, 2)),
-                (range(2), (3, 1)),
-                ([0, 2], (3, 1)),
-                ([0, 0], (3, 2)),
-                ([0, 0, 1, 1], (2, 1))
+                (None, (3, 3)),
+                (0, (3, 3)),
+                (1, (3, 3)),
+                (range(2), (3, 3)),
+                ([0, 2], (3, 3)),
+                ([0, 0], (3, 3)),
+                ([0, 0, 1, 1], (3, 3))
         ]
         for (inp, (columns, columns)) in expect:
             T = Table(rows=3, columns=3)
