@@ -142,7 +142,7 @@ class Table:
     """
 
     def __init__(self, data=None, rows=0, columns=0, max_width=None,
-                 fill='', col_sep='|', head_sep='+-'):
+                 fill=None, col_sep='|', head_sep='+-'):
         """
         Keyword arguments:
             data        -- Initial data. Needs to be an iterable object of
@@ -159,13 +159,15 @@ class Table:
                            the same.
         """
         self._head = None
+        if fill is None:
+            fill = ''
         self.fill = fill
         # TODO More chars for seperators?
         # TODO Row seperator?
-        if len(col_sep) > 1:
-            raise ValueError("The column seperator can't be greater then one.")
-        if len(head_sep) > 2:
-            raise ValueError("Max two chars are used for a row seperator.")
+        if not isinstance(col_sep, str) or len(col_sep) > 1:
+            raise ValueError("Column sep needs to be a string of one char.")
+        if not isinstance(head_sep, str) or len(head_sep) > 2:
+            raise ValueError("Head sep needs to be a string of max two chars")
         if rows < 0:
             raise ValueError("Number of rows can't be less then zero.")
         if columns < 0:
@@ -216,8 +218,6 @@ class Table:
                 self._head.append(_Cell(''))
             string += self._convert_row_to_string(self._head, self.col_sep)
             if self.head_sep is not None and self.head_sep != '':
-                if len(self.head_sep) == 1:
-                    self.head_sep = head_sep * 2
                 sep_row = [_Cell(self.head_sep[1:] * j)
                            for j in self._calc_column_widths()]
                 string += self._convert_row_to_string(sep_row, self.head_sep)
@@ -319,31 +319,36 @@ class Table:
             self._head.append(_Cell(head))
         self._column_widths = self._calc_column_widths()
 
-    def remove_head(self, index=None, autoremove=False):
+    def remove_head(self, column=None, autoremove=True):
         """Removes range of head(s) of the table. Data is lost!
         Keywordarguments:
-        index -- Integer or range of the columnhead(s) to be removed.
-                 (default total heading removed)
+        column -- Integer or range of the columnhead(s) to be removed.
+                  (default None: total heading removed)
         autoremove -- Boolean: if false, only the value of the head is removed,
                       leaving an empty cell. If true, complete cell is removed,
-                      shifting remaining cells to the left (default false)
+                      shifting remaining cells to the left (default True)
         Note: index start at 0"""
         if self._head is not None:
-            if type(index) == int:
-                index = [index]
-            if index is not None and max(index) >= len(self._head):
-                raise ValueError("Head index out of range")
-            if autoremove and index is None:
+            if column is not None:
+                if isinstance(column, int):
+                    column = [column]
+                if max(column) >= len(self._head) or min(column) < 0:
+                    raise ValueError("Head column out of range")
+                if isinstance(column, dict):
+                    raise ValueError("Dicts not supported for removing head.")
+                if isinstance(column, list):
+                    column = set(column)
+            if autoremove and column is None:
                 self._head = None
             elif autoremove:
-                for r, i in enumerate(index):
+                for r, i in enumerate(column):
                     self._head = self._head[:i-r] + self._head[i-r+1:]
                     self._head.append(_Cell(self.fill))
-            elif index is None:
+            elif column is None:
                 for h in self._head:
                     h.value = self.fill
             else:
-                for i in index:
+                for i in column:
                     self._head[i] = _Cell(self.fill)
 
     def remove_row(self, row=None, autoremove=True):
@@ -356,9 +361,13 @@ class Table:
         Note: index start at 0"""
         if row is None:
             row = self.nr_of_rows() - 1
+        if isinstance(row, dict):
+            raise ValueError("Dicts not supported for removing rows.")
+        if isinstance(row, list):
+            row = set(row)
         if type(row) == int:
             row = [row]
-        if max(row) >= self.nr_of_rows():
+        if max(row) >= self.nr_of_rows() or min(row) < 0:
             raise ValueError("Row index out of range")
         for r, i in enumerate(row):
             self._data = self._data[:i-r] + self._data[i-r+1:]
@@ -377,17 +386,21 @@ class Table:
         Note: index start at 0"""
         if column is None:
             column = self.nr_of_columns() - 1
+        if isinstance(column, dict):
+            raise ValueError("Dicts not supported for removing rows.")
+        if isinstance(column, list):
+            column = set(column)
         if type(column) == int:
             column = [column]
-        if max(column) >= self.nr_of_columns():
+        if max(column) >= self.nr_of_columns() or min(column) < 0:
             raise ValueError("Column index out of range")
         if autoremove:
             for r, i in enumerate(column):
                 self._data = [row[:i-r] + row[i-r+1:] for row in self._data]
-            self.remove_head(index=column, autoremove=True)
+            self.remove_head(column=column, autoremove=True)
         else:
             for i in column:
-                for row in self_data:
+                for row in self._data:
                     row[i] = _Cell(self.fill)
 
     def copy(self, row=None, column=None):

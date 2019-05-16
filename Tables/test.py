@@ -18,12 +18,14 @@ class TestTable(unittest.TestCase):
             'positive_float': [
                                 *[float(i)/7 for i in range(1, 10)],
                                 *[float(i)/37 for i in range(1337, 1400, 7)],
-                                1e32, 2e64
+                                1e32,
+                                2e64
                               ],
             'negative_float': [
                                 *[float(i)/7 for i in range(-10, -1)],
                                 *[float(i)/37 for i in range(-1337, -1300, 7)],
-                                -1e32, -2e64
+                                -1e32,
+                                -2e64
                               ],
             'dict': [
                         {0: [0], 1: [1]},
@@ -71,7 +73,6 @@ class TestTable(unittest.TestCase):
                         Table(data=x)
         for x in self.types['double_iter'] + self.types['str']:
             self.assertIsInstance(Table(data=x), Table, msg='data='+str(x))
-
         # rows
         for k, v in self.types.items():
             if k != 'positive_int':
@@ -81,7 +82,6 @@ class TestTable(unittest.TestCase):
                         Table(rows=x)
         for x in self.types['positive_int']:
             self.assertIsInstance(Table(rows=x), Table, msg='rows='+str(x))
-
         # columns
         for k, v in self.types.items():
             if k != 'positive_int':
@@ -92,7 +92,6 @@ class TestTable(unittest.TestCase):
         for x in self.types['positive_int']:
             self.assertIsInstance(Table(columns=x), Table,
                                   msg='columns='+str(x))
-
         # col_sep
         for k, v in self.types.items():
             for x in v:
@@ -104,7 +103,6 @@ class TestTable(unittest.TestCase):
             if len(x) < 2:
                 self.assertIsInstance(Table(col_sep=x), Table,
                                       msg='col_sep='+str(x))
-
         # head_sep
         for k, v in self.types.items():
             for x in v:
@@ -116,7 +114,6 @@ class TestTable(unittest.TestCase):
             if len(x) < 3:
                 self.assertIsInstance(Table(head_sep=x), Table,
                                       msg='head_sep='+str(x))
-
         # fill
         for k, v in self.types.items():
             for x in v:
@@ -128,7 +125,6 @@ class TestTable(unittest.TestCase):
         sep = '(-+\\+)*-+\n'
         row = '([^\n]*? \\| ){'+str(columns-1)+'}[^\n]*? *?\n'
         last = '([^\n]*? \\| ){'+str(columns-1)+'}[^\n]*? *?$'
-        regex = '^'
         if head != 0:
             return '^' + row * head + sep + row * (rows - 1) + last
         else:
@@ -145,11 +141,11 @@ class TestTable(unittest.TestCase):
             if i % 2 == 0:
                 regex += full * fe
                 if i == len(fullempty) - 1:
-                    regex += empty * fullempty[i+1]
+                    regex += end_empty * fullempty[i+1]
             else:
                 regex += empty * fe
                 if i == len(fullempty) - 1:
-                    regex += full * fullempty[i+1]
+                    regex += end_full * fullempty[i+1]
         return regex
 
     def test__str__(self):
@@ -165,6 +161,7 @@ class TestTable(unittest.TestCase):
                              msg='fill='+str(inp))
 
     def test_add_head(self):
+        # Starting with three columns and three rows (no head)
         expect = [
                 (None, (3, 3, 1)),
                 ([], (3, 3, 1)),
@@ -188,6 +185,7 @@ class TestTable(unittest.TestCase):
                              msg='data='+str(inp))
 
     def test_add_row(self):
+        # Starting with three rows and three columns
         expect = [
                 (None, (4, 3)),
                 ([], (4, 3)),
@@ -211,6 +209,7 @@ class TestTable(unittest.TestCase):
                              msg='data='+str(inp))
 
     def test_add_column(self):
+        # Starting with three rows and three columns
         expect = [
                 (None, (3, 4)),
                 ([], (3, 4)),
@@ -256,21 +255,6 @@ class TestTable(unittest.TestCase):
                              .format(str(data), str(head)))
 
     def test_remove_head(self):
-        expect = [
-                (None, (0, 5)),
-                (0, (0, 1, 4)),
-                (1, (1, 1, 3)),
-                (range(2), (0, 2, 3)),
-                ([1, 3], (1, 1, 1, 1, 1))
-        ]
-        for (inp, fullempty) in expect:
-            T = Table(rows=1, columns=5)
-            T.add_head(fill='test')
-            T.remove_head(index=inp)
-            regex = self.onerow_fill_test_regex(fullempty)
-            self.assertRegex(str(T), regex,
-                             msg='index='+str(inp))
-
         autoremove_expect = [
                 (None, (0, 5)),
                 (0, (4, 1)),
@@ -281,19 +265,126 @@ class TestTable(unittest.TestCase):
         for (inp, fullempty) in autoremove_expect:
             T = Table(rows=1, columns=5)
             T.add_head(fill='test')
-            T.remove_head(index=inp, autoremove=True)
+            T.remove_head(column=inp, autoremove=True)
             regex = self.onerow_fill_test_regex(fullempty)
             self.assertRegex(str(T), regex,
-                             msg='index='+str(inp))
-
+                             msg='column='+str(inp))
+        expect = [
+                (None, (0, 5)),
+                (0, (0, 1, 4)),
+                (1, (1, 1, 3)),
+                (range(2), (0, 2, 3)),
+                ([1, 3], (1, 1, 1, 1, 1)),
+                ([0, 0], (0, 1, 4)),
+                ([0, 0, 1, 1], (0, 2, 3))
+        ]
+        for (inp, fullempty) in expect:
+            T = Table(rows=1, columns=5)
+            T.add_head(fill='test')
+            T.remove_head(column=inp, autoremove=False)
+            regex = self.onerow_fill_test_regex(fullempty)
+            self.assertRegex(str(T), regex,
+                             msg='column={},autoremove=False'
+                                 .format(str(inp)))
         for k, v in self.types.items():
             for x in v:
-                if k != 'positive_int' or (k == 'positive_int' and x > 5):
+                if k != 'positive_int' and k != 'single_iter'\
+                        or (k == 'positive_int' and x > 5):
                     T = Table(rows=1, columns=5)
                     T.add_head(fill='test')
-                    with self.assertRaises(ValueError,
-                                           msg='index='+str(x)):
-                        T.remove_head(index=x)
+                    with self.assertRaises((ValueError, TypeError),
+                                           msg='column='+str(x)):
+                        T.remove_head(column=x)
+
+    def test_remove_row(self):
+        # TODO: Make sure the proper row is removed!
+        # Starting with three rows and three columns
+        autoremove_expect = [
+                (None, (2, 3)),
+                (0, (2, 3)),
+                (1, (2, 3)),
+                (range(2), (1, 3)),
+                ([0, 2], (1, 3)),
+                ([0, 0], (2, 3)),
+                ([0, 0, 1, 1], (1, 2))
+        ]
+        for (inp, (rows, columns)) in autoremove_expect:
+            T = Table(rows=3, columns=3)
+            T.remove_row(row=inp, autoremove=True)
+            regex = self.table_regex(rows, columns)
+            self.assertRegex(str(T), regex,
+                             msg='row={},autoremove=True'
+                                 .format(str(inp)))
+        # TODO: Same as autoremove=True??
+        expect = [
+                (None, (2, 3)),
+                (0, (2, 3)),
+                (1, (2, 3)),
+                (range(2), (1, 3)),
+                ([0, 2], (1, 3)),
+                ([0, 0], (2, 3)),
+                ([0, 0, 1, 1], (1, 2))
+        ]
+        for (inp, (rows, columns)) in expect:
+            T = Table(rows=3, columns=3)
+            T.remove_row(row=inp, autoremove=False)
+            regex = self.table_regex(rows, columns)
+            self.assertRegex(str(T), regex,
+                             msg='row={},autoremove=False'
+                                 .format(str(inp)))
+        for k, v in self.types.items():
+            for x in v:
+                if k != 'positive_int' and k != 'single_iter'\
+                        or (k == 'positive_int' and x > 2):
+                    T = Table(rows=3, columns=3)
+                    with self.assertRaises((ValueError, TypeError),
+                                           msg='row='+str(x)):
+                        T.remove_row(row=x)
+
+    def test_remove_column(self):
+        # TODO: Make sure the proper column is removed!
+        # Starting with three columns and three columns
+        autoremove_expect = [
+                (None, (3, 2)),
+                (0, (3, 2)),
+                (1, (3, 2)),
+                (range(2), (3, 1)),
+                ([0, 2], (3, 1)),
+                ([0, 0], (3, 2)),
+                ([0, 0, 1, 1], (2, 1))
+        ]
+        for (inp, (columns, columns)) in autoremove_expect:
+            T = Table(rows=3, columns=3)
+            T.remove_column(column=inp, autoremove=True)
+            regex = self.table_regex(columns, columns)
+            self.assertRegex(str(T), regex,
+                             msg='column={},autoremove=True'
+                                 .format(str(inp)))
+        # TODO: Same as autoremove=True??
+        expect = [
+                (None, (3, 2)),
+                (0, (3, 2)),
+                (1, (3, 2)),
+                (range(2), (3, 1)),
+                ([0, 2], (3, 1)),
+                ([0, 0], (3, 2)),
+                ([0, 0, 1, 1], (2, 1))
+        ]
+        for (inp, (columns, columns)) in expect:
+            T = Table(rows=3, columns=3)
+            T.remove_column(column=inp, autoremove=False)
+            regex = self.table_regex(columns, columns)
+            self.assertRegex(str(T), regex,
+                             msg='column={},autoremove=False'
+                                 .format(str(inp)))
+        for k, v in self.types.items():
+            for x in v:
+                if k != 'positive_int' and k != 'single_iter'\
+                        or (k == 'positive_int' and x > 2):
+                    T = Table(rows=3, columns=3)
+                    with self.assertRaises((ValueError, TypeError),
+                                           msg='column='+str(x)):
+                        T.remove_column(column=x)
 
 
 if __name__ == '__main__':
