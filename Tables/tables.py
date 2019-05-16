@@ -56,9 +56,9 @@ class _Cell:
             if value > 2:
                 self._max_width = value
             else:
-                raise ValueError("`max_width` cannot be less then 3")
+                raise ValueError('`max_width` cannot be less then 3')
         except TypeError:
-            raise TypeError("`max_width` should be an integer or `None`")
+            raise TypeError('`max_width` should be an integer or `None`')
 
     def copy(self):
         """Copies and return data from cell"""
@@ -170,6 +170,8 @@ class Table:
         self._head = None
         # TODO More chars for seperators?
         # TODO Row seperator?
+        if isinstance(data, dict):
+            raise TypeError('Dicts not supported as data value')
         if rows < 0:
             raise ValueError("Number of rows can't be less then zero.")
         if columns < 0:
@@ -215,7 +217,7 @@ class Table:
     @head_sep.setter
     def head_sep(self, value):
         if not isinstance(value, str) or len(value) > 2:
-            raise ValueError("Head sep needs to be a string of max two chars")
+            raise ValueError('Head sep needs to be a string of max two chars')
         elif len(value) == 1:
             self._head_sep = value * 2
         elif value == '':
@@ -230,7 +232,7 @@ class Table:
     @col_sep.setter
     def col_sep(self, value):
         if not isinstance(value, str) or len(value) > 1:
-            raise ValueError("Column sep needs to be a string of one char.")
+            raise ValueError('Column sep needs to be a string of one char.')
         self._col_sep = value + ' '
 
     @property
@@ -325,6 +327,8 @@ class Table:
         fill    -- Empty heading fill for excesive columns (default None)
         Note: If none given, the Table fill param is used!"""
         head = []
+        if not isinstance(data, (list, str)):
+            raise TypeError(f'data={data} not supported.')
         if data is None:
             data = ''
         for i in range(len(data)):
@@ -413,9 +417,9 @@ class Table:
                 if isinstance(column, int):
                     column = [column]
                 if max(column) >= len(self._head) or min(column) < 0:
-                    raise ValueError("Head column out of range")
+                    raise ValueError(f'Head column {column} out of range')
                 if isinstance(column, dict):
-                    raise ValueError("Dicts not supported for removing head.")
+                    raise ValueError('Dicts not supported for removing head.')
                 if isinstance(column, list):
                     column = set(column)
             if column is None:
@@ -436,13 +440,13 @@ class Table:
         if row is None:
             row = self.row_count - 1
         if isinstance(row, dict):
-            raise ValueError("Dicts not supported for removing rows.")
+            raise ValueError('Dicts not supported for removing rows.')
         if isinstance(row, list):
             row = set(row)
         if type(row) == int:
             row = [row]
         if max(row) >= self.row_count or min(row) < 0:
-            raise ValueError("Row index out of range")
+            raise ValueError(f'Row {row} index out of range')
         for r, i in enumerate(row):
             self._data = self._data[:i-r] + self._data[i-r+1:]
         if removehead and self.row_count == 0:
@@ -461,13 +465,13 @@ class Table:
         if column is None:
             column = self.column_count - 1
         if isinstance(column, dict):
-            raise ValueError("Dicts not supported for removing rows.")
+            raise ValueError('Dicts not supported for removing rows.')
         if isinstance(column, list):
             column = set(column)
         if type(column) == int:
             column = [column]
         if max(column) >= self.column_count or min(column) < 0:
-            raise ValueError("Column index out of range")
+            raise ValueError(f'Column {column} index out of range')
         if removehead:
             for r, i in enumerate(column):
                 self._data = [row[:i-r] + row[i-r+1:] for row in self._data]
@@ -494,9 +498,9 @@ class Table:
         if type(column) == int:
             column = [column]
         if row is not None and max(row) >= self.row_count:
-            raise IndexError("Exceeding max rows!\n" + repr(self))
+            raise IndexError('Exceeding max rows.\n' + repr(self))
         if column is not None and max(column) >= self.column_count:
-            raise IndexError("Exceeding max columns!\n" + repr(self))
+            raise IndexError('Exceeding max columns.\n' + repr(self))
         T = Table(
                 max_width=self._max_width,
                 fill=self.fill,
