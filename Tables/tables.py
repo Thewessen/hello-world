@@ -15,7 +15,7 @@ class _Cell:
     def __init__(self, value, max_width=None):
         """Set value and calculates the max_width and height"""
         self.value = value
-        self._max_width = max_width
+        self.max_width = max_width
 
     def __repr__(self):
         """Representation of this object"""
@@ -41,19 +41,30 @@ class _Cell:
         for line in str(v).split('\n'):
             yield line
 
-    def set_max_width(self, i):
+    @property
+    def max_width(self):
+        return self._max_width
+
+    @max_width.setter
+    def max_width(self, value):
         """Sets the maximum width of this Cell"""
-        if self._max_width != i:
-            if i < 3:
-                raise ValueError("Max_width can't be less then 3!")
-            self._max_width = i
+        if value is None:
+            return
+
+        try:
+            if value > 3:
+                self._max_width = value
+            else:
+                raise ValueError("`max_width` cannot be less then 3")
+        except TypeError:
+            raise TypeError("`max_width` should be an integer or `None`")
 
     def copy(self):
         if isinstance(self.value, (int, float, str)):
-            return _Cell(value=self.value, max_width=self._max_width)
+            return _Cell(value=self.value, max_width=self.max_width)
         elif isinstance(self.value, (list, dict, tuple, object)):
             return _Cell(value=copy.deepcopy(self.value),
-                         max_width=self._max_width)
+                         max_width=self.max_width)
 
     def get_value(self):
         if isinstance(self.value, (int, float, str)):
@@ -65,11 +76,11 @@ class _Cell:
         """Trunks the value in the cell before printing.
         Adds newline chars where possible."""
         v = self.value
-        i = self._max_width
+        i = self.max_width
         if v is None:
             v = ''
         elif isinstance(v, Table):
-            v.set_max_width(i)
+            v.max_width = i
         elif isinstance(v, list):
             v = str(v)
         elif isinstance(v, float):
@@ -121,9 +132,10 @@ class Table:
     Construct tables ready for printing data into nice table-like output.
     Nested tables, and cells containing multiple lines, are allowed!
     properties:
-        fill    -- String of the default fill for empty cells.
-        col_sep -- String of the column seperator used.
-        head_sep-- String of the head/table seperator used.
+        fill      -- String of the default fill for empty cells.
+        col_sep   -- String of the column seperator used.
+        head_sep  -- String of the head/table seperator used.
+        max_width -- Maxmum width of the Table
     methods:
         add_head        -- Add a list of column headings to the table.
         add_row         -- Add a list of row data to the table.
@@ -138,7 +150,6 @@ class Table:
         nr_of_rows      -- Returns the numbers of rows in the Table as integer.
         nr_of_columns   -- Returns the numbers of columns in the Table as
                            an integer.
-        set_max_width   -- Sets the max_width of the Table
     """
 
     def __init__(self, data=None, rows=0, columns=0, max_width=None,
@@ -177,7 +188,7 @@ class Table:
             self.head_sep = None
         else:
             self.head_sep = head_sep
-        self._max_width = max_width
+        self.max_width = max_width
         if max_width is not None:
             self._column_widths = self._calc_column_widths()
         else:
@@ -199,6 +210,22 @@ class Table:
                     self._data[i].append(_Cell(fill))
             while len(self._data) < rows:
                 self.add_row(fill=fill)
+
+    @property
+    def max_width(self):
+        return self._max_width
+
+    @max_width.setter
+    def max_width(self, value):
+        """Sets the max_width of the Table
+        Arguments:
+        i       -- Integer of maxs width (in chars)"""
+        if value is None:
+            return
+
+        try:
+            self._max_width = value
+            self._column_widths = self._calc_column_widths()
 
     def __repr__(self):
         """Representation of this object. Nr of columns and rows are added."""
@@ -516,14 +543,6 @@ class Table:
         else:
             return len(self._data[0])
 
-    def set_max_width(self, i):
-        """Sets the max_width of the Table
-        Arguments:
-        i       -- Integer of maxs width (in chars)"""
-        if self._max_width != i:
-            self._max_width = i
-            self._column_widths = self._calc_column_widths()
-
     def _calc_column_widths(self):
         M = []
         # Add head when calculating max-widths?
@@ -555,7 +574,7 @@ class Table:
         string = ''
         W = self._calc_column_widths()
         for i, c in enumerate(row):
-            c.set_max_width(W[i])
+            c.max_width = W[i]
         for line in zip_longest(*row, fillvalue=''):
             for ii, l in enumerate(line):
                 string += l.ljust(W[ii])
