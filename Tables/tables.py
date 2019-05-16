@@ -189,10 +189,6 @@ class Table:
         else:
             self.head_sep = head_sep
         self.max_width = max_width
-        if max_width is not None:
-            self._column_widths = self._calc_column_widths()
-        else:
-            self._column_widths = None
         if data is None:
             self._data = [[_Cell(fill) for __ in range(columns)]
                           for __ in range(rows)]
@@ -223,9 +219,7 @@ class Table:
         if value is None:
             return
 
-        try:
-            self._max_width = value
-            self._column_widths = self._calc_column_widths()
+        self._max_width = value
 
     def __repr__(self):
         """Representation of this object. Nr of columns and rows are added."""
@@ -246,7 +240,7 @@ class Table:
                 if len(self.head_sep) == 1:
                     self.head_sep = head_sep * 2
                 sep_row = [_Cell(self.head_sep[1:] * j)
-                           for j in self._calc_column_widths()]
+                           for j in self.column_widths]
                 string += self._convert_row_to_string(sep_row, self.head_sep)
         for row in self._data:
             string += self._convert_row_to_string(row, self.col_sep)
@@ -257,7 +251,7 @@ class Table:
         if self.nr_of_columns() == 0:
             return 0
         else:
-            length = sum(w for w in self._calc_column_widths())\
+            length = sum(w for w in self.column_widths)\
                      + len(self.col_sep)\
                      * (self.nr_of_columns() - 1)
         return length
@@ -313,7 +307,6 @@ class Table:
                     value = fill
             row.append(_Cell(value))
         self._data.append(row)
-        self._column_widths = self._calc_column_widths()
 
     def add_column(self, head=None, data=None, fill=None):
         """Add a list of column data to the table.
@@ -344,7 +337,6 @@ class Table:
             while len(self._head) < self.nr_of_columns() - 1:
                 self._head.append(_Cell(''))
             self._head.append(_Cell(head))
-        self._column_widths = self._calc_column_widths()
 
     def remove_head(self, index=None, autoremove=False):
         """Removes range of head(s) of the table. Data is lost!
@@ -543,7 +535,8 @@ class Table:
         else:
             return len(self._data[0])
 
-    def _calc_column_widths(self):
+    @property
+    def column_widths(self):
         M = []
         # Add head when calculating max-widths?
         if self._head is not None:
@@ -572,13 +565,12 @@ class Table:
 
     def _convert_row_to_string(self, row, sep):
         string = ''
-        W = self._calc_column_widths()
         for i, c in enumerate(row):
-            c.max_width = W[i]
+            c.max_width = self.column_widths[i]
         for line in zip_longest(*row, fillvalue=''):
             for ii, l in enumerate(line):
-                string += l.ljust(W[ii])
-                if ii < len(W) - 1:
+                string += l.ljust(self.column_widths[ii])
+                if ii < len(self.column_widths) - 1:
                     string += sep
                 else:
                     string += '\n'
