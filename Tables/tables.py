@@ -238,7 +238,7 @@ class Table:
             string += self._convert_row_to_string(self._head, self.col_sep)
             if self.head_sep is not None and self.head_sep != '':
                 if len(self.head_sep) == 1:
-                    self.head_sep = head_sep * 2
+                    self.head_sep = self.head_sep * 2
                 sep_row = [_Cell(self.head_sep[1:] * j)
                            for j in self.column_widths]
                 string += self._convert_row_to_string(sep_row, self.head_sep)
@@ -406,7 +406,7 @@ class Table:
             self.remove_head(index=column, autoremove=True)
         else:
             for i in column:
-                for row in self_data:
+                for row in self._data:
                     row[i] = _Cell(self.fill)
 
     def copy(self, row=None, column=None):
@@ -555,11 +555,11 @@ class Table:
         # The last column needs to be smaller
         if len(M) > 1 and M[len(M)-1] > 3:
             M[len(M)-1] -= 1
-        if self._max_width is not None:
+        if self.max_width is not None:
             # Trunk the width of each column
             # Starting with the largest column
             # Remove the seperators for the Cell's max-width
-            col_max = self._max_width - len(self.col_sep) * (len(M) - 1)
+            col_max = self.max_width - len(self.col_sep) * (len(M) - 1)
             while sum(M) > col_max:
                 i = M.index(max(M))
                 M[i] -= 1

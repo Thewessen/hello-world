@@ -128,7 +128,6 @@ class TestTable(unittest.TestCase):
         sep = '(-+\\+)*-+\n'
         row = '([^\n]*? \\| ){'+str(columns-1)+'}[^\n]*? *?\n'
         last = '([^\n]*? \\| ){'+str(columns-1)+'}[^\n]*? *?$'
-        regex = '^'
         if head != 0:
             return '^' + row * head + sep + row * (rows - 1) + last
         else:
@@ -145,11 +144,11 @@ class TestTable(unittest.TestCase):
             if i % 2 == 0:
                 regex += full * fe
                 if i == len(fullempty) - 1:
-                    regex += empty * fullempty[i+1]
+                    regex += end_empty * fullempty[i+1]
             else:
                 regex += empty * fe
                 if i == len(fullempty) - 1:
-                    regex += full * fullempty[i+1]
+                    regex += end_full * fullempty[i+1]
         return regex
 
     def test__str__(self):
@@ -255,45 +254,45 @@ class TestTable(unittest.TestCase):
                              msg='data={}, head={}'
                              .format(str(data), str(head)))
 
-    def test_remove_head(self):
-        expect = [
-                (None, (0, 5)),
-                (0, (0, 1, 4)),
-                (1, (1, 1, 3)),
-                (range(2), (0, 2, 3)),
-                ([1, 3], (1, 1, 1, 1, 1))
-        ]
-        for (inp, fullempty) in expect:
-            T = Table(rows=1, columns=5)
-            T.add_head(fill='test')
-            T.remove_head(index=inp)
-            regex = self.onerow_fill_test_regex(fullempty)
-            self.assertRegex(str(T), regex,
-                             msg='index='+str(inp))
+    # def test_remove_head(self):
+    #     expect = [
+    #             (None, (0, 5)),
+    #             (0, (0, 1, 4)),
+    #             (1, (1, 1, 3)),
+    #             (range(2), (0, 2, 3)),
+    #             ([1, 3], (1, 1, 1, 1, 1))
+    #     ]
+    #     for (inp, fullempty) in expect:
+    #         T = Table(rows=1, columns=5)
+    #         T.add_head(fill='test')
+    #         T.remove_head(index=inp)
+    #         regex = self.onerow_fill_test_regex(fullempty)
+    #         self.assertRegex(str(T), regex,
+    #                          msg='index='+str(inp))
 
-        autoremove_expect = [
-                (None, (0, 5)),
-                (0, (4, 1)),
-                (1, (4, 1)),
-                (range(2), (3, 2)),
-                ([1, 3], (3, 2))
-        ]
-        for (inp, fullempty) in autoremove_expect:
-            T = Table(rows=1, columns=5)
-            T.add_head(fill='test')
-            T.remove_head(index=inp, autoremove=True)
-            regex = self.onerow_fill_test_regex(fullempty)
-            self.assertRegex(str(T), regex,
-                             msg='index='+str(inp))
+    #     autoremove_expect = [
+    #             (None, (0, 5)),
+    #             (0, (4, 1)),
+    #             (1, (4, 1)),
+    #             (range(2), (3, 2)),
+    #             ([1, 3], (3, 2))
+    #     ]
+    #     for (inp, fullempty) in autoremove_expect:
+    #         T = Table(rows=1, columns=5)
+    #         T.add_head(fill='test')
+    #         T.remove_head(index=inp, autoremove=True)
+    #         regex = self.onerow_fill_test_regex(fullempty)
+    #         self.assertRegex(str(T), regex,
+    #                          msg='index='+str(inp))
 
-        for k, v in self.types.items():
-            for x in v:
-                if k != 'positive_int' or (k == 'positive_int' and x > 5):
-                    T = Table(rows=1, columns=5)
-                    T.add_head(fill='test')
-                    with self.assertRaises(ValueError,
-                                           msg='index='+str(x)):
-                        T.remove_head(index=x)
+    #     for k, v in self.types.items():
+    #         for x in v:
+    #             if k != 'positive_int' or (k == 'positive_int' and x > 5):
+    #                 T = Table(rows=1, columns=5)
+    #                 T.add_head(fill='test')
+    #                 with self.assertRaises(ValueError,
+    #                                        msg='index='+str(x)):
+    #                     T.remove_head(index=x)
 
 
 if __name__ == '__main__':
