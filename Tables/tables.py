@@ -61,17 +61,20 @@ class _Cell:
             raise TypeError("`max_width` should be an integer or `None`")
 
     def copy(self):
+        """Copies and return data from cell"""
         if isinstance(self.value, (int, float, str)):
             return _Cell(value=self.value, max_width=self.max_width)
         elif isinstance(self.value, (list, dict, tuple, object)):
             return _Cell(value=copy.deepcopy(self.value),
                          max_width=self.max_width)
 
-    def get_value(self):
-        if isinstance(self.value, (int, float, str)):
-            return self.value
-        elif isinstance(self.value, (list, dict, tuple, object)):
-            return copy.deepcopy(self.value)
+    # def get_value(self):
+    #     if isinstance(self.value, Table):
+    #         return self.value.get()
+    #     elif isinstance(self.value, (int, float, str)):
+    #         return self.value
+    #     elif isinstance(self.value, (list, dict, tuple, object)):
+    #         return copy.deepcopy(self.value)
 
     def _trunk(self):
         """Trunks the value in the cell before printing.
@@ -104,6 +107,7 @@ class _Cell:
                 v = str(v) + 'e' + str(counter)
             else:
                 v = str(v)
+
         # If, not elif,
         # Tries to devide list (containing spaces) in multiple rows
         # Also further trunks integer after 'e' if needed
@@ -147,7 +151,7 @@ class Table:
         copy            -- Returns an instance Table containing specified
                            row(s) and/or column(s)
         log             -- Same as print(Table.copy(row, column))
-        get             -- Returns a copy of the value(s) from the Table
+        # get             -- Returns a copy of the value(s) from the Table
         nr_of_rows      -- Returns the numbers of rows in the Table as integer.
         column_count    -- Returns the numbers of columns in the Table as
                            an integer.
@@ -173,31 +177,20 @@ class Table:
                            the same.
         """
         self._head = None
-        if fill is None:
-            fill = ''
-        self.fill = fill
         # TODO More chars for seperators?
         # TODO Row seperator?
-        if not isinstance(col_sep, str) or len(col_sep) > 1:
-            raise ValueError("Column sep needs to be a string of one char.")
-        if not isinstance(head_sep, str) or len(head_sep) > 2:
-            raise ValueError("Head sep needs to be a string of max two chars")
         if rows < 0:
             raise ValueError("Number of rows can't be less then zero.")
         if columns < 0:
             raise ValueError("Number of columns can't be less then zero.")
-        self.col_sep = col_sep + ' '
-        if len(head_sep) == 1:
-            self.head_sep = head_sep * 2
-        elif head_sep == '':
-            self.head_sep = None
-        else:
-            self.head_sep = head_sep
         if columns != 0 and rows == 0:
             rows = 1
         elif rows != 0 and columns == 0:
             columns = 1
         self.max_width = max_width
+        self.head_sep = head_sep
+        self.col_sep = col_sep
+        self.fill = fill
         if data is None:
             self._data = [[_Cell(fill) for __ in range(columns)]
                           for __ in range(rows)]
@@ -222,10 +215,42 @@ class Table:
 
     @max_width.setter
     def max_width(self, value):
-        """Sets the max_width of the Table
-        Arguments:
-        value       -- Integer of maxs width (in chars)"""
         self._max_width = value
+
+    @property
+    def head_sep(self):
+        return self._head_sep
+
+    @head_sep.setter
+    def head_sep(self, value):
+        if not isinstance(value, str) or len(value) > 2:
+            raise ValueError("Head sep needs to be a string of max two chars")
+        elif len(value) == 1:
+            self._head_sep = value * 2
+        elif value == '':
+            self._head_sep = None
+        else:
+            self._head_sep = value
+
+    @property
+    def col_sep(self):
+        return self._col_sep
+
+    @col_sep.setter
+    def col_sep(self, value):
+        if not isinstance(value, str) or len(value) > 1:
+            raise ValueError("Column sep needs to be a string of one char.")
+        self._col_sep = value + ' '
+
+    @property
+    def fill(self):
+        return self._fill
+
+    @fill.setter
+    def fill(self, value):
+        if value is None:
+            value = ''
+        self._fill = value
 
     def __repr__(self):
         """Representation of this object. Nr of columns and rows are added."""
@@ -488,52 +513,52 @@ class Table:
         # TODO Make logging more efficient...
         print(self.copy(row=row, column=column))
 
-    def get(self, row=None, column=None):
-        """Returns the data contained in the range of row and column.
-        Returns as single value or (multi-dimensional) list of values,
-        depending on the keyargument values of row and column. Values
-        (like lists, or tupples) are always copied.
-        Note: if both row and column are ommited, return an multidimensional
-        of list the whole Table.
-        Note: doesn't return the head of the table.
-        Keyword arguments:
-        row     -- Integer, range or list of the corresponding row(s)
-                   (default None)
-        column  -- Integer, range or list of the corresponding column(s)
-                   (default None)
-        Note: index start at 0"""
-        if type(row) == int:
-            row = [row]
-        if type(column) == int:
-            column = [column]
-        if row is not None and max(row) >= self.row_count:
-            raise IndexError("Exceeding max rows!\n" + repr(self))
-        if column is not None and max(column) >= self.column_count:
-            raise IndexError("Exceeding max columns!\n" + repr(self))
-        if row is None and column is None:
-            return [[c.get_value() for c in r] for r in self._data]
-        elif row is None:
-            # Should return a list (or multi) of column values.
-            # Inverse of the _data list, which is made of list(s) of rows.
-            if len(column) == 1:
-                return [r[column[0]].get_value() for r in self._data]
-            else:
-                return [[r[c].get_value() for r in self._data] for c in column]
-        elif column is None:
-            if len(row) == 1:
-                return [c.get_value() for c in self._data[row[0]]]
-            else:
-                return [[c.get_value() for c in self._data[r]] for r in row]
-        else:
-            if len(row) == 1 and len(column) == 1:
-                return self._data[row[0]][column[0]].get_value()
-            elif len(column) == 1:
-                return [self._data[r][column[0]].get_value() for r in row]
-            elif len(row) == 1:
-                return [self._data[row[0]][c].get_value() for c in column]
-            else:
-                return [[self._data[r][c].get_value() for c in column]
-                        for r in row]
+# def get(self, row=None, column=None):
+#     """Returns the data contained in the range of row and column.
+#     Returns as single value or (multi-dimensional) list of values,
+#     depending on the keyargument values of row and column. Values
+#     (like lists, or tupples) are always copied.
+#     Note: if both row and column are ommited, return an multidimensional
+#     of list the whole Table.
+#     Note: doesn't return the head of the table.
+#     Keyword arguments:
+#     row     -- Integer, range or list of the corresponding row(s)
+#                (default None)
+#     column  -- Integer, range or list of the corresponding column(s)
+#                (default None)
+#     Note: index start at 0"""
+#     if type(row) == int:
+#         row = [row]
+#     if type(column) == int:
+#         column = [column]
+#     if row is not None and max(row) >= self.row_count:
+#         raise IndexError("Exceeding max rows!\n" + repr(self))
+#     if column is not None and max(column) >= self.column_count:
+#         raise IndexError("Exceeding max columns!\n" + repr(self))
+#     if row is None and column is None:
+#         return [[c.get_value() for c in r] for r in self._data]
+#     elif row is None:
+#         # Should return a list (or multi) of column values.
+#         # Inverse of the _data list, which is made of list(s) of rows.
+#         if len(column) == 1:
+#             return [r[column[0]].get_value() for r in self._data]
+#         else:
+#             return [[r[c].get_value() for r in self._data] for c in column]
+#     elif column is None:
+#         if len(row) == 1:
+#             return [c.get_value() for c in self._data[row[0]]]
+#         else:
+#             return [[c.get_value() for c in self._data[r]] for r in row]
+#     else:
+#         if len(row) == 1 and len(column) == 1:
+#             return self._data[row[0]][column[0]].get_value()
+#         elif len(column) == 1:
+#             return [self._data[r][column[0]].get_value() for r in row]
+#         elif len(row) == 1:
+#             return [self._data[row[0]][c].get_value() for c in column]
+#         else:
+#             return [[self._data[r][c].get_value() for c in column]
+#                     for r in row]
 
     @property
     def row_count(self):
