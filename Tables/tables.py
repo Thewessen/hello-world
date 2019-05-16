@@ -6,7 +6,7 @@ Exports class Table()"""
 import copy
 from itertools import zip_longest
 
-__all__ = ["Table"]
+__all__ = ['Table']
 
 
 class _Cell:
@@ -20,8 +20,7 @@ class _Cell:
 
     def __repr__(self):
         """Representation of this object"""
-        return "<Cell object: value='{}'>"\
-               .format(self.value)
+        return f'<Cell object: value=`{self.value}`>'
 
     def __str__(self):
         """Trunks the value according to the set max_width,
@@ -289,8 +288,8 @@ class Table:
 
     def __repr__(self):
         """Representation of this object. Nr of columns and rows are added."""
-        message = "<Table object: {} rows and {} columns>"\
-                  .format(self.row_count, self.column_count)
+        message = (f'<Table object: {self.row_count} rows)'
+                   f' and {self.column_count} columns>')
         return message
 
     def __str__(self):
@@ -565,7 +564,7 @@ class Table:
 
 
 if __name__ == '__main__':
-    print("This module is supposed to be imported!")
+    print('This module is supposed to be imported!')
 # TODO:
 # - When setting max_width Table tries too shrink largest column first,
 #   This isn't always desirable, especially with nested tables of different
