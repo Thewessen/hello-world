@@ -208,7 +208,7 @@ class TestTable(unittest.TestCase):
             msg = f'Not {lines} lines in table, with add_head(data={data})'
             self.assertEqual(len(str(T).splitlines()), lines, msg=msg)
         for k, v in self.types.items():
-            if k != 'single_iter' and k != 'double_iter':
+            if k != 'single_iter' and k != 'double_iter' and k != 'str':
                 for x in v:
                     T = Table(rows=3, columns=3)
                     with self.assertRaises((ValueError, TypeError, KeyError),
@@ -241,6 +241,13 @@ class TestTable(unittest.TestCase):
             self.assertEqual(T.column_count, columns, msg=msg)
             msg = f'Not {lines} lines in table, with add_head(data={data})'
             self.assertEqual(len(str(T).splitlines()), lines, msg=msg)
+        for k, v in self.types.items():
+            if k != 'single_iter' and k != 'double_iter' and k != 'str':
+                for x in v:
+                    T = Table(rows=3, columns=3)
+                    with self.assertRaises((ValueError, TypeError, KeyError),
+                                           msg=f'data={x}'):
+                        T.add_row(data=x)
 
     def test_add_column(self):
         # Starting with three rows and three columns
@@ -294,6 +301,13 @@ class TestTable(unittest.TestCase):
             msg = (f'Not {lines} lines in table, with '
                    f'add_head(data={data},head={head})')
             self.assertEqual(len(str(T).splitlines()), lines, msg=msg)
+        for k, v in self.types.items():
+            if k != 'single_iter' and k != 'double_iter' and k != 'str':
+                for x in v:
+                    T = Table(rows=3, columns=3)
+                    with self.assertRaises((ValueError, TypeError, KeyError),
+                                           msg=f'data={x}'):
+                        T.add_column(data=x)
 
     def test_remove_head(self):
         expect = [

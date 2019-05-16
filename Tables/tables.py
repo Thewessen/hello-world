@@ -326,7 +326,7 @@ class Table:
         fill    -- Empty heading fill for excesive columns (default None)
         Note: If none given, the Table fill param is used!"""
         head = []
-        if not isinstance(data, (list, str)):
+        if data is not None and not isinstance(data, (list, str)):
             raise TypeError(f'data={data} not supported.')
         if data is None:
             data = ''
@@ -355,6 +355,8 @@ class Table:
         row = []
         if data is None:
             data = ''
+        if not isinstance(data, (list, str)):
+            raise TypeError(f'data={data} not supported.')
         if self.column_count == 0:
             width = len(data)
         else:
@@ -384,6 +386,8 @@ class Table:
         length = self.row_count
         if data is None:
             data = []
+        if not isinstance(data, (list, str)):
+            raise TypeError(f'data={data} not supported.')
         while len(data) > length:
             self.add_row()
             length = self.row_count
