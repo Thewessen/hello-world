@@ -1,3 +1,4 @@
 # Ignore Session.vim and other vim files
 *.vim
 *.sw?
+*.pyc
