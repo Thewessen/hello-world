@@ -117,11 +117,6 @@ class TestTable(unittest.TestCase):
             if len(x) < 3:
                 self.assertIsInstance(Table(head_sep=x), Table,
                                       msg=f'head_sep={x}')
-        # fill
-        for k, v in self.types.items():
-            for x in v:
-                self.assertIsInstance(Table(rows=5, columns=5, fill=x), Table,
-                                      msg=f'fill={x}')
 
     def onerow_fill_test_regex(self, fullempty):
         # fullempty = (nr_of_full, nr_of_empty, nr_of_full, etc...)
@@ -177,7 +172,86 @@ class TestTable(unittest.TestCase):
             self.assertEqual(len(str(T).splitlines()), lines, msg=msg)
         for v in self.types.values():
             for x in v:
-                self.assertIsInstance(Table(fill=x), Table, msg='fill={x}')
+                self.assertIsInstance(Table(fill=x), Table, msg=f'fill={x}')
+
+    def test__len__(self):
+        # expect = fill
+        expect = [
+                (None, 13),
+                ([], 13),
+                ([''], 18),
+                ('hey', 15),
+                ('', 13),
+                ([None], 24),
+                (['']*4, 54),
+                (['']*10, 126),
+                ('helloworld', 36),
+                (['\n'], 24),
+                ('\n', 13),
+                (['\n\n\n'], 36),
+                ('\n\n\n\n\n', 13),
+        ]
+        for (data, length) in expect:
+            T = Table(rows=3, columns=3, fill=data)
+            self.assertEqual(len(T), length, msg=f'fill={data}')
+        # Small dimension check.
+        for x in range(1, 12):
+            for y in range(1, 12):
+                T = Table(rows=x, columns=y)
+                length = 5 * y - 2
+                self.assertEqual(len(T), length,
+                                 msg=f'rows={x},columns={y}')
+
+    def test_max_width(self):
+        # Blowing up...
+        expect = [
+                ((None, 26), 13),
+                (([], 15), 13),
+                (([''], 79), 18),
+                (('hey', 30), 15),
+                (('', 21), 13),
+                (([None], 121), 24),
+                ((['']*4, 200), 54),
+                ((['']*10, 1337), 126),
+                (('helloworld', 72), 36),
+                ((['\n'], 25), 24),
+                (('\n', 13), 13),
+                ((['\n\n\n'], 37), 36),
+                (('\n\n\n\n\n', 13), 13),
+        ]
+        for ((data, max_width), length) in expect:
+            T = Table(rows=3, columns=3, fill=data)
+            T.max_width = max_width
+            self.assertEqual(len(T), length,
+                             msg=f'max_width={max_width},fill={data}')
+        # Shrinking...
+        # Small values can't be shrinkend (next test)
+        expect = [
+                ([''], 15),
+                ('hey', 13),
+                ([None], 21),
+                (['']*4, 13),
+                (['']*10, 100),
+                ('helloworld', 30),
+                (['\n'], 21),
+                (['\n\n\n'], 35),
+        ]
+        for (data, max_width) in expect:
+            T = Table(rows=3, columns=3, fill=data)
+            T.max_width = max_width
+            self.assertEqual(len(T), max_width,
+                             msg=f'max_width={max_width},fill={data}')
+        expect = [
+                ((None, 10), 13),
+                (([], 11), 13),
+                (('', 12), 13),
+                (('\n', 10), 13),
+                (('\n\n\n\n\n', 12), 13)
+        ]
+        for ((data, max_width), length) in expect:
+            T = Table(rows=3, columns=3, fill=data)
+            with self.assertRaises(ValueError, msg=f'fill={data}'):
+                T.max_width = max_width
 
     def test_add_head(self):
         # Starting with three columns and three rows (no head)
