@@ -148,7 +148,7 @@ class Table:
     """
 
     def __init__(self, data=None, rows=0, columns=0, max_width=None,
-                 fill=None, col_sep='|', head_sep='+-'):
+                 fill=None, head_sep='+=', row_sep='+-', col_sep='|'):
         """
         Keyword arguments:
             data        -- Initial data. Needs to be an iterable object of
@@ -159,12 +159,17 @@ class Table:
                            Creates one column if rows != 0
             max_width   -- Max width of the Table for printing (default None)
             fill        -- Empty cell fill (default '')
-            col_sep     -- Seperator between columns (default '|')
             head_sep    -- Seperator for heading/table.
                            First char is the char at crossing of head_sep with
                            col_sep, second char is the fillchar (default '+-')
                            When one char is given, crosschar and fillchar are
                            the same.
+            row_sep     -- Seperator between rows.
+                           First char is the char at crossing of col_sep and
+                           row_sep. Second char is the fillchar (default '+-')
+                           When one char is given, crosschar and fillchar are
+                           the same.
+            col_sep     -- Seperator between columns (default '|')
         """
         self._head = None
         # TODO More chars for seperators?
@@ -198,6 +203,7 @@ class Table:
             while len(self._data) < rows:
                 self.add_row(fill=self.fill)
         self.head_sep = head_sep
+        self.row_sep = row_sep
         self.col_sep = col_sep
         self.max_width = max_width
 
@@ -227,6 +233,21 @@ class Table:
             self._head_sep = None
         else:
             self._head_sep = value
+
+    @property
+    def row_sep(self):
+        return self._row_sep
+
+    @row_sep.setter
+    def row_sep(self, value):
+        if not isinstance(value, str) or len(value) > 2:
+            raise ValueError('Row sep needs to be a string of max two chars')
+        elif len(value) == 1:
+            self._row_sep = value * 2
+        elif value == '':
+            self._row_sep = None
+        else:
+            self._row_sep = value
 
     @property
     def col_sep(self):
@@ -278,8 +299,9 @@ class Table:
             else:
                 M.append(mx)
         # The last column needs to be smaller
-        if len(M) > 1 and M[len(M)-1] > 3:
-            M[len(M)-1] -= 1
+        # Only if col_sep is set
+        if len(M) > 0 and M[len(M)-1] > 3:
+            M[len(M)-1] -= len(self.col_sep) - 1
         if self.max_width is not None:
             # Trunk the width of each column
             # Starting with the largest column
@@ -298,16 +320,24 @@ class Table:
     def __str__(self):
         """A performance heavy operation. Returns a string representation,
         of the current table. Trunks values as needed (set by max_width).
-        Also adds seperators specified by head_sep and col_sep."""
+        Also adds seperators specified by head_sep, row_sep and col_sep."""
         string = ''
         if self._head is not None:
             string += self._convert_row_to_string(self._head, self.col_sep)
-            if self.head_sep is not None and self.head_sep != '':
+            if self.head_sep is not None:
                 sep_row = [_Cell(self.head_sep[1:] * j)
                            for j in self.column_widths]
                 string += self._convert_row_to_string(sep_row, self.head_sep)
+        rows = []
         for row in self._data:
-            string += self._convert_row_to_string(row, self.col_sep)
+            rows.append(self._convert_row_to_string(row, self.col_sep))
+        if self.row_sep is not None:
+            sep_row = [_Cell(self.row_sep[1:] * j)
+                       for j in self.column_widths]
+            sep = self._convert_row_to_string(sep_row, self.row_sep)
+            string += sep.join(rows)
+        else:
+            string += ''.join(rows)
         return string.strip('\n')
 
     def __len__(self):
@@ -521,14 +551,13 @@ class Table:
         T = Table(
                 max_width=self.max_width,
                 fill=self.fill,
-                col_sep=self.col_sep[:1],
-                head_sep=self.head_sep
+                head_sep=self.head_sep,
+                row_sep=self.row_sep,
+                col_sep=self.col_sep[:1]
         )
         if row is None and column is None:
             T._data = [[c.copy() for c in row] for row in self._data]
             T._head = [h.copy() for h in self._head]
-            if self._column_widths is not None:
-                T._column_widths = self._column_widths.copy()
         elif row is None:
             for c in column:
                 col = [r[c].copy() for r in self._data]
@@ -536,21 +565,15 @@ class Table:
                 if self._head is not None:
                     head = self._head[c].copy()
                 T.add_column(head=head, data=col)
-                if self._column_widths is not None:
-                    T._column_widths.append(self._column_widths[c])
         elif column is None:
             for r in row:
                 T.add_row(data=[c.copy() for c in self._data[r]])
-            if self._column_widths is not None:
-                T._column_widths = self._column_widths.copy()
             if self._head is not None:
                 T.add_head(data=[c.copy() for c in self._head])
         else:
             T._data = []
             for r in row:
                 T._data.append([self._data[r][c].copy() for c in column])
-            if self._column_widths is not None:
-                T._column_widths = self._column_widths.copy()
             if self._head is not None:
                 T.add_head(data=[self._head[c].copy() for c in column])
         return T
@@ -584,15 +607,17 @@ class Table:
 if __name__ == '__main__':
     print('This module is supposed to be imported!')
 # TODO:
-# - When setting max_width Table tries too shrink largest column first,
-#   This isn't always desirable, especially with nested tables of different
-#   sizes.
-# - Head isn't taken into account when setting/calculating column width.
-#   Is this the desired behaviour?
+# BUGFIX:
+# - _convert_row_to_string -> c.max...self.column_widths[i] index out of range
+#   repro: * create table with at least one column
+#          * add column only containing head (not data)
+#          * remove column
+#          * add column containing data
+#          * try to print
+# Wishlist:
 # - Nested tables side by side won't line row by row... This leaves room for
 #   discussion. At the end, it's a cell containing a table, not a splitted
 #   cell...
 # - Make logging more efficient...
 # - More chars for seperators?
-# - Add row seperator?
 # - Add max height?
