@@ -349,33 +349,55 @@ class Table:
                     + len(self.col_sep)
                     * (self.column_count - 1))
 
-    def add_head(self, data=None, fill=None):
+    def add_head(self, *args, index=None, data=None, fill=None):
         """Add a list of column headings to the table.
         Keyword arguments:
-        data    -- List containing the headings (default None)
-        fill    -- Empty heading fill for excesive columns (default None)
-                   Note: If none given, the Table fill param is used!"""
-        head = []
+        index   -- When set, insert data instead of replacing (default None).
+        data    -- List containing the headings (default None).
+        fill    -- Empty heading fill for excesive columns (default None).
+                   Note: if none given, the Table fill param is used!
+        Arguments number and order:
+        1 argument  -- data
+        2 arguments -- index, data
+        3 arguments -- index, data, fill"""
+        if len(args) == 1:
+            (data,) = args
+        elif len(args) == 2:
+            (index, data) = args
+        elif len(args) == 3:
+            (index, data, fill) = args
         if data is None:
             data = ''
         if not isinstance(data, (list, str)):
             raise TypeError(f'data={data} not supported.')
-        for i in range(len(data)):
-            if data[i] is None:
-                value = ''
-            else:
-                value = data[i]
-            head.append(_Cell(value))
-        while len(head) < self.column_count:
-            if fill is None:
-                head.append(_Cell(self.fill))
-            else:
-                head.append(_Cell(fill))
-        while self.column_count < len(head):
+        if fill is None:
+            fill = self.fill
+        if self._head is None:
+            self._head = [_Cell(fill) for __ in range(self.column_count)]
+        if index is None:
+            for h, d in zip(self._head, data):
+                # None value indicates no change in value
+                if d is not None:
+                    h.value = d
+        else:
+            self._head = (self._head[:index]
+                          + [_Cell(d) for d in data]
+                          + self._head[index:])
+        # for i in range(len(data)):
+        #     if data[i] is None:
+        #         if self._head is not None and self._head[i].value != '':
+        #             value = self._head[i].value
+        #         else:
+        #             value = ''
+        #     else:
+        #         value = data[i]
+        #     head.append(_Cell(value))
+        while len(self._head) < self.column_count:
+            self._head.append(_Cell(fill))
+        while self.column_count < len(self._head):
             self.add_column(self.fill)
-        self._head = head
 
-    def add_row(self, data=None, index=None, fill=None):
+    def add_row(self, *args, index=None, data=None, fill=None):
         """Add a list of row data to the table.
         Keyword arguments:
         data    -- List containing cell data (default None)
@@ -383,10 +405,22 @@ class Table:
                    (default None: last row)
         fill    -- The filling too use when creating more cells to fit
                    the Table size (default None)
-                   Noterow: If none given, the Table fill param is used!"""
+                   Noterow: If none given, the Table fill param is used!
+        Arguments number and order:
+        1 argument  -- data
+        2 arguments -- index, data
+        3 arguments -- index, data, fill"""
+        if len(args) == 1:
+            (data,) = args
+        elif len(args) == 2:
+            (index, data) = args
+        elif len(args) == 3:
+            (index, data, fill) = args
         row = []
         if data is None:
             data = []
+        if index is None:
+            index = self.row_count
         if not isinstance(data, (list, str)):
             raise TypeError(f'data={data} not supported.')
         if self.column_count == 0:
@@ -405,12 +439,9 @@ class Table:
                 else:
                     value = fill
             row.append(_Cell(value))
-        if index is None:
-            self._data.append(row)
-        else:
-            self._data[index] = (self._data[:index]
-                                 + row
-                                 + self._data[index:])
+        self._data[index] = (self._data[:index]
+                             + row
+                             + self._data[index:])
 
     def add_column(self, *args, index=None, head=None, data=None, fill=None):
         """Add a list of column data to the table.
@@ -433,11 +464,15 @@ class Table:
             (head, data) = args
         elif len(args) == 3:
             (index, head, data) = args
-        else:
+        elif len(args) == 4:
             (index, head, data, fill) = args
         length = self.row_count
         if data is None:
             data = []
+        if index is None:
+            index = self.column_count
+        if head is None:
+            head = ''
         if not isinstance(data, (list, str)):
             raise TypeError(f'data={data} not supported.')
         while len(data) > length:
@@ -457,12 +492,8 @@ class Table:
                 self._data[i] = (self._data[i][:index]
                                  + [_Cell(value)]
                                  + self._data[i][index:])
-        if self._head is None and head is not None:
-            self._head = []
-        if head is not None:
-            while len(self._head) < self.column_count - 1:
-                self._head.append(_Cell(''))
-            self._head.append(_Cell(head))
+        if self._head is not None:
+            self.add_head(index=index, data=[head])
 
     def remove_head(self, column=None):
         """Removes range of head(s) of the table. Data is lost!
@@ -620,13 +651,6 @@ class Table:
 if __name__ == '__main__':
     print('This module is supposed to be imported!')
 # TODO:
-# BUGFIX:
-# - _convert_row_to_string -> c.max...self.column_widths[i] index out of range
-#   repro: * create table with at least one column
-#          * add column only containing head (not data)
-#          * remove column
-#          * add column containing data
-#          * try to print
 # Wishlist:
 # - Nested tables side by side won't line row by row... This leaves room for
 #   discussion. At the end, it's a cell containing a table, not a splitted
