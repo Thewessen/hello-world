@@ -412,16 +412,29 @@ class Table:
                                  + row
                                  + self._data[index:])
 
-    def add_column(self, head=None, data=None, index=None, fill=None):
+    def add_column(self, *args, index=None, head=None, data=None, fill=None):
         """Add a list of column data to the table.
+        Arguments number and order:
+        1 argument  -- data
+        2 arguments -- head, data
+        3 arguments -- index, head, data
+        4 arguments -- index, head, data, fill
         Keyword arguments:
-        head    -- The table heading of this column (default None)
-        data    -- List containing cell data (default None)
-        index   -- The position of the newly added column starting at 0.
-                   (default None: last column)
+        data    -- List containing cell data (default None).
+        head    -- The table heading of this column (default None).
+        index   -- The position of the newly added column starting at 0
+                   (default None: last column).
         fill    -- The filling too use when creating more cells to fit
-                   the Table size (default None)
+                   the Table size (default None).
                    Note: If none given, the Table fill param is used!"""
+        if len(args) == 1:
+            (data,) = args
+        elif len(args) == 2:
+            (head, data) = args
+        elif len(args) == 3:
+            (index, head, data) = args
+        else:
+            (index, head, data, fill) = args
         length = self.row_count
         if data is None:
             data = []
