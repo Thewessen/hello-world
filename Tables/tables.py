@@ -181,29 +181,25 @@ class Table:
             columns = 1
         self.fill = fill
         if data is None:
-            self.data = [[_Cell(self.fill) for __ in range(columns)]
-                         for __ in range(rows)]
+            self._data = [[_Cell(self.fill) for __ in range(columns)]
+                          for __ in range(rows)]
         else:
-            self.data = []
+            self._data = []
             for i, row in enumerate(data):
                 if i >= rows and rows != 0:
                     break
-                self.data.append([])
+                self._data.append([])
                 for j, c in enumerate(row):
                     if j >= columns and columns != 0:
                         break
-                    self.data[i].append(_Cell(data[i][j]))
-                while len(self.data[i]) < columns:
-                    self.data[i].append(_Cell(self.fill))
-            while len(self.data) < rows:
+                    self._data[i].append(_Cell(data[i][j]))
+                while len(self._data[i]) < columns:
+                    self._data[i].append(_Cell(self.fill))
+            while len(self._data) < rows:
                 self.add_row(fill=self.fill)
         self.head_sep = head_sep
         self.col_sep = col_sep
         self.max_width = max_width
-
-    @property
-    def data(self):
-        return self._data
 
     @property
     def max_width(self):
@@ -213,7 +209,7 @@ class Table:
     def max_width(self, value):
         self._max_width = value
         W = self.column_widths
-        for row in self.data:
+        for row in self._data:
             for v, c in zip(W, row):
                 c.max_width = v
 
@@ -255,7 +251,7 @@ class Table:
     @property
     def row_count(self):
         """Returns the numbers of rows in the Table as integer."""
-        return len(self.data)
+        return len(self._data)
 
     @property
     def column_count(self):
@@ -264,16 +260,16 @@ class Table:
         if self.row_count == 0 and self._head is None:
             return 0
         else:
-            return len(self.data[0])
+            return len(self._data[0])
 
     @property
     def column_widths(self):
         M = []
         # Add head when calculating max-widths?
         if self._head is not None:
-            z = zip(self._head, *self.data)
+            z = zip(self._head, *self._data)
         else:
-            z = zip(*self.data)
+            z = zip(*self._data)
         for column in z:
             # One space extra...
             mx = max(len(c) + len(self.col_sep) - 1 for c in column)
@@ -296,9 +292,8 @@ class Table:
 
     def __repr__(self):
         """Representation of this object. Nr of columns and rows are added."""
-        message = (f'<Table object: {self.row_count} rows)'
-                   f' and {self.column_count} columns>')
-        return message
+        return (f'<Table object: {self.row_count} rows)'
+                f' and {self.column_count} columns>')
 
     def __str__(self):
         """A performance heavy operation. Returns a string representation,
@@ -306,14 +301,12 @@ class Table:
         Also adds seperators specified by head_sep and col_sep."""
         string = ''
         if self._head is not None:
-            while len(self._head) < self.column_count:
-                self._head.append(_Cell(''))
             string += self._convert_row_to_string(self._head, self.col_sep)
             if self.head_sep is not None and self.head_sep != '':
                 sep_row = [_Cell(self.head_sep[1:] * j)
                            for j in self.column_widths]
                 string += self._convert_row_to_string(sep_row, self.head_sep)
-        for row in self.data:
+        for row in self._data:
             string += self._convert_row_to_string(row, self.col_sep)
         return string.strip('\n')
 
@@ -322,22 +315,21 @@ class Table:
         if self.column_count == 0:
             return 0
         else:
-            length = sum(w for w in self.column_widths)\
-                     + len(self.col_sep)\
-                     * (self.column_count - 1)
-        return length
+            return (sum(self.column_widths)
+                    + len(self.col_sep)
+                    * (self.column_count - 1))
 
     def add_head(self, data=None, fill=None):
         """Add a list of column headings to the table.
         Keyword arguments:
         data    -- List containing the headings (default None)
         fill    -- Empty heading fill for excesive columns (default None)
-        Note: If none given, the Table fill param is used!"""
+                   Note: If none given, the Table fill param is used!"""
         head = []
-        if data is not None and not isinstance(data, (list, str)):
-            raise TypeError(f'data={data} not supported.')
         if data is None:
             data = ''
+        if not isinstance(data, (list, str)):
+            raise TypeError(f'data={data} not supported.')
         for i in range(len(data)):
             if data[i] is None:
                 value = ''
@@ -353,16 +345,18 @@ class Table:
             self.add_column(self.fill)
         self._head = head
 
-    def add_row(self, data=None, fill=None):
+    def add_row(self, data=None, index=None, fill=None):
         """Add a list of row data to the table.
         Keyword arguments:
-        data    -- List containing cell data (default [])
+        data    -- List containing cell data (default None)
+        index   -- The position of the newly added row starting at 0.
+                   (default None: last row)
         fill    -- The filling too use when creating more cells to fit
                    the Table size (default None)
-        Note: If none given, the Table fill param is used!"""
+                   Noterow: If none given, the Table fill param is used!"""
         row = []
         if data is None:
-            data = ''
+            data = []
         if not isinstance(data, (list, str)):
             raise TypeError(f'data={data} not supported.')
         if self.column_count == 0:
@@ -381,16 +375,23 @@ class Table:
                 else:
                     value = fill
             row.append(_Cell(value))
-        self.data.append(row)
+        if index is None:
+            self._data.append(row)
+        else:
+            self._data[index] = (self._data[:index]
+                                 + row
+                                 + self._data[index:])
 
-    def add_column(self, head=None, data=None, fill=None):
+    def add_column(self, head=None, data=None, index=None, fill=None):
         """Add a list of column data to the table.
         Keyword arguments:
         head    -- The table heading of this column (default None)
         data    -- List containing cell data (default None)
+        index   -- The position of the newly added column starting at 0.
+                   (default None: last column)
         fill    -- The filling too use when creating more cells to fit
                    the Table size (default None)
-        Note: If none given, the Table fill param is used!"""
+                   Note: If none given, the Table fill param is used!"""
         length = self.row_count
         if data is None:
             data = []
@@ -407,7 +408,12 @@ class Table:
                     value = self.fill
                 else:
                     value = fill
-            self.data[i].append(_Cell(value))
+            if index is None:
+                self._data[i].append(_Cell(value))
+            else:
+                self._data[i] = (self._data[i][:index]
+                                 + [_Cell(value)]
+                                 + self._data[i][index:])
         if self._head is None and head is not None:
             self._head = []
         if head is not None:
@@ -459,7 +465,7 @@ class Table:
         if max(row) >= self.row_count or min(row) < 0:
             raise ValueError(f'Row {row} index out of range')
         for r, i in enumerate(row):
-            self.data = self.data[:i-r] + self.data[i-r+1:]
+            self._data = self._data[:i-r] + self._data[i-r+1:]
         if removehead and self.row_count == 0:
             self.remove_head()
 
@@ -485,12 +491,12 @@ class Table:
             raise ValueError(f'Column {column} index out of range')
         if removehead:
             for r, i in enumerate(column):
-                self.data = [row[:i-r] + row[i-r+1:] for row in self.data]
+                self._data = [row[:i-r] + row[i-r+1:] for row in self._data]
                 if self._head is not None:
                     self._head = self._head[:i-r] + self._head[i-r+1:]
         else:
             for i in column:
-                for row in self.data:
+                for row in self._data:
                     row[i] = _Cell(self.fill)
 
     def copy(self, row=None, column=None):
@@ -504,28 +510,28 @@ class Table:
         column  -- Integer, range or list of the corresponding column(s)
                    (default None)
         Note: index start at 0"""
-        if type(row) == int:
+        if isinstance(row, int):
             row = [row]
-        if type(column) == int:
+        if isinstance(column, int):
             column = [column]
         if row is not None and max(row) >= self.row_count:
             raise IndexError('Exceeding max rows.\n' + repr(self))
         if column is not None and max(column) >= self.column_count:
             raise IndexError('Exceeding max columns.\n' + repr(self))
         T = Table(
-                max_width=self._max_width,
+                max_width=self.max_width,
                 fill=self.fill,
                 col_sep=self.col_sep[:1],
                 head_sep=self.head_sep
         )
         if row is None and column is None:
-            T._data = [[c.copy() for c in row] for row in self.data]
+            T._data = [[c.copy() for c in row] for row in self._data]
             T._head = [h.copy() for h in self._head]
             if self._column_widths is not None:
                 T._column_widths = self._column_widths.copy()
         elif row is None:
             for c in column:
-                col = [r[c].copy() for r in self.data]
+                col = [r[c].copy() for r in self._data]
                 head = None
                 if self._head is not None:
                     head = self._head[c].copy()
@@ -534,7 +540,7 @@ class Table:
                     T._column_widths.append(self._column_widths[c])
         elif column is None:
             for r in row:
-                T.add_row(data=[c.copy() for c in self.data[r]])
+                T.add_row(data=[c.copy() for c in self._data[r]])
             if self._column_widths is not None:
                 T._column_widths = self._column_widths.copy()
             if self._head is not None:
@@ -542,7 +548,7 @@ class Table:
         else:
             T._data = []
             for r in row:
-                T._data.append([self.data[r][c].copy() for c in column])
+                T._data.append([self._data[r][c].copy() for c in column])
             if self._column_widths is not None:
                 T._column_widths = self._column_widths.copy()
             if self._head is not None:
