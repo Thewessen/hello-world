@@ -1,5 +1,6 @@
 # Ignore Session.vim and other vim files
 *.vim
 *.sw?
-*.pyc
+*.py[cod]
 __pycache__/
+**/__pycache__/
