@@ -397,26 +397,30 @@ class TestTable(unittest.TestCase):
 
     def test_remove_head(self):
         expect = [
-                (None, (0, 5)),
-                (0, (0, 1, 4)),
-                (1, (1, 1, 3)),
-                (range(2), (0, 2, 3)),
-                ([1, 3], (1, 1, 1, 1, 1)),
-                ([0, 0], (0, 1, 4)),
-                ([0, 0, 1, 1], (0, 2, 3))
+                (None, (1, 5, 1)),
+                (0, (1, 5, 3)),
+                (1, (1, 5, 3)),
+                (range(2), (1, 5, 3)),
+                ([1, 3], (1, 5, 3)),
+                ([0, 0], (1, 5, 3)),
+                ([0, 0, 1, 1], (1, 5, 3))
         ]
-        for (inp, fullempty) in expect:
-            T = Table(columns=5)
-            T.add_head(fill='test')
-            T.remove_head(index=inp)
-            regex = self.onerow_fill_test_regex(fullempty)
-            self.assertRegex(str(T), regex, msg=f'index={inp}')
+        for data, (rows, columns, lines) in expect:
+            T = Table(columns=5, fill='test')
+            T.add_head()
+            T.remove_head(index=data)
+            msg = f'Not {rows} rows, with remove_head(index={data})'
+            self.assertEqual(T.row_count, rows, msg=msg)
+            msg = f'Not {columns} columns, remove_head(index={data})'
+            self.assertEqual(T.column_count, columns, msg=msg)
+            msg = f'Not {lines} lines in table, with remove_head(index={data})'
+            self.assertEqual(len(str(T).splitlines()), lines, msg=msg)
         for k, v in self.types.items():
             for x in v:
                 if k != 'positive_int' and k != 'single_iter'\
                         or (k == 'positive_int' and x > 5):
-                    T = Table(rows=1, columns=5)
-                    T.add_head(fill='test')
+                    T = Table(rows=1, columns=5, fill='test')
+                    T.add_head()
                     with self.assertRaises((ValueError, TypeError),
                                            msg=f'index={x}'):
                         T.remove_head(index=x)
