@@ -4,66 +4,68 @@ import unittest
 from tables import Table
 
 
+# TODO:
+# - Test add_column/add_head/add_row on empty Table init
 class TestTable(unittest.TestCase):
     def setUp(self):
         self.types = {
             'positive_int': [
-                                *[i for i in range(1, 10)],
-                                *[i for i in range(1337, 1400, 7)],
-                            ],
+                *[i for i in range(1, 10)],
+                *[i for i in range(1337, 1400, 7)],
+            ],
             'negative_int': [
-                                *[i for i in range(-10, -1)],
-                                *[i for i in range(-1337, -1300, 7)],
-                            ],
+                *[i for i in range(-10, -1)],
+                *[i for i in range(-1337, -1300, 7)],
+            ],
             'positive_float': [
-                                *[float(i)/7 for i in range(1, 10)],
-                                *[float(i)/37 for i in range(1337, 1400, 7)],
-                                1e32,
-                                2e64
-                              ],
+                *[float(i)/7 for i in range(1, 10)],
+                *[float(i)/37 for i in range(1337, 1400, 7)],
+                1e32,
+                2e64
+            ],
             'negative_float': [
-                                *[float(i)/7 for i in range(-10, -1)],
-                                *[float(i)/37 for i in range(-1337, -1300, 7)],
-                                -1e32,
-                                -2e64
-                              ],
+                *[float(i)/7 for i in range(-10, -1)],
+                *[float(i)/37 for i in range(-1337, -1300, 7)],
+                -1e32,
+                -2e64
+            ],
             'dict': [
-                        {},
-                        {0: [0], 1: [1]},
-                        {0: 0, 1: 1},
-                        {1: 1, 2: 2},
-                        {'hello': 1, 'hey': 2},
-                        {1: 'hello', 2: 'hey'},
-                        {'hello': 'hello', 'hey': 'hey'}
-                    ],
+                {},
+                {0: [0], 1: [1]},
+                {0: 0, 1: 1},
+                {1: 1, 2: 2},
+                {'hello': 1, 'hey': 2},
+                {1: 'hello', 2: 'hey'},
+                {'hello': 'hello', 'hey': 'hey'}
+            ],
             'single_iter': [
-                                [10, 10],
-                                [0, 0],
-                                ['hello', 10],
-                                [None],
-                                [None, None]
-                            ],
+                [10, 10],
+                [0, 0],
+                ['hello', 10],
+                [None],
+                [None, None]
+            ],
             'double_iter': [
-                                [],
-                                [[]],
-                                ['hello'],
-                                [[0], [0]],
-                                [[10, 10]],
-                                ['hello', [10]],
-                                [[None]],
-                                [[None, None]],
-                                [[None], [None]]
-                            ],
+                [],
+                [[]],
+                ['hello'],
+                [[0], [0]],
+                [[10, 10]],
+                ['hello', [10]],
+                [[None]],
+                [[None, None]],
+                [[None], [None]]
+            ],
             'str': [
-                        'hello',
-                        'world\n',
-                        '\they',
-                        '\r\"',
-                        '\3',
-                        '0',
-                        'None',
-                        '!@#$%^&*()'
-                   ]
+                'hello',
+                'world\n',
+                '\they',
+                '\r\"',
+                '\3',
+                '0',
+                'None',
+                '!@#$%^&*()'
+               ]
         }
 
     def test__init__(self):
@@ -406,9 +408,9 @@ class TestTable(unittest.TestCase):
         for (inp, fullempty) in expect:
             T = Table(columns=5)
             T.add_head(fill='test')
-            T.remove_head(column=inp)
+            T.remove_head(index=inp)
             regex = self.onerow_fill_test_regex(fullempty)
-            self.assertRegex(str(T), regex, msg=f'column={inp}')
+            self.assertRegex(str(T), regex, msg=f'index={inp}')
         for k, v in self.types.items():
             for x in v:
                 if k != 'positive_int' and k != 'single_iter'\
@@ -416,8 +418,8 @@ class TestTable(unittest.TestCase):
                     T = Table(rows=1, columns=5)
                     T.add_head(fill='test')
                     with self.assertRaises((ValueError, TypeError),
-                                           msg=f'column={x}'):
-                        T.remove_head(column=x)
+                                           msg=f'index={x}'):
+                        T.remove_head(index=x)
 
     def test_remove_row(self):
         # TODO: Make sure the proper row is removed!
@@ -435,15 +437,15 @@ class TestTable(unittest.TestCase):
             T = Table(rows=3, columns=3)
             # No row sep for testing
             T.row_sep = ''
-            T.remove_row(row=data, removehead=True)
+            T.remove_row(index=data, removehead=True)
             msg = (f'Not {rows} rows, with '
-                   f'remove_row(row={data},removehead=True)')
+                   f'remove_row(index={data},removehead=True)')
             self.assertEqual(T.row_count, rows, msg=msg)
             msg = (f'Not {columns} columns, with '
-                   f'remove_row(row={data},removehead=True)')
+                   f'remove_row(index={data},removehead=True)')
             self.assertEqual(T.column_count, columns, msg=msg)
             msg = (f'Not {lines} lines in table, with '
-                   f'remove_row(row={data},removehead=True)')
+                   f'remove_row(index={data},removehead=True)')
             self.assertEqual(len(str(T).splitlines()), lines, msg=msg)
         expect = [
                 (None, (2, 3, 2)),
@@ -458,15 +460,15 @@ class TestTable(unittest.TestCase):
             T = Table(rows=3, columns=3)
             # No row sep for testing
             T.row_sep = ''
-            T.remove_row(row=inp, removehead=False)
+            T.remove_row(index=inp, removehead=False)
             msg = (f'Not {rows} rows, with '
-                   f'remove_row(row={data},removehead=False)')
+                   f'remove_row(index={data},removehead=False)')
             self.assertEqual(T.row_count, rows, msg=msg)
             msg = (f'Not {columns} columns, with '
-                   f'remove_row(row={data},removehead=False)')
+                   f'remove_row(index={data},removehead=False)')
             self.assertEqual(T.column_count, columns, msg=msg)
             msg = (f'Not {lines} lines in table, with '
-                   f'remove_row(row={data},removehead=False)')
+                   f'remove_row(index={data},removehead=False)')
             self.assertEqual(len(str(T).splitlines()), lines, msg=msg)
         for k, v in self.types.items():
             for x in v:
@@ -474,8 +476,8 @@ class TestTable(unittest.TestCase):
                         or (k == 'positive_int' and x > 2):
                     T = Table(rows=3, columns=3)
                     with self.assertRaises((ValueError, TypeError),
-                                           msg='row='+str(x)):
-                        T.remove_row(row=x)
+                                           msg='index='+str(x)):
+                        T.remove_row(index=x)
 
     def test_remove_column(self):
         # TODO: Make sure the proper column is removed!
@@ -493,15 +495,15 @@ class TestTable(unittest.TestCase):
             T = Table(rows=3, columns=3)
             # No row sep for testing
             T.row_sep = ''
-            T.remove_column(column=data, removehead=True)
+            T.remove_column(index=data, removehead=True)
             msg = (f'Not {rows} rows, with '
-                   f'remove_column(column={data},removehead=True)')
+                   f'remove_column(index={data},removehead=True)')
             self.assertEqual(T.row_count, rows, msg=msg)
             msg = (f'Not {columns} columns, with '
-                   f'remove_column(column={data},removehead=True)')
+                   f'remove_column(index={data},removehead=True)')
             self.assertEqual(T.column_count, columns, msg=msg)
             msg = (f'Not {lines} lines in table, with '
-                   f'remove_column(column={data},removehead=True)')
+                   f'remove_column(index={data},removehead=True)')
             self.assertEqual(len(str(T).splitlines()), lines, msg=msg)
         # TODO: Same as removehead=True??
         expect = [
@@ -517,15 +519,15 @@ class TestTable(unittest.TestCase):
             T = Table(rows=3, columns=3)
             # No row sep for testing
             T.row_sep = ''
-            T.remove_column(column=data, removehead=False)
+            T.remove_column(index=data, removehead=False)
             msg = (f'Not {rows} rows, with '
-                   f'remove_column(column={data},removehead=False)')
+                   f'remove_column(index={data},removehead=False)')
             self.assertEqual(T.row_count, rows, msg=msg)
             msg = (f'Not {columns} columns, with '
-                   f'remove_column(column={data},removehead=False)')
+                   f'remove_column(index={data},removehead=False)')
             self.assertEqual(T.column_count, columns, msg=msg)
             msg = (f'Not {lines} lines in table, with '
-                   f'remove_column(column={data},removehead=False)')
+                   f'remove_column(index={data},removehead=False)')
             self.assertEqual(len(str(T).splitlines()), lines, msg=msg)
         for k, v in self.types.items():
             for x in v:
@@ -533,8 +535,8 @@ class TestTable(unittest.TestCase):
                         or (k == 'positive_int' and x > 2):
                     T = Table(rows=3, columns=3)
                     with self.assertRaises((ValueError, TypeError),
-                                           msg='column={x}'):
-                        T.remove_column(column=x)
+                                           msg='index={x}'):
+                        T.remove_column(index=x)
 
 
 if __name__ == '__main__':

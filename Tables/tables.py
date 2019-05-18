@@ -183,6 +183,7 @@ class Table:
         self._head = None
         # TODO More chars for seperators?
         # TODO Row seperator?
+        # Set logical args call value
         if isinstance(data, dict):
             raise TypeError('Dicts not supported as data value')
         if rows < 0:
@@ -215,53 +216,6 @@ class Table:
         self.row_sep = row_sep
         self.col_sep = col_sep
         self.max_width = max_width
-
-    def _add_data(add_func):
-        """
-        Decorator for add_*() functions. Checks if keyword arguments are
-        valid. Sets default of keyword arguments. And, in the end, makes sure
-        all rows and columns in the tabel are equal in size.
-        """
-        if add_func.__name__ not in ('add_row', 'add_column', 'add_head'):
-            raise TypeError((f'Decorator _add_data does not support '
-                             f'{add_func.__name__}'))
-
-        def wrap_add(self, *args, **kwargs):
-            if len(args) == 1:
-                (kwargs['data'],) = args
-            elif add_func.__name__ == 'add_row':
-                if len(args) == 2:
-                    (kwargs['index'], kwargs['data']) = args
-                elif len(args) == 3:
-                    (kwargs['index'], kwargs['data'], kwargs['fill']) = args
-            elif add_func.__name__ == 'add_column':
-                if len(args) == 2:
-                    (kwargs['head'], kwargs['data']) = args
-                elif len(args) == 3:
-                    (kwargs['index'], kwargs['head'], kwargs['data']) = args
-                elif len(args) == 4:
-                    (kwargs['index'], kwargs['head'],
-                     kwargs['data'], kwargs['fill']) = args
-            if 'data' in kwargs and kwargs['data'] is None\
-                    or 'data' not in kwargs:
-                kwargs['data'] = []
-            if 'fill' in kwargs and kwargs['fill'] is None\
-                    or 'fill' not in kwargs:
-                kwargs['fill'] = self.fill
-            if not isinstance(kwargs['data'], (list, str)):
-                raise TypeError(f"data={kwargs['data']} not supported.")
-            add_func(self, **kwargs)
-            if self._head is None:
-                m = max(len(r) for r in self._data)
-                for row in self._data:
-                    while len(row) < m:
-                        row.append(_Cell(kwargs['fill']))
-            else:
-                m = max(len(r) for r in [self._head, *self._data])
-                for row in [self._head, *self._data]:
-                    while len(row) < m:
-                        row.append(_Cell(kwargs['fill']))
-        return wrap_add
 
     @property
     def max_width(self):
@@ -409,6 +363,55 @@ class Table:
                     + len(self.col_sep)
                     * (self.column_count - 1))
 
+    def _add_data(add_func):
+        """
+        Decorator for add_*() functions. Checks if keyword arguments are
+        valid. Sets default of keyword arguments. And, in the end, makes sure
+        all rows and columns in the tabel are equal in size.
+        """
+        if add_func.__name__ not in ('add_row', 'add_column', 'add_head'):
+            raise TypeError((f'Decorator _add_data does not support '
+                             f'{add_func.__name__}'))
+
+        def wrap_add(self, *args, **kwargs):
+            # TODO This is dangerous...
+            # What if len(args) == 1, and 'data' in kwargs??
+            if len(args) == 1:
+                (kwargs['data'],) = args
+            elif add_func.__name__ in ('add_row', 'add_head'):
+                if len(args) == 2:
+                    (kwargs['index'], kwargs['data']) = args
+                elif len(args) == 3:
+                    (kwargs['index'], kwargs['data'], kwargs['fill']) = args
+            elif add_func.__name__ == 'add_column':
+                if len(args) == 2:
+                    (kwargs['head'], kwargs['data']) = args
+                elif len(args) == 3:
+                    (kwargs['index'], kwargs['head'], kwargs['data']) = args
+                elif len(args) == 4:
+                    (kwargs['index'], kwargs['head'],
+                     kwargs['data'], kwargs['fill']) = args
+            if 'data' in kwargs and kwargs['data'] is None\
+                    or 'data' not in kwargs:
+                kwargs['data'] = []
+            if 'fill' in kwargs and kwargs['fill'] is None\
+                    or 'fill' not in kwargs:
+                kwargs['fill'] = self.fill
+            if not isinstance(kwargs['data'], (list, str)):
+                raise TypeError(f"data={kwargs['data']} not supported.")
+            add_func(self, **kwargs)
+            if self._head is None:
+                m = max(len(r) for r in self._data)
+                for row in self._data:
+                    while len(row) < m:
+                        row.append(_Cell(kwargs['fill']))
+            else:
+                m = max(len(r) for r in [self._head, *self._data])
+                for row in [self._head, *self._data]:
+                    while len(row) < m:
+                        row.append(_Cell(kwargs['fill']))
+        return wrap_add
+
     @_add_data
     def add_head(self, index=None, data=None, fill=None):
         """
@@ -444,6 +447,8 @@ class Table:
         """
         if index is None:
             index = self.row_count
+        if len(data) == 0 and self.row_count == 0:
+            data.append(fill)
         self._data = [*self._data[:index],
                       [_Cell(d) for d in data],
                       *self._data[index:]]
@@ -464,11 +469,11 @@ class Table:
         """
         if index is None:
             index = self.column_count
-        length = self.row_count
-        while len(data) > length:
+        if self.row_count == 0 and len(data) == 0:
+            self._data.append([])
+        while len(data) > self.row_count:
             self.add_row()
-            length = self.row_count
-        for i in range(length):
+        for i in range(self.row_count):
             if i < len(data):
                 value = data[i]
             else:
@@ -486,9 +491,47 @@ class Table:
             self.add_head()
             self._head[index].value = head
 
-    def remove_head(self, column=None):
+    def _remove_data(remove_func):
+        """
+        Decorator for remove_*() functions. Checks if keyword arguments are
+        valid. Sets default of keyword arguments.
+        """
+        name = remove_func.__name__
+        if name not in ('remove_row', 'remove_column', 'remove_head'):
+            raise TypeError(f'Decorator _add_data does not support {name}')
+
+        def wrap_remove(self, *args, **kwargs):
+            if len(args) > 0:
+                index = args[0]
+            elif 'index' in kwargs:
+                index = kwargs['index']
+            else:
+                index = None
+            if index is not None:
+                maximum = {
+                    'remove_head':
+                        len(self._head) if self._head is not None
+                        else 0,
+                    'remove_row': self.row_count,
+                    'remove_column': self.column_count
+                }[name]
+                if isinstance(index, int):
+                    index = [index]
+                if max(index) >= maximum or min(index) < 0:
+                    raise ValueError(f'Index {index} out of range for {name}.')
+                if isinstance(index, dict):
+                    raise ValueError('Dicts not supported in {name}.')
+                if isinstance(index, list):
+                    index = set(index)
+                kwargs['index'] = index
+            remove_func(self, *args, **kwargs)
+        return wrap_remove
+
+    @_remove_data
+    def remove_head(self, index=None):
         """
         Removes range of head(s) of the table. Data is lost!
+        Custom decorator: @_remove_data (see docstring)
         Keywordarguments:
         column -- Integer or range of the columnhead(s) to be removed
                   (default None: total heading removed).
@@ -497,74 +540,54 @@ class Table:
         # Table should always contain equal length rows and head!
         # Do not shift!
         if self._head is not None:
-            if column is None:
+            if index is None:
                 self._head = None
             else:
-                if isinstance(column, int):
-                    column = [column]
-                if max(column) >= len(self._head) or min(column) < 0:
-                    raise ValueError(f'Head column {column} out of range')
-                if isinstance(column, dict):
-                    raise ValueError('Dicts not supported for removing head.')
-                if isinstance(column, list):
-                    column = set(column)
-                for i in column:
+                for i in index:
                     self._head[i] = _Cell(self.fill)
 
-    def remove_row(self, row=None, removehead=True):
+    @_remove_data
+    def remove_row(self, index=None, removehead=True):
         """
         Removes the row(s) of the table.
+        Custom decorator: @_remove_data (see docstring)
         Keyarguments:
-        row -- Integer or range of row(s) to be removed
-               (default None: last row).
+        index      -- Integer or range of row(s) to be removed
+                      (default None: last row).
         removehead -- Boolean: remove head when there are no rows left,
                       leaving an empty table (default True).
         Note: index start at 0!
         """
         # Table should always contain equal length rows and head!
-        if row is None:
-            row = self.row_count - 1
-        if isinstance(row, dict):
-            raise ValueError('Dicts not supported for removing rows.')
-        if isinstance(row, list):
-            row = set(row)
-        if type(row) == int:
-            row = [row]
-        if max(row) >= self.row_count or min(row) < 0:
-            raise ValueError(f'Row {row} index out of range')
-        for r, i in enumerate(row):
+        if index is None:
+            index = [self.row_count - 1]
+        for r, i in enumerate(index):
             self._data = self._data[:i-r] + self._data[i-r+1:]
         if removehead and self.row_count == 0:
             self.remove_head()
 
-    def remove_column(self, column=None, removehead=True):
+    @_remove_data
+    def remove_column(self, index=None, removehead=True):
         """
         Removes the column(s) of the table.
+        Custom decorator: @_remove_data (see docstring)
         Keyarguments:
-        column -- Integer or range of column(s) to be removed
-                  (default None: last column).
+        index      -- Integer or range of column(s) to be removed
+                      (default None: last column).
         removehead -- Boolean: if true, head is also removed.
                       If false, column still excists, but is filled
                       with the default fill value (default True).
         Note: index start at 0!
         """
-        if column is None:
-            column = self.column_count - 1
-        if isinstance(column, dict):
-            raise ValueError('Dicts not supported for removing rows.')
-        if isinstance(column, list):
-            column = set(column)
-        if type(column) == int:
-            column = [column]
-        if max(column) >= self.column_count or min(column) < 0:
-            raise ValueError(f'Column {column} index out of range')
+        if index is None:
+            index = [self.column_count - 1]
         if removehead:
-            for r, i in enumerate(column):
+            for r, i in enumerate(index):
                 self._data = [row[:i-r] + row[i-r+1:] for row in self._data]
                 if self._head is not None:
                     self._head = self._head[:i-r] + self._head[i-r+1:]
         else:
-            for i in column:
+            for i in index:
                 for row in self._data:
                     row[i] = _Cell(self.fill)
 
