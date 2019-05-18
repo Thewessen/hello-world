@@ -5,6 +5,7 @@ Exports class Table()"""
 
 import copy
 from itertools import zip_longest
+# from functools import partial, wraps
 
 __all__ = ['Table']
 
@@ -207,6 +208,48 @@ class Table:
         self.col_sep = col_sep
         self.max_width = max_width
 
+    def _add_data(add_func):
+        if add_func.__name__ not in ('add_row', 'add_column', 'add_head'):
+            raise TypeError((f'Decorator _add_data does not support '
+                             f'{add_func.__name__}'))
+
+        def wrap_add(self, *args, **kwargs):
+            if len(args) == 1:
+                (kwargs['data'],) = args
+            elif add_func.__name__ == 'add_row':
+                if len(args) == 2:
+                    (kwargs['index'], kwargs['data']) = args
+                elif len(args) == 3:
+                    (kwargs['index'], kwargs['data'], kwargs['fill']) = args
+            elif add_func.__name__ == 'add_column':
+                if len(args) == 2:
+                    (kwargs['head'], kwargs['data']) = args
+                elif len(args) == 3:
+                    (kwargs['index'], kwargs['head'], kwargs['data']) = args
+                elif len(args) == 4:
+                    (kwargs['index'], kwargs['head'],
+                     kwargs['data'], kwargs['fill']) = args
+            if 'data' in kwargs and kwargs['data'] is None\
+                    or 'data' not in kwargs:
+                kwargs['data'] = []
+            if 'fill' in kwargs and kwargs['fill'] is None\
+                    or 'fill' not in kwargs:
+                kwargs['fill'] = self.fill
+            if not isinstance(kwargs['data'], (list, str)):
+                raise TypeError(f"data={kwargs['data']} not supported.")
+            add_func(self, **kwargs)
+            if self._head is None:
+                m = max(len(r) for r in self._data)
+                for row in self._data:
+                    while len(row) < m:
+                        row.append(_Cell(kwargs['fill']))
+            else:
+                m = max(len(r) for r in [self._head, *self._data])
+                for row in [self._head, *self._data]:
+                    while len(row) < m:
+                        row.append(_Cell(kwargs['fill']))
+        return wrap_add
+
     @property
     def max_width(self):
         return self._max_width
@@ -280,6 +323,8 @@ class Table:
         # Table should always contain equal length rows and head!
         if self.row_count == 0 and self._head is None:
             return 0
+        elif self.row_count == 0:
+            return len(self._head)
         else:
             return len(self._data[0])
 
@@ -314,7 +359,7 @@ class Table:
 
     def __repr__(self):
         """Representation of this object. Nr of columns and rows are added."""
-        return (f'<Table object: {self.row_count} rows)'
+        return (f'<Table object: {self.row_count} rows'
                 f' and {self.column_count} columns>')
 
     def __str__(self):
@@ -349,107 +394,45 @@ class Table:
                     + len(self.col_sep)
                     * (self.column_count - 1))
 
-    def add_head(self, *args, index=None, data=None, fill=None):
+    @_add_data
+    def add_head(self, index=None, data=None, fill=None):
         """Add a list of column headings to the table.
+        Custom decorator: @_add_data (see docstring)
         Keyword arguments:
-        index   -- When set, insert data instead of replacing (default None).
+        index   -- Index from where the data starts replacing the current head.
+                   (default None: end of head)
         data    -- List containing the headings (default None).
         fill    -- Empty heading fill for excesive columns (default None).
-                   Note: if none given, the Table fill param is used!
-        Arguments number and order:
-        1 argument  -- data
-        2 arguments -- index, data
-        3 arguments -- index, data, fill"""
-        if len(args) == 1:
-            (data,) = args
-        elif len(args) == 2:
-            (index, data) = args
-        elif len(args) == 3:
-            (index, data, fill) = args
-        if data is None:
-            data = ''
-        if not isinstance(data, (list, str)):
-            raise TypeError(f'data={data} not supported.')
-        if fill is None:
-            fill = self.fill
+                   Note: if none given, the Table fill param is used!"""
         if self._head is None:
-            self._head = [_Cell(fill) for __ in range(self.column_count)]
+            self._head = []
         if index is None:
-            for h, d in zip(self._head, data):
-                # None value indicates no change in value
-                if d is not None:
-                    h.value = d
-        else:
-            self._head = (self._head[:index]
-                          + [_Cell(d) for d in data]
-                          + self._head[index:])
-        # for i in range(len(data)):
-        #     if data[i] is None:
-        #         if self._head is not None and self._head[i].value != '':
-        #             value = self._head[i].value
-        #         else:
-        #             value = ''
-        #     else:
-        #         value = data[i]
-        #     head.append(_Cell(value))
-        while len(self._head) < self.column_count:
-            self._head.append(_Cell(fill))
-        while self.column_count < len(self._head):
-            self.add_column(self.fill)
+            index = len(self._head)
+        self._head = [*self._head[:index],
+                      *[_Cell(d) for d in data],
+                      *self._head[index+len(data):]]
 
-    def add_row(self, *args, index=None, data=None, fill=None):
+    @_add_data
+    def add_row(self, index=None, data=None, fill=None):
         """Add a list of row data to the table.
+        Custom decorator: @_add_data (see docstring)
         Keyword arguments:
         data    -- List containing cell data (default None)
         index   -- The position of the newly added row starting at 0.
                    (default None: last row)
         fill    -- The filling too use when creating more cells to fit
                    the Table size (default None)
-                   Noterow: If none given, the Table fill param is used!
-        Arguments number and order:
-        1 argument  -- data
-        2 arguments -- index, data
-        3 arguments -- index, data, fill"""
-        if len(args) == 1:
-            (data,) = args
-        elif len(args) == 2:
-            (index, data) = args
-        elif len(args) == 3:
-            (index, data, fill) = args
-        row = []
-        if data is None:
-            data = []
+                   Noterow: If none given, the Table fill param is used!"""
         if index is None:
             index = self.row_count
-        if not isinstance(data, (list, str)):
-            raise TypeError(f'data={data} not supported.')
-        if self.column_count == 0:
-            width = len(data)
-        else:
-            width = self.column_count
-        while len(data) > width:
-            self.add_column()
-            width = self.column_count
-        for i in range(width):
-            if i < len(data):
-                value = data[i]
-            else:
-                if fill is None:
-                    value = self.fill
-                else:
-                    value = fill
-            row.append(_Cell(value))
-        self._data[index] = (self._data[:index]
-                             + row
-                             + self._data[index:])
+        self._data = [*self._data[:index],
+                      [_Cell(d) for d in data],
+                      *self._data[index:]]
 
-    def add_column(self, *args, index=None, head=None, data=None, fill=None):
+    @_add_data
+    def add_column(self, index=None, head=None, data=None, fill=None):
         """Add a list of column data to the table.
-        Arguments number and order:
-        1 argument  -- data
-        2 arguments -- head, data
-        3 arguments -- index, head, data
-        4 arguments -- index, head, data, fill
+        Custom decorator: @_add_data (see docstring)
         Keyword arguments:
         data    -- List containing cell data (default None).
         head    -- The table heading of this column (default None).
@@ -458,23 +441,9 @@ class Table:
         fill    -- The filling too use when creating more cells to fit
                    the Table size (default None).
                    Note: If none given, the Table fill param is used!"""
-        if len(args) == 1:
-            (data,) = args
-        elif len(args) == 2:
-            (head, data) = args
-        elif len(args) == 3:
-            (index, head, data) = args
-        elif len(args) == 4:
-            (index, head, data, fill) = args
-        length = self.row_count
-        if data is None:
-            data = []
         if index is None:
             index = self.column_count
-        if head is None:
-            head = ''
-        if not isinstance(data, (list, str)):
-            raise TypeError(f'data={data} not supported.')
+        length = self.row_count
         while len(data) > length:
             self.add_row()
             length = self.row_count
@@ -482,18 +451,19 @@ class Table:
             if i < len(data):
                 value = data[i]
             else:
-                if fill is None:
-                    value = self.fill
-                else:
-                    value = fill
-            if index is None:
-                self._data[i].append(_Cell(value))
-            else:
-                self._data[i] = (self._data[i][:index]
-                                 + [_Cell(value)]
-                                 + self._data[i][index:])
+                value = fill
+            self._data[i] = [*self._data[i][:index],
+                             _Cell(value),
+                             *self._data[i][index:]]
         if self._head is not None:
-            self.add_head(index=index, data=[head])
+            if head is None:
+                head = fill
+            self._head = [*self._head[:index],
+                          _Cell(head),
+                          *self._head[index:]]
+        elif head is not None:
+            self.add_head()
+            self._head[index].value = head
 
     def remove_head(self, column=None):
         """Removes range of head(s) of the table. Data is lost!
@@ -504,7 +474,9 @@ class Table:
         # Table should always contain equal length rows and head!
         # Do not shift!
         if self._head is not None:
-            if column is not None:
+            if column is None:
+                self._head = None
+            else:
                 if isinstance(column, int):
                     column = [column]
                 if max(column) >= len(self._head) or min(column) < 0:
@@ -513,9 +485,6 @@ class Table:
                     raise ValueError('Dicts not supported for removing head.')
                 if isinstance(column, list):
                     column = set(column)
-            if column is None:
-                self._head = None
-            else:
                 for i in column:
                     self._head[i] = _Cell(self.fill)
 
@@ -651,6 +620,7 @@ class Table:
 if __name__ == '__main__':
     print('This module is supposed to be imported!')
 # TODO:
+# - Except any data=..., but convert too list if not a list?
 # Wishlist:
 # - Nested tables side by side won't line row by row... This leaves room for
 #   discussion. At the end, it's a cell containing a table, not a splitted

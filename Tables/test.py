@@ -164,6 +164,8 @@ class TestTable(unittest.TestCase):
         ]
         for (data, (rows, columns, lines)) in expect:
             T = Table(rows=3, columns=3, fill=data)
+            # No row sep for testing
+            T.row_sep = ''
             msg = f'Not {rows} rows, with Table(fill={data})'
             self.assertEqual(T.row_count, rows, msg=msg)
             msg = f'Not {columns} columns, with Table(fill={data})'
@@ -272,6 +274,8 @@ class TestTable(unittest.TestCase):
         ]
         for data, (columns, lines) in expect:
             T = Table(rows=3, columns=3)
+            # No row sep for testing
+            T.row_sep = ''
             T.add_head(data=data)
             msg = f'Not three rows, with add_head(data={data})'
             self.assertEqual(T.row_count, 3, msg=msg)
@@ -308,6 +312,8 @@ class TestTable(unittest.TestCase):
         ]
         for data, (rows, columns, lines) in expect:
             T = Table(rows=3, columns=3)
+            # No row sep for testing
+            T.row_sep = ''
             T.add_row(data=data)
             msg = f'Not {rows} rows, with add_head(data={data})'
             self.assertEqual(T.row_count, rows, msg=msg)
@@ -342,12 +348,14 @@ class TestTable(unittest.TestCase):
         ]
         for data, (rows, columns, lines) in expect:
             T = Table(rows=3, columns=3)
+            # No row sep for testing
+            T.row_sep = ''
             T.add_column(data=data)
-            msg = f'Not {rows} rows, with add_head(data={data})'
+            msg = f'Not {rows} rows, with data={data}'
             self.assertEqual(T.row_count, rows, msg=msg)
-            msg = f'Not {columns} columns, with add_head(data={data})'
+            msg = f'Not {columns} columns, with data={data}'
             self.assertEqual(T.column_count, columns, msg=msg)
-            msg = f'Not {lines} lines in table, with add_head(data={data})'
+            msg = f'Not {lines} lines in table, with data={data}'
             self.assertEqual(len(str(T).splitlines()), lines, msg=msg)
         expect_width_head = [
                 (None, None, (3, 4, 3)),
@@ -366,14 +374,16 @@ class TestTable(unittest.TestCase):
         ]
         for (data, head, (rows, columns, lines)) in expect_width_head:
             T = Table(rows=3, columns=3)
+            # No row sep for testing
+            T.row_sep = ''
             T.add_column(data=data, head=head)
-            msg = f'Not {rows} rows, with add_head(data={data},head={head})'
+            msg = f'Not {rows} rows, with data={data},head={head}'
             self.assertEqual(T.row_count, rows, msg=msg)
             msg = (f'Not {columns} columns, with '
-                   f'add_head(data={data},head={head})')
+                   f'data={data},head={head}')
             self.assertEqual(T.column_count, columns, msg=msg)
             msg = (f'Not {lines} lines in table, with '
-                   f'add_head(data={data},head={head})')
+                   f'data={data},head={head}')
             self.assertEqual(len(str(T).splitlines()), lines, msg=msg)
         for k, v in self.types.items():
             if k != 'single_iter' and k != 'double_iter' and k != 'str':
@@ -423,6 +433,8 @@ class TestTable(unittest.TestCase):
         ]
         for (data, (rows, columns, lines)) in removehead_expect:
             T = Table(rows=3, columns=3)
+            # No row sep for testing
+            T.row_sep = ''
             T.remove_row(row=data, removehead=True)
             msg = (f'Not {rows} rows, with '
                    f'remove_row(row={data},removehead=True)')
@@ -444,6 +456,8 @@ class TestTable(unittest.TestCase):
         ]
         for (inp, (rows, columns, lines)) in expect:
             T = Table(rows=3, columns=3)
+            # No row sep for testing
+            T.row_sep = ''
             T.remove_row(row=inp, removehead=False)
             msg = (f'Not {rows} rows, with '
                    f'remove_row(row={data},removehead=False)')
@@ -477,6 +491,8 @@ class TestTable(unittest.TestCase):
         ]
         for (data, (rows, columns, lines)) in removehead_expect:
             T = Table(rows=3, columns=3)
+            # No row sep for testing
+            T.row_sep = ''
             T.remove_column(column=data, removehead=True)
             msg = (f'Not {rows} rows, with '
                    f'remove_column(column={data},removehead=True)')
@@ -499,6 +515,8 @@ class TestTable(unittest.TestCase):
         ]
         for (data, (rows, columns, lines)) in expect:
             T = Table(rows=3, columns=3)
+            # No row sep for testing
+            T.row_sep = ''
             T.remove_column(column=data, removehead=False)
             msg = (f'Not {rows} rows, with '
                    f'remove_column(column={data},removehead=False)')
