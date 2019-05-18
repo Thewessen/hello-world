@@ -7,7 +7,6 @@ Exports class Table()
 
 import copy
 from itertools import zip_longest
-# from functools import partial, wraps
 
 __all__ = ['Table']
 
@@ -137,10 +136,13 @@ class Table:
     Construct tables ready for printing data into nice table-like output.
     Nested tables, and cells containing multiple lines, are allowed!
     properties:
-        max_width -- Maxmum width of the Table.
-        fill      -- String of the default fill for empty cells.
-        col_sep   -- String of the column seperator used.
-        head_sep  -- String of the head/table seperator used.
+        max_width       -- Maxmum width of the Table.
+        fill            -- String of the default fill for empty cells.
+        col_sep         -- String of the column seperator used.
+        head_sep        -- String of the head/table seperator used.
+        row_count       -- Returns the numbers of rows in the Table as integer.
+        column_count    -- Returns the numbers of columns in the Table as
+                           an integer.
     methods:
         add_head        -- Add a list of column headings to the table.
         add_row         -- Add a list of row data to the table.
@@ -151,9 +153,6 @@ class Table:
         copy            -- Returns an instance Table containing specified
                            row(s) and/or column(s).
         log             -- Same as print(Table.copy(row, column)).
-        nr_of_rows      -- Returns the numbers of rows in the Table as integer.
-        column_count    -- Returns the numbers of columns in the Table as
-                           an integer.
     """
 
     def __init__(self, data=None, rows=0, columns=0, max_width=None,
@@ -223,6 +222,7 @@ class Table:
 
     @max_width.setter
     def max_width(self, value):
+        """Sets the max_width of the current table."""
         self._max_width = value
         W = self.column_widths
         for row in self._data:
@@ -235,6 +235,7 @@ class Table:
 
     @head_sep.setter
     def head_sep(self, value):
+        """Sets the head seperator string (two chars max)."""
         if not isinstance(value, str) or len(value) > 2:
             raise ValueError('Head sep needs to be a string of max two chars')
         elif len(value) == 1:
@@ -250,6 +251,7 @@ class Table:
 
     @row_sep.setter
     def row_sep(self, value):
+        """Sets the row seperator string (two chars max)."""
         if not isinstance(value, str) or len(value) > 2:
             raise ValueError('Row sep needs to be a string of max two chars')
         elif len(value) == 1:
@@ -265,6 +267,7 @@ class Table:
 
     @col_sep.setter
     def col_sep(self, value):
+        """Sets the column seperator string (one char max)."""
         if not isinstance(value, str) or len(value) > 1:
             raise ValueError('Column sep needs to be a string of one char.')
         self._col_sep = value + ' '
@@ -275,6 +278,8 @@ class Table:
 
     @fill.setter
     def fill(self, value):
+        """Sets the default filling to use. Can be of any type."""
+        # TODO - Resetting fill should work on all `empty` cells
         if value is None:
             value = ''
         self._fill = value
@@ -297,6 +302,7 @@ class Table:
 
     @property
     def column_widths(self):
+        """Return a list of column widths."""
         M = []
         # Add head when calculating max-widths?
         if self._head is not None:
@@ -673,7 +679,8 @@ class Table:
 if __name__ == '__main__':
     print('This module is supposed to be imported!')
 # TODO:
-# - Except any data=..., but convert too list if not a list?
+# - Resetting fill should work on all `empty` cells
+# - Except any data=... on add_*(), but convert too list if not a list?
 # Wishlist:
 # - Nested tables side by side won't line row by row... This leaves room for
 #   discussion. At the end, it's a cell containing a table, not a splitted
