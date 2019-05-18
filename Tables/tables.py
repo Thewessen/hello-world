@@ -1,6 +1,8 @@
-"""Construct tables ready for printing data into nice table-like output.
+"""
+Construct tables ready for printing data into nice table-like output.
 Nested tables, and cells containing multiple lines, are allowed!
-Exports class Table()"""
+Exports class Table()
+"""
 
 
 import copy
@@ -11,33 +13,37 @@ __all__ = ['Table']
 
 
 class _Cell:
-    """Generates objects for the Table class. Each Table is a
-    two-dimensional row containing Cell-objects"""
+    """
+    Generates objects for the Table class. Each Table is a
+    two-dimensional row containing Cell-objects.
+    """
 
     def __init__(self, value, max_width=None):
-        """Set value and calculates the max_width and height"""
+        """Set value and calculates the max_width and height."""
         self.value = value
         self.max_width = max_width
 
     def __repr__(self):
-        """Representation of this object"""
+        """Representation of this object."""
         return f'<Cell object: value=`{self.value}`>'
 
     def __str__(self):
-        """Trunks the value according to the set max_width,
-        and returns a string repressentation"""
+        """
+        Trunks the value according to the set max_width,
+        and returns a string repressentation.
+        """
         v = self._trunk()
         return str(v)
 
     def __len__(self):
-        """Returns the total width of this cell (before trunking)"""
+        """Returns the total width of this cell (before trunking)."""
         if isinstance(self.value, Table):
             return len(self.value)
         else:
             return max(len(v) for v in str(self.value).split('\n'))
 
     def __iter__(self):
-        """Iterate over each trunked row of cells value"""
+        """Iterate over each trunked row of cells value."""
         v = self._trunk()
         for line in str(v).split('\n'):
             yield line
@@ -48,7 +54,7 @@ class _Cell:
 
     @max_width.setter
     def max_width(self, value):
-        """Sets the maximum width of this Cell"""
+        """Sets the maximum width of this Cell."""
         if value is None:
             self._max_width = value
             return
@@ -61,7 +67,7 @@ class _Cell:
             raise TypeError('`max_width` should be an integer or `None`')
 
     def copy(self):
-        """Copies and return data from cell"""
+        """Copies and return data from cell."""
         if isinstance(self.value, (int, float, str)):
             return _Cell(value=self.value, max_width=self.max_width)
         elif isinstance(self.value, (list, dict, tuple, object)):
@@ -69,8 +75,10 @@ class _Cell:
                          max_width=self.max_width)
 
     def _trunk(self):
-        """Trunks the value in the cell before printing.
-        Adds newline chars where possible."""
+        """
+        Trunks the value in the cell before printing.
+        Adds newline chars where possible.
+        """
         v = self.value
         i = self.max_width
         if v is None:
@@ -129,7 +137,7 @@ class Table:
     Construct tables ready for printing data into nice table-like output.
     Nested tables, and cells containing multiple lines, are allowed!
     properties:
-        max_width -- Maxmum width of the Table
+        max_width -- Maxmum width of the Table.
         fill      -- String of the default fill for empty cells.
         col_sep   -- String of the column seperator used.
         head_sep  -- String of the head/table seperator used.
@@ -141,8 +149,8 @@ class Table:
         remove_row      -- Add a list of row data to the table.
         remove_column   -- Add a list of column data to the table.
         copy            -- Returns an instance Table containing specified
-                           row(s) and/or column(s)
-        log             -- Same as print(Table.copy(row, column))
+                           row(s) and/or column(s).
+        log             -- Same as print(Table.copy(row, column)).
         nr_of_rows      -- Returns the numbers of rows in the Table as integer.
         column_count    -- Returns the numbers of columns in the Table as
                            an integer.
@@ -153,24 +161,24 @@ class Table:
         """
         Keyword arguments:
             data        -- Initial data. Needs to be an iterable object of
-                           iterable objects (default None)
-            rows        -- Number of initial rows (default 0)
-                           Creates one row if columns != 0
-            columns     -- Number of initial columns (default 0)
-                           Creates one column if rows != 0
-            max_width   -- Max width of the Table for printing (default None)
-            fill        -- Empty cell fill (default '')
+                           iterable objects (default None).
+            rows        -- Number of initial rows (default 0).
+                           Creates one row if columns != 0.
+            columns     -- Number of initial columns (default 0).
+                           Creates one column if rows != 0.
+            max_width   -- Max width of the Table for printing (default None).
+            fill        -- Empty cell fill (default '').
             head_sep    -- Seperator for heading/table.
                            First char is the char at crossing of head_sep with
-                           col_sep, second char is the fillchar (default '+-')
+                           col_sep, second char is the fillchar (default '+-').
                            When one char is given, crosschar and fillchar are
                            the same.
             row_sep     -- Seperator between rows.
                            First char is the char at crossing of col_sep and
-                           row_sep. Second char is the fillchar (default '+-')
+                           row_sep. Second char is the fillchar (default '+-').
                            When one char is given, crosschar and fillchar are
                            the same.
-            col_sep     -- Seperator between columns (default '|')
+            col_sep     -- Seperator between columns (default '|').
         """
         self._head = None
         # TODO More chars for seperators?
@@ -209,6 +217,11 @@ class Table:
         self.max_width = max_width
 
     def _add_data(add_func):
+        """
+        Decorator for add_*() functions. Checks if keyword arguments are
+        valid. Sets default of keyword arguments. And, in the end, makes sure
+        all rows and columns in the tabel are equal in size.
+        """
         if add_func.__name__ not in ('add_row', 'add_column', 'add_head'):
             raise TypeError((f'Decorator _add_data does not support '
                              f'{add_func.__name__}'))
@@ -363,9 +376,11 @@ class Table:
                 f' and {self.column_count} columns>')
 
     def __str__(self):
-        """A performance heavy operation. Returns a string representation,
+        """
+        A performance heavy operation. Returns a string representation,
         of the current table. Trunks values as needed (set by max_width).
-        Also adds seperators specified by head_sep, row_sep and col_sep."""
+        Also adds seperators specified by head_sep, row_sep and col_sep.
+        """
         string = ''
         if self._head is not None:
             string += self._convert_row_to_string(self._head, self.col_sep)
@@ -396,14 +411,16 @@ class Table:
 
     @_add_data
     def add_head(self, index=None, data=None, fill=None):
-        """Add a list of column headings to the table.
+        """
+        Add a list of column headings to the table.
         Custom decorator: @_add_data (see docstring)
         Keyword arguments:
         index   -- Index from where the data starts replacing the current head.
                    (default None: end of head)
         data    -- List containing the headings (default None).
         fill    -- Empty heading fill for excesive columns (default None).
-                   Note: if none given, the Table fill param is used!"""
+                   Note: if none given, the Table fill param is used!
+        """
         if self._head is None:
             self._head = []
         if index is None:
@@ -414,7 +431,8 @@ class Table:
 
     @_add_data
     def add_row(self, index=None, data=None, fill=None):
-        """Add a list of row data to the table.
+        """
+        Add a list of row data to the table.
         Custom decorator: @_add_data (see docstring)
         Keyword arguments:
         data    -- List containing cell data (default None)
@@ -422,7 +440,8 @@ class Table:
                    (default None: last row)
         fill    -- The filling too use when creating more cells to fit
                    the Table size (default None)
-                   Noterow: If none given, the Table fill param is used!"""
+                   Noterow: If none given, the Table fill param is used!
+        """
         if index is None:
             index = self.row_count
         self._data = [*self._data[:index],
@@ -431,7 +450,8 @@ class Table:
 
     @_add_data
     def add_column(self, index=None, head=None, data=None, fill=None):
-        """Add a list of column data to the table.
+        """
+        Add a list of column data to the table.
         Custom decorator: @_add_data (see docstring)
         Keyword arguments:
         data    -- List containing cell data (default None).
@@ -440,7 +460,8 @@ class Table:
                    (default None: last column).
         fill    -- The filling too use when creating more cells to fit
                    the Table size (default None).
-                   Note: If none given, the Table fill param is used!"""
+                   Note: If none given, the Table fill param is used!
+        """
         if index is None:
             index = self.column_count
         length = self.row_count
@@ -466,11 +487,13 @@ class Table:
             self._head[index].value = head
 
     def remove_head(self, column=None):
-        """Removes range of head(s) of the table. Data is lost!
+        """
+        Removes range of head(s) of the table. Data is lost!
         Keywordarguments:
-        column -- Integer or range of the columnhead(s) to be removed.
-                  (default None: total heading removed)
-        Note: index start at 0"""
+        column -- Integer or range of the columnhead(s) to be removed
+                  (default None: total heading removed).
+        Note: index start at 0!
+        """
         # Table should always contain equal length rows and head!
         # Do not shift!
         if self._head is not None:
@@ -489,13 +512,15 @@ class Table:
                     self._head[i] = _Cell(self.fill)
 
     def remove_row(self, row=None, removehead=True):
-        """Removes the row(s) of the table.
+        """
+        Removes the row(s) of the table.
         Keyarguments:
-        row -- Integer or range of row(s) to be removed.
-               (default last row)
+        row -- Integer or range of row(s) to be removed
+               (default None: last row).
         removehead -- Boolean: remove head when there are no rows left,
-                      leaving an empty table (default True)
-        Note: index start at 0"""
+                      leaving an empty table (default True).
+        Note: index start at 0!
+        """
         # Table should always contain equal length rows and head!
         if row is None:
             row = self.row_count - 1
@@ -513,15 +538,16 @@ class Table:
             self.remove_head()
 
     def remove_column(self, column=None, removehead=True):
-        """Removes the column(s) of the table.
+        """
+        Removes the column(s) of the table.
         Keyarguments:
-        column -- Integer or range of column(s) to be removed.
-                  (default last column)
+        column -- Integer or range of column(s) to be removed
+                  (default None: last column).
         removehead -- Boolean: if true, head is also removed.
                       If false, column still excists, but is filled
-                      with the default fill value.
-                      (default True)
-        Note: index start at 0"""
+                      with the default fill value (default True).
+        Note: index start at 0!
+        """
         if column is None:
             column = self.column_count - 1
         if isinstance(column, dict):
@@ -543,16 +569,18 @@ class Table:
                     row[i] = _Cell(self.fill)
 
     def copy(self, row=None, column=None):
-        """Returns an instance of the Table containing the heading and
+        """
+        Returns an instance of the Table containing the heading and
         Cell(s) from the current Table.
         Note: If both row and column are ommited, return an instance of
         the whole Table.
         Keyword arguments:
         row     -- Integer, range or list of the corresponding row(s)
-                   (default None)
+                   (default None).
         column  -- Integer, range or list of the corresponding column(s)
-                   (default None)
-        Note: index start at 0"""
+                   (default None).
+        Note: index start at 0!
+        """
         if isinstance(row, int):
             row = [row]
         if isinstance(column, int):
@@ -592,14 +620,16 @@ class Table:
         return T
 
     def log(self, row=None, column=None):
-        """Prints the Cell, row or column.
-        Same as print(Table.copy(row, column))
+        """
+        Prints the Cell, row or column.
+        Same as print(Table.copy(row, column)).
         Keyword arguments:
         row     -- Integer or range of the corresponding row(s)
-                   (default None)
+                   (default None).
         column  -- Integer or range of the corresponding column(s)
-                   (default None)
-        Note: index start at 0"""
+                   (default None).
+        Note: index start at 0!
+        """
         # TODO Make logging more efficient...
         print(self.copy(row=row, column=column))
 
