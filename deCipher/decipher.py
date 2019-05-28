@@ -132,8 +132,7 @@ datastr     -- string
 blocksize   -- integer (keylength)"""
     datastr = clean_datastr(datastr)
     for i in range(blocksize):
-        nthletters = [datastr[c] for c in range(i, len(datastr), blocksize)]
-        yield ''.join(nthletters)
+        yield ''.join(datastr[i::blocksize])
 
 
 def sort_by_value(tuples, reverse=True):
@@ -150,13 +149,13 @@ def rot(char, rotate):
 Arguments:
 char    -- single letter string, upper- or lowercase.
 rotate  -- integer used for rotation."""
-    nr = ord(char)
     if char.isupper():
         diff = ord('A')
     elif char.islower():
         diff = ord('a')
     else:
         return char
+    nr = ord(char)
     nr -= diff
     nr += rotate
     nr %= 26
