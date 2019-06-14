@@ -1,6 +1,14 @@
-# Ignore Session.vim and other vim files
+# vim
 *.vim
 *.sw?
+
+# Python
 *.py[cod]
 __pycache__/
 **/__pycache__/
+
+# links
+*.ln
+
+# node
+node_modules
