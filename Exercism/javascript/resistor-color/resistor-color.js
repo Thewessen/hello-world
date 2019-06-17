@@ -1,6 +1,6 @@
 'use strict'
 
-const COLORS = new Map([
+export const COLORS = [
   'black',
   'brown',
   'red',
@@ -11,6 +11,6 @@ const COLORS = new Map([
   'violet',
   'grey',
   'white'
-].map((e, i) => [e, i]))
+]
 
-export const colorCode = (color = '') => COLORS.get(color.toLowerCase())
+export const colorCode = (color = '') => COLORS.indexOf(color)

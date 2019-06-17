@@ -1,20 +1,17 @@
 'use strict'
 
-class Triangle {
+export class Triangle {
   constructor (index) {
     if (!Number.isInteger(index)) {
-      return new Error('Constructor argument is not an integer')
+      throw new Error('Constructor argument is not an integer')
     }
     let row = []
-    const next = (e, i, arr) => {
-                      let add = arr[i - 1] || 0
-                      return e + add
-                    }
+    const nextRow = (e, i, arr) => e + (arr[i - 1] || 0)
     this._rows = Array.from({
       [Symbol.iterator]() {
         return {
           next () {
-            row = [...row.map(next), 1]
+            row = [...row.map(nextRow), 1]
             return row.length > index
               ? { done: true }
               : { value: row }
@@ -33,5 +30,3 @@ class Triangle {
     return this._lastRow
   }
 }
-
-module.exports = Triangle
