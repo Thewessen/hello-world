@@ -6,108 +6,56 @@ const MULT = 'multiplied'
 const DIV = 'divided'
 const POW = 'raised'
 
-const EOS = Symbol('End of sequence')
-
-const isEOS = (value) => value === EOS
-
 const OPERATIONS = new Map()
-  .set(POW, (a, b) => a ** b)
-  .set(MULT, (a, b) => a * b)
-  .set(DIV, (a, b) => a / b)
-  .set(ADD, (a, b) => a + b)
-  .set(SUB, (a, b) => a - b)
+  .set(POW, (a) => (b) => a ** b)
+  .set(MULT, (a) => (b) => a * b)
+  .set(DIV, (a) => (b) => a / b)
+  .set(ADD, (a) => (b) => a + b)
+  .set(SUB, (a) => (b) => a - b)
 
-const isWordChar = (char) =>
-  typeof char === 'string' && /^[-a-zA-Z0-9]$/.test(char)
+// Anonymous arrowfunc (we use here) have different this binding!
+// const isFunction = (obj) => Object.prototype.toString.call(obj) === '[object Function]'
 
-const getNext = (iterator) => {
-  const { value, done } = iterator.next()
-  return done ? EOS : value
-}
+// Less secure, but works for this example
+const isFunction = (obj) => typeof obj === 'function'
 
-const wordsG = function * (chars) {
-  const iter = chars[Symbol.iterator]()
-  let char
-  do {
-    char = getNext(iter)
-    if (isWordChar(char)) {
-      let word = ''
-      do {
-        word += char
-        char = getNext(iter)
-      } while (isWordChar(char))
-      yield word
-    }
-  } while (!isEOS(char))
-}
+const isNumber = (word) => /^(-?\d+)(?:st|nd|th|\?)?$/.test(word)
+const grepNumber = (word) => Number.parseFloat(word)
 
-const sumG = function * (words) {
-  const regex = /^(-?\d+)(?:st|nd|th|\?)?$/
-  for (const word of words) {
-    const match = word.match(regex)
-    if (match) {
-      yield Number(match[1])
-    }
-    if (OPERATIONS.has(word)) {
-      yield word
-    }
+const isProblem = (word) => OPERATIONS.has(word) || isNumber(word)
+const transformType = (word) => OPERATIONS.has(word) ? OPERATIONS.get(word) : grepNumber(word)
+
+const solve = (acc, curr) => {
+  if (isFunction(acc) ? isFunction(curr) : !isFunction(curr)) {
+    throw new Error('Unsolvable')
+  }
+  if (isFunction(curr)) {
+    return curr(acc)
+  }
+  if (typeof curr === 'number') {
+    return acc(curr)
   }
 }
-
-const solver = (...operations) => function * (parts) {
-  let previous
-  for (const part of parts) {
-    if (typeof part === 'number') {
-      previous = part
-    } else {
-      if (operations.some((operation) => part === operation)) {
-        const fn = OPERATIONS.get(part)
-        previous = fn(previous, getNext(parts))
-        yield previous
-      } else {
-        yield previous
-        previous = null
-        yield part
-      }
-    }
-  }
-  // Obsolete because no order for solving is needed
-  // if (previous !== null) {
-  //   yield previous
-  // }
-}
-
-const combine = (...generators) => function * (words) {
-  const iter = generators.reduce(
-    (x, gen) => gen(x)
-    , words)
-  let value = getNext(iter)
-  while (!isEOS(value)) {
-    yield value
-    value = getNext(iter)
-  }
-}
-
-const read = combine(wordsG, sumG)
-
-// no order for solving needed
-const solve = solver(POW, MULT, DIV, ADD, SUB)
-
-const lastEl = (array) => array[array.length - 1]
 
 // For some reason class is needed...
-class WordProblem {
+export class WordProblem {
   constructor (question) {
-    this.problem = read(question)
+    this.problem = question
+      .split(' ')
+      .filter(isProblem)
+      .map(transformType)
   }
 
   answer () {
-    let solution = [...solve(this.problem)]
-    if (solution.length === 0) {
-      throw new Error('ArgumentError')
+    if (this.problem.length < 2) {
+      throw new Error('Not much to solve!')
     }
-    return lastEl(solution)
+    try {
+      return this.problem.reduce(solve)
+    } catch(e) {
+      throw e
+    }
   }
 }
 
-module.exports = WordProblem
+// module.exports = WordProblem
