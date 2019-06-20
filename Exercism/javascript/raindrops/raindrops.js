@@ -12,8 +12,8 @@ export const convert = (int) => {
   if (!Number.isInteger(int)) {
     throw new Error('convert requires an integer')
   }
-  let div = dividable(int)
-  let song = [...SOUNDS.keys()]
+  const div = dividable(int)
+  const song = [...SOUNDS.keys()]
     .map((e) => div(e) ? SOUNDS.get(e) : '')
     .join('')
   return song === ''
