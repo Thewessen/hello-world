@@ -1,59 +1,95 @@
 'use strict'
 
+const sum = (a, b) => a + b
+const product = (a, b) => a * b
 
-const genPythagorianTriples = function * () {
-  const family = [[3, 4, 5]]
+const multiplyMatrix = (matrix, vector) =>
+  matrix.map(
+    (row) => row.map(
+      (n, idx) => n * vector[idx]
+    )
+  )
+  .map((row) => row.reduce(sum))
 
-  // Berggren's matrices:
+const newBerggrenTriplesGen = function * (vectors) {
+  // Berggren's matrices
   const A = [
     [-1, 2, 2],
     [-2, 1, 2],
     [-2, 2, 3]]
-
   const B = [
     [1, 2, 2],
     [2, 1, 2],
     [2, 2, 3]]
-
   const C = [
     [1, -2, 2],
     [2, -1, 2],
     [2, -2, 3]]
-
-  yield family[0]
-
-  while (true) {
-    for(const matrix of [A, B, C]) {
-      for (const triple of family) {
-        yield triple
-      }
+  for (const vector of vectors) {
+    for (const matrix of [A, B, C]) {
+      yield multiplyMatrix(matrix, vector)
     }
   }
-  family = [A, B, C].map(
-    (matrix) => family.map(
-      (triple) => multiply(matrix, triple)
-    )
-  )
 }
 
-export class Triplet {
-  constructor() {
-    throw new Error("Remove this statement and implement this function");
+const newEuclidTripleGen = function * (triple) {
+
+}
+
+const genPythagorianTriples = function * () {
+  let family = [[3, 4, 5]]
+  yield family[0]
+  while (true) {
+    family = [...newBerggrenTriplesGen(family)]
+    yield * family
+  }
+}
+
+class Triplet {
+  constructor(...triple) {
+    this.triple = triple
   }
 
   sum() {
-    throw new Error("Remove this statement and implement this function");
+    return this.triple.reduce(sum)
   }
 
   product() {
-    throw new Error("Remove this statement and implement this function");
+    return this.triple.reduce(product)
   }
 
   isPythagorean() {
-    throw new Error("Remove this statement and implement this function");
+    const [a, b, c] = this.triple.sort((a, b) => a > b)
+    return this.triple.length === 3 &&
+      Math.round(Math.hypot(a, b)) === c
   }
 
-  static where() {
+  static where ({ sum, minFactor, maxFactor}) {
     throw new Error("Remove this statement and implement this function");
   }
 }
+const take = function * (count, iterable) {
+  const gen = iterable[Symbol.iterator]()
+  for (let i = 0; i < count; i++) {
+    const { value, done } = gen.next()
+    if (done) {
+      break
+    }
+    yield value
+  }
+}
+
+const checkPyth = () => {
+  let count = 0
+  let triple
+  for (triple of genPythagorianTriples()) {
+    if (triple.reduce(sum) === 180) {
+      break
+    }
+    count += 1
+  }
+  return [count, triple]
+}
+
+module.exports = checkPyth
+
