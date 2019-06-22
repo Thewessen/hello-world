@@ -3,20 +3,20 @@
 const sum = (a, b) => a + b
 const product = (a, b) => a * b
 
-const multiplyMatrix = (matrix, vector) =>
+const multiplyMatrix = (matrix, triplet) =>
   matrix.map(
-    (row) => row.map((n, idx) => n * vector[idx])
+    (row) => row.map((n, idx) => n * triplet.triple[idx])
   ).map((row) => row.reduce(sum))
 
-const multiplyMatrices = function * (matrices, vectors) {
-  for (const vector of vectors) {
+const multiplyMatrices = function * (matrices, triplets) {
+  for (const triplet of triplets) {
     for (const matrix of matrices) {
-      yield multiplyMatrix(matrix, vector)
+      yield multiplyMatrix(matrix, triplet)
     }
   }
 }
 
-const BERGRENTRIPLES = function * (triple) {
+const BERGRENTRIPLES = function * (triplet) {
   const A = [
     [-1, 2, 2],
     [-2, 1, 2],
@@ -30,7 +30,7 @@ const BERGRENTRIPLES = function * (triple) {
     [2, -1, 2],
     [2, -2, 3]]
 
-  let family = [triple]
+  let family = [triplet]
   do {
     yield * family
     family = multiplyMatrices([A, B, C], family)
@@ -71,7 +71,7 @@ const EUCLIDTRIPLES = function * () {
   const c = (m, n) => m ** 2 + n ** 2
   for (const m of numbers(2)) {
     for (const n of filter(numbers(1, m), coPrimeWith(m), notBothOdd(m))) {
-      yield [a, b, c].map(f => f(m, n))
+      yield new Triplet(...[a, b, c].map(f => f(m, n)))
     }
   }
 }
@@ -96,7 +96,6 @@ class Triplet {
   }
 
   static where ({ sum, minFactor, maxFactor}) {
-    throw new Error("Remove this statement and implement this function");
   }
 }
 
@@ -112,3 +111,4 @@ const take = function * (count, iterable) {
 }
 
 module.exports = take(100, EUCLIDTRIPLES())
+// module.exports = take(100, BERGRENTRIPLES(new Triplet(3, 4, 5)))
