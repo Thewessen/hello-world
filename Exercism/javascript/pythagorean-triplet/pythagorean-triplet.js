@@ -8,7 +8,15 @@ const multiplyMatrix = (matrix, vector) =>
     (row) => row.map((n, idx) => n * vector[idx])
   ).map((row) => row.reduce(sum))
 
-const BERGRENTRIPLES = function * (vectors) {
+const multiplyMatrices = function * (matrices, vectors) {
+  for (const vector of vectors) {
+    for (const matrix of matrices) {
+      yield multiplyMatrix(matrix, vector)
+    }
+  }
+}
+
+const BERGRENTRIPLES = function * (triple) {
   const A = [
     [-1, 2, 2],
     [-2, 1, 2],
@@ -22,21 +30,23 @@ const BERGRENTRIPLES = function * (vectors) {
     [2, -1, 2],
     [2, -2, 3]]
 
-  for (const vector of vectors) {
-    for (const matrix of [A, B, C]) {
-      yield multiplyMatrix(matrix, vector)
-    }
-  }
+  let family = [triple]
+  do {
+    yield * family
+    family = multiplyMatrices([A, B, C], family)
+  } while (true)
 }
 
-const numbers = function * (from, too, step) {
+const numbers = function * (from, too = Number.POSITIVE_INFINITY, step = 1) {
   for (let i = from; i < too; i += step) {
     yield i
   }
 }
 
 const GCD = (a, b) => {
-  [a, b] = [a, b].sort((a, b) => a < b)
+  if (a < b) {
+    [a, b] = [b, a]
+  }
   const rest = a % b
   return rest === 0
     ? b
@@ -45,7 +55,7 @@ const GCD = (a, b) => {
 
 const isEven = (a) => a % 2 === 0
 const notBothOdd = (a) => (b) => isEven(a) || isEven(b)
-const coPrime = (a) => (b) => GCD(a, b) === 1
+const coPrimeWith = (a) => (b) => GCD(a, b) === 1
 
 const filter = function * (iterable, ...fns) {
   for (const value of iterable) {
@@ -54,23 +64,15 @@ const filter = function * (iterable, ...fns) {
     }
   }
 }
-const newEuclidTripleGen = function * (triple) {
+
+const EUCLIDTRIPLES = function * () {
   const a = (m, n) => 2 * m * n
   const b = (m, n) => m ** 2 - n ** 2
   const c = (m, n) => m ** 2 + n ** 2
-  for (const m of numbers(2, Number.POSITIVE_INFINITY, 1)) {
-    for (const n of filter(numbers(1, m, 1), coPrime(m), notBothOdd(m))) {
+  for (const m of numbers(2)) {
+    for (const n of filter(numbers(1, m), coPrimeWith(m), notBothOdd(m))) {
       yield [a, b, c].map(f => f(m, n))
     }
-  }
-}
-
-const genPythagorianTriples = function * () {
-  let family = [[3, 4, 5]]
-  const gen = BERGRENTRIPLES
-  while (true) {
-    yield * gen(family)
-    family = gen(family)
   }
 }
 
@@ -97,9 +99,10 @@ class Triplet {
     throw new Error("Remove this statement and implement this function");
   }
 }
+
 const take = function * (count, iterable) {
   const gen = iterable[Symbol.iterator]()
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < count; i += 1) {
     const { value, done } = gen.next()
     if (done) {
       break
@@ -108,18 +111,4 @@ const take = function * (count, iterable) {
   }
 }
 
-const checkPyth = () => {
-  // let count = 0
-  // let triple
-  for (const triple of take(10, genPythagorianTriples())) {
-    console.log(triple)
-    // if (triple.reduce(sum) === 180) {
-    //   break
-    // }
-    // count += 1
-  }
-  // return [count, triple]
-}
-
-module.exports = GCD
-
+module.exports = take(100, EUCLIDTRIPLES())
