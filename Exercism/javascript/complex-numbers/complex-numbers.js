@@ -18,11 +18,7 @@ export class ComplexNumber {
   }
 
   get abs () {
-    const compl = [...Object.values(this)]
-    const { abs, hypot } = Math
-    return compl.includes(0)
-      ? compl.filter((i) => i !== 0).reduce((__, n) => abs(n), 0)
-      : hypot(...compl)
+    return Math.hypot(this.real, this.imag)
   }
 
   get conj () {

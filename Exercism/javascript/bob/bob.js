@@ -1,10 +1,5 @@
 'use strict'
 
-// const removeTrailingWhitespace = (string) => {
-//   const match = string.match(/[\r\n\t\s]+$/)
-//   return string.substr(0, match === null ? undefined : match.index)
-// }
-
 export const hey = (message = '') => {
   message = message.trim()
 

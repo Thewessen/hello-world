@@ -21,7 +21,7 @@ export class Allergies {
       .toString(2)
       .split('')
       .reverse()
-      .map((i) => Number.parseInt(i))
+      .map(Number)
 
     this.allergens = ALLERGIES
       .filter((e, i) => !!gen[i])
