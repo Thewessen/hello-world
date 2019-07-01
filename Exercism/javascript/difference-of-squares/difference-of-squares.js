@@ -49,7 +49,7 @@ export class Squares {
     yield sum
   }
 
-  * value (iterable) {
+  value (iterable) {
     const { value } = iterable.next()
     return value
   }

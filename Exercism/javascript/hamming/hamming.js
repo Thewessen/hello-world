@@ -1,5 +1,7 @@
 'use strict'
 
+const sum = (a, b) => a + b
+
 const dnaError = (dna1, dna2) => {
   let l1 = dna1.length
   let l2 = dna2.length
@@ -25,9 +27,7 @@ export const compute = (dna1, dna2) => {
   }
   return dna1
     .split('')
-    .reduce((acc, curr, idx) =>
-      curr !== dna2[idx]
-        ? acc + 1
-        : acc
-    , 0)
+    .map((d, i) => d !== dna2[i])
+    .map(Number)
+    .reduce(sum, 0)
 }

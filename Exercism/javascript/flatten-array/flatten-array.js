@@ -1,6 +1,5 @@
 'use strict'
 
-// for some reasons the tests uses a class
 export class Flattener {
   flatten (arr) {
     const { isArray } = Array

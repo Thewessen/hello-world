@@ -14,12 +14,11 @@ export class LinkedList {
       return new Error('Data is not iterable')
     }
     this.data = Array.from(data)
-      .map((e) => new LinkNode( e, null, null))
-      .map((e, i, arr) => {
-        e.before = i > 0 ? arr[i - 1] : null
-        e.after = i < arr.length - 1 ? arr[i + 1] : null
-        return e
-      })
+      .map((e, i, arr) => new LinkNode(
+        e,
+        i > 0 ? arr[i - 1] : null,
+        i < arr.length - 1 ? arr[i + 1] : null
+      ))
   }
 
   last () {

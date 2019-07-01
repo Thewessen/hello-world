@@ -1,79 +1,66 @@
 'use strict'
 
-// Move:
-// right [0, 1]
-// bottom [1, 0]
-// left [0, -1]
-// top [-1, 0]
+const POINT = '+'
 
-const move = ([x, y], [dx, dy], data) => {
-  let [a, b] = [x + dx, y + dy]
-  let line = dy === 0 ? '|' : '-'
-  while (data[a] && data[a][b] && data[a][b] === line) {
+const vertical = (char) => char === '|' || char === POINT
+const horizontal = (char) => char === '-' || char === POINT
+
+const isConnected = function([x1, y1], [x2, y2], data) {
+  if (x1 === x2 && y2 < data.length) {
+    return data
+      .slice(y1, y2 + 1)
+      .map((row) => row[x1])
+      .every(vertical)
+  }
+  if (y1 === y2 && x2 < data[y1].length) {
+    return data[y1]
+      .split('')
+      .slice(x1, x2 + 1)
+      .every(horizontal)
+  }
+  return false
+}
+
+const connections = function * ([x, y], [dx, dy], data) {
+  let [a, b] = [x, y]
+  do {
     [a, b] = [a + dx, b + dy]
-  }
-  if (data[a] && data[a][b] && data[a][b] === '+') {
-    return [a, b]
-  }
-  return [x, y]
+    if (data[b] && data[b][a] === POINT) {
+      yield [a, b]
+    }
+  } while (isConnected([x, y], [a, b], data))
 }
 
-
-const samePoint = (p1, p2) => p1[0] === p2[0] && p1[1] === p2[1]
-
-const countSquares = (start, curr, lastMove, count, data) => {
-  let point = move(curr, [0, 1], data)
-  console.log(start, curr, point, lastMove)
-  if (!samePoint(point, curr) && !samePoint([0, 1], lastMove)) {
-    count += countSquares(start, point, [0, -1], count, data)
-    count += countSquares(point, point, [0, 0], count, data)
-    curr = point
-  } else {
-    return count
+const pointsIn = function * (data) {
+  for (const y in data) {
+    for (const x in data[y]) {
+      if (data[y][x] === POINT) {
+        yield [x, y].map(Number)
+      }
+    }
   }
-  point = move(curr, [1, 0], data)
-  if (!samePoint(point, curr) && !samePoint([1, 0], lastMove)) {
-    count += countSquares(start, point, [-1, 0], count, data)
-    count += countSquares(point, point, [0, 0], count, data)
-    curr = point
-  } else {
-    return count
-  }
-  point = move(curr, [0, -1], data)
-  if (!samePoint(point, curr) && !samePoint([0, -1], lastMove)) {
-    count += countSquares(start, point, [0, 1], count, data)
-    count += countSquares(point, point, [0, 0], count, data)
-    curr = point
-  } else {
-    return count
-  }
-  point = move(curr, [-1, 0], data)
-  if (!samePoint(curr, start) && !samePoint(point, curr) && !samePoint([-1, 0], lastMove)) {
-    count += countSquares(start, point, [1, 0], count, data)
-    count += countSquares(point, point, [0, 0], count, data)
-    curr = point
-  } else {
-    return count
-  }
-  if (samePoint(curr, start)) {
-    return count + 1
-  }
-  return count
 }
 
-const data = [
-  '+-+',
-  '| |',
-  '+-+'
-]
+const countSquares = function * (data) {
+  for (const point of pointsIn(data)) {
+    let count = 0
+    for (const [x1, y1] of connections(point, [1, 0], data)) {
+      for (const [x2, y2] of connections(point, [0, 1], data)) {
+        if (
+          data[y2][x1] === POINT &&
+          isConnected([x1, y1], [x1, y2], data) &&
+          isConnected([x2, y2], [x1, y2], data)
+        ) {
+          count += 1
+        }
+      }
+    }
+    yield count
+  }
+}
 
-module.exports = countSquares([0,0],[0,0],[0,0],0,data)
-// module.exports = samePoint([0,-1],[0,1])
-// module.exports = move
-
-// export class Rectangles {
-class Rectangles {
+export class Rectangles {
   static count (data) {
-    return countSquares([0, 0], [0, 0], [0, 0], 0, data)
+    return [...countSquares(data)].reduce((a, b) => a + b, 0)
   }
 }

@@ -30,7 +30,7 @@ const filter = function * (iterable, ...fns) {
 
 export class Triplet {
   constructor (...triple) {
-    this.triple = triple.sort((a, b) => a > b)
+    this.triple = triple.sort((a, b) => a - b)
   }
 
   sum () {
