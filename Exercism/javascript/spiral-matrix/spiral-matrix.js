@@ -1,22 +1,16 @@
 'use strict'
 
-const range = function * (to) {
-  for (let i = 1; i < to; i += 1) {
+const range = function * (from, to) {
+  for (let i = from; i <= to; i += 1) {
     yield i
   }
 }
 
 const turn = ([dx, dy]) => {
-  if (dx === 1 && dy === 0) {
-    return [0, -1]
+  if (dx !== 0) {
+    return [0, dx]
   }
-  if (dx === 0 && dy === -1) {
-    return [-1, 0]
-  }
-  if (dx === -1 && dy === 0) {
-    return [0, 1]
-  }
-  return [1, 0]
+  return [0 - dy, 0]
 }
 
 const move = ([x, y], ...moves) => {
@@ -26,27 +20,26 @@ const move = ([x, y], ...moves) => {
   return [x, y]
 }
 
-const newMatrix = (size) => Array(size).fill(Array(size).fill(null))
+const value = ([x, y], matrix) => matrix[y] ? matrix[y][x] : undefined
 
-const spiral = ([x, y], [dx, dy], numbers, matrix) => {
-  let [a, b] = [x, y]
-  while (matrix[b] && matrix[b][a] === null) {
+const newMatrix = (size) => Array.from({ length: size }, () => Array(size).fill(null))
+
+const spiral = (start, [dx, dy], numbers, matrix) => {
+  let next = start
+  while (value(next, matrix) === null) {
+    const [a, b] = next
     matrix[b][a] = numbers.next().value
-    [a, b] = move([a, b], [dx, dy])
+    next = move(next, [dx, dy])
   }
-  // console.log([a, b], [0 - dx, 0 - dy], turn([dx, dy]))
-  [a, b] = move([a, b], [0 - dx, 0 - dy], turn([dx, dy]))
-  if (matrix[b][a] === null) {
-    return spiral([a, b], turn([dx, dy]), numbers, matrix)
+  next = move(next, [0 - dx, 0 - dy], turn([dx, dy]))
+  if (value(next, matrix) === null) {
+    return spiral(next, turn([dx, dy]), numbers, matrix)
   }
   return matrix
 }
 
-module.exports = spiral([0, 0], [1, 0], range(4 * 4), newMatrix(4))
-// module.exports = move([0, 0], [3, 0])
-
-const SpiralMatrix = {
+export const SpiralMatrix = {
   ofSize (n) {
-    this.size = n
+    return spiral([0, 0], [1, 0], range(1, n ** 2), newMatrix(n))
   }
 }
