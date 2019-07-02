@@ -20,9 +20,11 @@ const move = ([x, y], ...moves) => {
   return [x, y]
 }
 
-const value = ([x, y], matrix) => matrix[y] ? matrix[y][x] : undefined
+const value = ([x, y], matrix) =>
+  matrix[y] ? matrix[y][x] : undefined
 
-const newMatrix = (size) => Array.from({ length: size }, () => Array(size).fill(null))
+const newMatrix = (size) =>
+  Array.from({ length: size }, () => Array(size).fill(null))
 
 const spiral = (start, [dx, dy], numbers, matrix) => {
   let next = start
