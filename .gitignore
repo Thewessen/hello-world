@@ -13,3 +13,6 @@ __pycache__/
 
 # node
 node_modules
+
+# yarn
+yarn.lock
