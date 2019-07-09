@@ -4,8 +4,9 @@ const sum = (a, b) => a + b
 const product = (a, b) => a * b
 
 const numbers = function * (from, too = Number.POSITIVE_INFINITY, step = 1) {
-  for (let i = from; i < too; i += step) {
-    yield i
+  if (from < too) {
+    yield from
+    yield* numbers(from + step, too, step)
   }
 }
 

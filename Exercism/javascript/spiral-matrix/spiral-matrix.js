@@ -1,8 +1,9 @@
 'use strict'
 
 const range = function * (from, to) {
-  for (let i = from; i <= to; i += 1) {
-    yield i
+  if (from <= to) {
+    yield from
+    yield* range(from + 1, to)
   }
 }
 
