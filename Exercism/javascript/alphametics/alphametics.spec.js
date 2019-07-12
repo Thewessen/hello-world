@@ -1,7 +1,7 @@
 import { solve } from './alphametics';
 
 describe('Solve the alphametics puzzle', () => {
-  test('puzzle with three letters', () => {
+  xtest('puzzle with three letters', () => {
     const puzzle = 'I + BB == ILL';
     const expected = {
       I: 1,
@@ -74,7 +74,7 @@ describe('Solve the alphametics puzzle', () => {
     expect(solve(puzzle)).toEqual(expected);
   });
 
-  xtest('puzzle with ten letters', () => {
+  test('puzzle with ten letters', () => {
     const puzzle = 'AND + A + STRONG + OFFENSE + AS + A + GOOD == DEFENSE';
     const expected = {
       A: 5,
