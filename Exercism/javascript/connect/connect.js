@@ -31,7 +31,7 @@ export class Board {
         const newPos = Board.go([x, y], dir)
         if(
           board.at(newPos) === symbol &&
-          finder(newPos, symbol, finished)
+          finder(newPos)
         ) {
           return true
         }
@@ -51,17 +51,19 @@ export class Board {
   }
 
   winner() {
-    if (this.board
+    const startX = this.board
       .map((__, i) => [i, 0])
       .filter((p) => this.at(p) === 'X')
+    if (startX
       .some(Board.pathFinder(
           this, 'X',
           [null, this.board[0].length - 1]
         ))
     ) { return 'X' }
-    if (this.board
+    const startO = this.board
       .map((__, i) => [0, i])
       .filter((p) => this.at(p) === 'O')
+    if (startO
       .some(Board.pathFinder(
         this, 'O',
         [this.board.length - 1, null]))
