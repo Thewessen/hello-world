@@ -1,22 +1,31 @@
 'use strict'
 
-const numbersTill = function * (till) {
-  for (let i = 2; i <= till; i += 1) {
-    yield i
+const count = function * (from) {
+  for (let n = from; ; n += 1) {
+    yield n
   }
 }
 
-const multiplesOff = function * (number, till) {
-  for (let i = 2; number * i <= till; i += 1) {
-    yield number * i
+const filter = function * (fn, iter) {
+  for (const n of iter) {
+    if (fn(n)) {
+      yield n
+    }
+  }
+}
+
+const gen_primes = function * (till = Math.POSITIVE_INFINITY) {
+  let numbers = count(2)
+  while (true) {
+    const p = numbers.next().value
+    if (p > till) {
+      break
+    }
+    yield p
+    numbers = filter((n) => n % p, numbers)
   }
 }
 
 export const primes = (till) => {
-  let primes = [...numbersTill(till)]
-  for (let i = 0; i < primes.length; i += 1) {
-    let multiples = [...multiplesOff(primes[i], till)]
-    primes = primes.filter((e) => !multiples.includes(e))
-  }
-  return primes
+  return [...gen_primes(till)]
 }
