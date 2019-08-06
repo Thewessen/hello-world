@@ -3,12 +3,10 @@ from itertools import count
 
 class Primes(object):
     """Iterable primes using Sieve of Eratosthenes"""
-    def __init__(self, start=2, end=None):
-        if type(start) is not int or start < 2:
-            raise ValueError(f'Not a valid start ({start})')
+    def __init__(self, end=None):
         if not isinstance(end, (int, None)):
             raise ValueError(f'Not a valid end ({end})')
-        self.numbers = count(start)
+        self.numbers = count(2)
         self.end = end
 
     def __iter__(self):
@@ -24,4 +22,4 @@ class Primes(object):
 
 def primes(limit: int) -> list:
     """Just to pass test"""
-    return list(Primes(end=limit))
+    return [*Primes(limit)]
