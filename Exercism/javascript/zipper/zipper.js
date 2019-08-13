@@ -12,9 +12,14 @@ class BinTree {
 }
 
 export class Zipper {
-  constructor (root, focus, parent) {
+  constructor (root, focus, parent = null) {
     this.root = root
     this.focus = focus || root
+    this.parent = parent ? new Zipper(
+      root,
+      parent,
+      parent instanceof Zipper ? parent.parent : null
+    ) : null
   }
 
   static fromTree (tree) {
@@ -30,20 +35,35 @@ export class Zipper {
 
   left () {
     const { left } = this.focus
-    return isNode(left) ? new Zipper(this.root, left) : null
+    return isNode(left) ? new Zipper(this.root, left, this.focus) : null
   }
 
   right () {
     const { right } = this.focus
-    return isNode(right) ? new Zipper(this.root, right) : null
+    return isNode(right) ? new Zipper(this.root, right, this.focus) : null
   }
 
   value () {
     return this.focus.value
   }
 
+  setValue (value) {
+    this.focus.value = value
+    return this
+  }
+
+  setLeft (node) {
+    this.focus.left = Object.assign(this.focus, node)
+    return this
+  }
+
+  setRight (value) {
+    this.focus.right = isNode(value) ? value : null
+    return this
+  }
+
   up () {
-    return this.focus === this.root ? null
+    return this.parent === null ? null : new Zipper(this.root, this.parent.focus, this.parent.parent)
   }
 }
 
