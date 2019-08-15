@@ -13,23 +13,6 @@ def encode(message: str, rails: int) -> str:
 
 def decode(encoded_message: str, rails: int) -> str:
     """Decoding for the rail fence cipher."""
-    delta = 1
-    decode = ''
-    index = 0
-    for char in message:
-        code += char
-        index += delta
-        if index == rails - 1 or index == 0:
-            delta *= -1
-    return ''.join(code)
-
-print(encode('WEAREDISCOVEREDFLEEATONCE', 3))
-
-
-"""
-? . . . . . . . ? . . . . . . . ? . . . . . . . ?
-. ? . . . . . ? . ? . . . . . ? . ? . . . . . ? .
-. . ? . . . ? . . . ? . . . ? . . . ? . . . ? . .
-. . . ? . ? . . . . . ? . ? . . . . . ? . ? . . .
-. . . . ? . . . . . . . ? . . . . . . . ? . . . .
-"""
+    length = range(len(encoded_message))
+    look_up = encode((chr(i) for i in length), rails)
+    return ''.join(encoded_message[look_up.index(chr(i))] for i in length)
