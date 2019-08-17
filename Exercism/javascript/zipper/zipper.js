@@ -53,12 +53,12 @@ export class Zipper {
   }
 
   setLeft (node) {
-    this.focus.left = Object.assign(this.focus, node)
+    this.focus.left = node ? Object.assign({}, node) : null
     return this
   }
 
-  setRight (value) {
-    this.focus.right = isNode(value) ? value : null
+  setRight (node) {
+    this.focus.right = node ? Object.assign({}, node) : null
     return this
   }
 
@@ -67,25 +67,30 @@ export class Zipper {
   }
 }
 
-// function bt(value, left, right) {
-//   return {
-//     value,
-//     left,
-//     right,
-//   };
-// }
+function bt(value, left, right) {
+  return {
+    value,
+    left,
+    right,
+  };
+}
 
-// function leaf(value) {
-//   return bt(value, null, null);
-// }
+function leaf(value) {
+  return bt(value, null, null);
+}
 
-// const t1 = bt(1, bt(2, null, leaf(3)), leaf(4));
+const t1 = bt(1, bt(2, null, leaf(3)), leaf(4));
 // const t2 = bt(1, bt(5, null, leaf(3)), leaf(4));
-// const t3 = bt(1, bt(2, leaf(5), leaf(3)), leaf(4));
-// const t4 = bt(1, leaf(2), leaf(4));
+const t3 = bt(1, bt(2, leaf(5), leaf(3)), leaf(4));
+const t4 = bt(1, leaf(2), leaf(4));
 // const t5 = bt(1, bt(2, null, leaf(3)), bt(6, leaf(7), leaf(8)));
 // const t6 = bt(1, bt(2, null, leaf(5)), leaf(4));
-// const z = Zipper.fromTree(t1)
+let z = Zipper.fromTree(t1)
+console.log(z.left().setLeft(leaf(5)).toTree())
+console.log(t3)
+z = Zipper.fromTree(t1)
+console.log(z.left().setRight(null).toTree())
+console.log(t4)
 // console.log(z.root)
 // z.focus = z.root.left
 // console.log(z.root)

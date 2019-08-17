@@ -22,14 +22,3 @@ def decode(encoded_message: str, rails: int) -> str:
         if index == rails - 1 or index == 0:
             delta *= -1
     return ''.join(code)
-
-print(encode('WEAREDISCOVEREDFLEEATONCE', 3))
-
-
-"""
-? . . . . . . . ? . . . . . . . ? . . . . . . . ?
-. ? . . . . . ? . ? . . . . . ? . ? . . . . . ? .
-. . ? . . . ? . . . ? . . . ? . . . ? . . . ? . .
-. . . ? . ? . . . . . ? . ? . . . . . ? . ? . . .
-. . . . ? . . . . . . . ? . . . . . . . ? . . . .
-"""

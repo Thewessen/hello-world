@@ -67,7 +67,7 @@ describe('Zipper', () => {
     expect(zipper.left().setLeft(leaf(5)).toTree()).toEqual(t3);
   });
 
-  xtest('setRight with null', () => {
+  test('setRight with null', () => {
     expect(zipper.left().setRight(null).toTree()).toEqual(t4);
   });
 
