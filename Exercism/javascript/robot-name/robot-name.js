@@ -35,9 +35,8 @@ const combine = (gen, chars) => function * () {
 }
 
 const uniqueNames = (...template) =>
-  template.reduce(
-    (gen, chars) => combine(gen, chars)
-  , function* () { yield '' })()
+  template.reduce(combine,
+    function* () { yield '' })()
 
 export class Robot {
   constructor () {
