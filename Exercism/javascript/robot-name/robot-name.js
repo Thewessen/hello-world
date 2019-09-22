@@ -9,8 +9,8 @@ const strArray = (from, too) => {
   )
 }
 
-const rInt = (from, too) =>
-  Math.floor((Math.random() * (too - from) + from))
+const rInt = (from, to) =>
+  Math.floor((Math.random() * (to - from) + from))
 
 const prepend = (generator) => function * (char) {
   for (const value of generator()) {
