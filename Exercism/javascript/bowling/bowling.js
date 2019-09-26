@@ -2,7 +2,7 @@
 
 export class Bowling {
   constructor () {
-    this.game = this.start()
+    this.game = Bowling.start()
     this._score = this.game.next().value
   }
 
@@ -13,7 +13,7 @@ export class Bowling {
     return pins
   }
 
-  * start () {
+  static * start () {
     const sum = (a, b) => a + b
     const scores = []
     let bonus = 0
