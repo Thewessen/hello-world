@@ -81,18 +81,18 @@ export class Bowling {
     const scores = yield * Bowling.frames([], 0)
 
     // Last frame
-    const lastFrame = scores.pop().setLast()
+    const lastFrame = scores[scores.length - 1].setLast()
     if (lastFrame.rolls.length < 2) {
-      const pins = yield total([...scores, lastFrame])
+      const pins = yield total(scores)
       lastFrame.roll(pins)
-      scores.forEach(frame => frame.addBonus(pins))
+      scores.forEach(frame => !frame.last && frame.addBonus(pins))
     }
 
     // fillball
-    if ([...scores, lastFrame].some(frame => frame.bonus)) {
-      lastFrame.roll(yield total([...scores, lastFrame]))
+    if (scores.some(frame => frame.bonus)) {
+      lastFrame.roll(yield total(scores))
     }
-    return total([...scores, lastFrame])
+    return total(scores)
   }
 
   roll (pins) {
