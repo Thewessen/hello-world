@@ -89,7 +89,7 @@ export class Bowling {
     }
 
     // fillball
-    if (scores.some(frame => frame.bonus)) {
+    if (lastFrame.bonus) {
       lastFrame.roll(yield total(scores))
     }
     return total(scores)
