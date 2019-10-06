@@ -1,0 +1,91 @@
+body {
+  font: 14px "Century Gothic", Futura, sans-serif;
+  margin: 20px;
+}
+
+ol, ul {
+  padding-left: 30px;
+  list-style-type: none;
+}
+
+a {
+  color: inherit;
+  display: block;
+  text-decoration: none;
+}
+
+a:hover {
+  transform: scale(1.1);
+}
+
+.board-row:after {
+  clear: both;
+  content: "";
+  display: table;
+}
+
+.status {
+  margin-bottom: 10px;
+}
+
+.winning {
+  background: #679d67 !important;
+}
+
+.square {
+  background: #fff;
+  border: 1px solid #999;
+  float: left;
+  font-size: 24px;
+  font-weight: bold;
+  line-height: 34px;
+  height: 34px;
+  margin-right: -1px;
+  margin-top: -1px;
+  padding: 0;
+  text-align: center;
+  width: 34px;
+}
+
+.square:focus {
+  outline: none;
+}
+
+.kbd-navigation .square:focus {
+  background: #ddd;
+}
+
+.game {
+  display: flex;
+  flex-direction: row;
+}
+
+.game-info {
+  margin-left: 20px;
+}
+
+.input-group {
+  display: flex;
+  flex-flow: row nowrap;
+  width: 100%;
+}
+.input-group > input {
+  display: inline-block;
+  width: inherit;
+}
+
+.calendar-month {
+  display: flex;
+  flex-flow: column nowrap;
+}
+
+.calendar-week {
+  display: flex;
+  flex-flow: row nowrap;
+  width: 100%;
+}
+
+.calendar-day {
+  padding-top: 100%;
+  width: 100%;
+}
