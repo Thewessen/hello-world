@@ -12,9 +12,9 @@ const strArray = (from, too) => {
 const rInt = (from, to) =>
   Math.floor((Math.random() * (to - from) + from))
 
-const prepend = (generator) => function * (char) {
-  for (const value of generator()) {
-    yield value + char
+const prepend = (genNames) => function * (char) {
+  for (const name of genNames()) {
+    yield name + char
   }
 }
 
