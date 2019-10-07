@@ -1,8 +1,9 @@
 # Hello-world
-Dumpster repository for unused code, small scripts and great ideas.
 
-This repository is my first Github repository. I will use it for small,
-completed or uncompleted, scripts that don't fit in some other repository.
+Dumpster repository for unused code, small scripts and ideas.
+
+This repository is my first Github repository. I use it for small,
+completed or uncompleted scripts that don't fit in some other repository.
 
 Every completed script has it's own README.md file. Any new idea, comment or
 suggestions to the scripts in this repository are more then welcome. Most of
