@@ -5,7 +5,19 @@ import { spawn } from 'child_process'
 // Promises instead of callbacks
 import fs from 'fs-extra'
 
-const dir = '/home/sthewessen/Websites'
+// Global options (editor and project dir)
+const OPTIONS = {
+  dir: '/home/sthewessen/Websites',
+  cmd: 'nvim -S',
+  cmdOptions: (project) => ({
+    stdio: 'inherit',
+    cwd: `${OPTIONS.dir}/${project}`,
+    shell: true
+  })
+}
+
+// Helpers
+// =================================
 
 const stdin = process.stdin
 const stdout = process.stdout
@@ -46,14 +58,11 @@ const chooseProject = async (files) =>
     })
   })
 
-fs.readdir(dir)
+fs.readdir(OPTIONS.dir)
   .then(chooseProject)
   .catch(e => console.log(e))
   .then(project => {
+    const { cmd, cmdOptions } = OPTIONS
     stdin.destroy()
-    spawn('nvim -S', {
-      stdio: 'inherit',
-      cwd: `${dir}/${project}`,
-      shell: true
-    })
+    spawn(cmd, cmdOptions(project))
   })
