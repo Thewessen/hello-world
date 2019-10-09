@@ -1,0 +1,20 @@
+{
+  "name": "piq_project",
+  "version": "1.0.0",
+  "description": "Shell script for picking a project to work on opening a new neovim instance",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm run test"
+  },
+  "keywords": [
+    "shell",
+    "node",
+    "neovim",
+    "projects"
+  ],
+  "author": "S.Thewessen",
+  "license": "ISC",
+  "dependencies": {
+    "fs-extra": "^8.1.0"
+  }
+}
