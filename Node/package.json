@@ -15,6 +15,7 @@
   "author": "S.Thewessen",
   "license": "ISC",
   "dependencies": {
+    "cli-table": "^0.3.1",
     "commander": "^3.0.2",
     "fs-extra": "^8.1.0"
   },

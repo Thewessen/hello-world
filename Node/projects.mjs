@@ -6,6 +6,8 @@ import { spawn } from 'child_process'
 import fs from 'fs-extra'
 import program from 'commander'
 import path from 'path'
+import Table from 'cli-table'
+import colors from 'colors'
 
 // Global options (editor and project dir)
 const OPTIONS = {
@@ -54,10 +56,24 @@ const replaceENV = dir => dir.replace(/\$([A-Z]+)/, (__, p1) => process.env[p1])
 const error = (e) => console.error(e)
 
 const listFiles = (files) => {
-  const projects = files.map(file => path.basename(file))
-  for (const [index, file] of projects.entries()) {
-    console.log(`${index + 1}: ${file}`)
-  }
+  const projects = [...files.map(file => path.basename(file)).entries()]
+    .map(row => {
+      row[0] = row[0].toString().padStart(3).green
+      return row
+    })
+  const table = new Table({
+    head: ['#'.padStart(3), 'project'],
+    colWidths: [5, 50],
+    chars: {
+      'top': '', 'top-mid': '', 'top-left': '', 'top-right': '',
+      'bottom': '', 'bottom-mid': '', 'bottom-left': '',
+      'bottom-right': '', 'left': '', 'left-mid': '', 'mid': '',
+      'mid-mid': '', 'right': '', 'right-mid': '', 'middle': '|'
+    },
+    style: { head: ['yellow'] }
+  })
+  table.push(...projects)
+  console.log(table.toString())
 }
 
 const filterProject = async (files, input) => 
