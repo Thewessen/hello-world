@@ -10,12 +10,12 @@ import path from 'path'
 // Global options (editor and project dir)
 const OPTIONS = {
   projects: process.env.HOME + '/.project-stack',
-  cmd: process.env.EDITOR + ' -S',
+  cmd: process.env.EDITOR,
   project: null,
   cmdOptions: (project) => ({
     stdio: 'inherit',
     cwd: project,
-    shell: true
+    shell: '/usr/bin/zsh'
   })
 }
 
@@ -141,7 +141,10 @@ projects
   .then(project => {
     const { cmd, cmdOptions } = OPTIONS
     stdin.destroy()
-    spawn(cmd, cmdOptions(project))
+    if (fs.existsSync(path.join(project, 'Session.vim'))) {
+      return spawn(cmd + ' -S', cmdOptions(project))
+    }
+    return spawn(cmd + ' -c Obsession', cmdOptions(project))
   })
   .catch(e => {
     error(e)
