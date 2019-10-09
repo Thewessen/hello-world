@@ -2,7 +2,7 @@
   "name": "piq_project",
   "version": "1.0.0",
   "description": "Shell script for picking a project to work on opening a new neovim instance",
-  "main": "index.js",
+  "main": "projects.mjs",
   "scripts": {
     "test": "npm run test"
   },
@@ -15,6 +15,10 @@
   "author": "S.Thewessen",
   "license": "ISC",
   "dependencies": {
+    "commander": "^3.0.2",
     "fs-extra": "^8.1.0"
+  },
+  "devDependencies": {
+    "eslint": "^6.5.1"
   }
 }
