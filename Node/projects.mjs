@@ -112,8 +112,10 @@ const projects = fs
   .then(buffer => buffer
     .toString()
     .split('\n')
-    .slice(0, -1)
-    .map(replaceENV))
+    .map(replaceENV)
+    .filter(dir => fs.existsSync(dir))
+    .filter(dir => fs.lstatSync(dir).isDirectory())
+    .sort((a, b) => path.basename(a).localeCompare(path.basename(b))))
   .then(dirs => {
     if (typeof OPTIONS.project !== 'undefined') {
       return dirs.filter(isPart(OPTIONS.project))
