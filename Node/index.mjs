@@ -58,11 +58,14 @@ const chooseProject = async (files) =>
     })
   })
 
+
+// Main
+// =================================
 fs.readdir(OPTIONS.dir)
   .then(chooseProject)
-  .catch(e => console.log(e))
   .then(project => {
     const { cmd, cmdOptions } = OPTIONS
     stdin.destroy()
     spawn(cmd, cmdOptions(project))
   })
+  .catch(e => console.log(e))
