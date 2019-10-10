@@ -4,33 +4,48 @@
 import { spawn } from 'child_process'
 // Promises instead of callbacks
 import fs from 'fs-extra'
-import program from 'commander'
+import commander from 'commander'
 import path from 'path'
 import Table from 'cli-table'
 import colors from 'colors'
 
-// Global options (editor and project dir)
-const OPTIONS = {
-  projects: process.env.HOME + '/.project-stack',
-  cmd: process.env.EDITOR,
-  project: null,
-  cmdOptions: (project) => ({
-    stdio: 'inherit',
-    cwd: project,
-    shell: '/usr/bin/zsh'
-  })
-}
-
-// CMD-line options
+// Options (shell & editor)
 // =================================
-program
+const OPTIONS = (dir) => ({
+  cmd: process.env.EDITOR +
+    (fs.existsSync(path.join(dir, 'Session.vim'))
+      ? ' -S'
+      : ' . -c Obsession'),
+  cmdOptions: {
+    stdio: 'inherit',
+    cwd: dir,
+    shell: '/usr/bin/zsh'
+  }
+})
+// File to read containing list of projects
+OPTIONS.projects = path.join(process.env.HOME, '.project-stack')
+
+// Table output settings
+const table = new Table({
+  head: ['#'.padStart(3), 'project'],
+  colWidths: [5, 50],
+  chars: {
+    'top': '', 'top-mid': '', 'top-left': '', 'top-right': '',
+    'bottom': '', 'bottom-mid': '', 'bottom-left': '',
+    'bottom-right': '', 'left': '', 'left-mid': '', 'mid': '',
+    'mid-mid': '', 'right': '', 'right-mid': '', 'middle': '|'
+  },
+  style: { head: ['yellow'] }
+})
+
+// Commandline options
+const program = new commander.Command()
   .version('v8', '-v, --version', 'Output current version')
-  .description(`
-    Cmd utility that lets you pick a directory (project) and run your prefered
-    editor inside the given directory. Start editing immediatly!`
-    .replace(/ {2,}/g, ' ')
-    .replace('\n', '')
-  )
+  .description((
+    "Cmd utility that lets you pick a directory (project) " +
+    "and run your prefered editor inside the given directory. " +
+    "Start editing immediatly!"
+  ))
   .option('-l, --list', 'List all projects')
   .option( '--dir <dir>', 'Use the given dir for picking a project')
   .option( '-d, --debug', 'Show the arguments given and exit')
@@ -42,75 +57,55 @@ program
 // Helpers
 // =================================
 const stdin = process.stdin.setEncoding('utf8')
-const stdout = process.stdout
+const stdout = process.stdout.setEncoding('utf8')
 
 const norm = (string) =>
-  string
-    .toLowerCase()
-    .replace(' ', '')
+  string.toLowerCase().replace(' ', '')
 
 const isPart = (substring) => (string) =>
   norm(string).includes(norm(substring))
 
-const replaceENV = dir => dir.replace(/\$([A-Z]+)/, (__, p1) => process.env[p1])
+const replaceENV = dir =>
+  dir.replace(/\$([A-Z]+)/, (__, p1) => process.env[p1])
+
 const error = (e) => console.error(e)
 
 const listFiles = (files) => {
-  const projects = [...files.map(file => path.basename(file)).entries()]
-    .map(row => {
-      row[0] = (row[0] + 1).toString().padStart(3).green
-      return row
-    })
-  const table = new Table({
-    head: ['#'.padStart(3), 'project'],
-    colWidths: [5, 50],
-    chars: {
-      'top': '', 'top-mid': '', 'top-left': '', 'top-right': '',
-      'bottom': '', 'bottom-mid': '', 'bottom-left': '',
-      'bottom-right': '', 'left': '', 'left-mid': '', 'mid': '',
-      'mid-mid': '', 'right': '', 'right-mid': '', 'middle': '|'
-    },
-    style: { head: ['yellow'] }
-  })
+  const projects = files.map((project, index) =>
+    [(index + 1).toString().padStart(3).green,
+      path.basename(project)])
   table.push(...projects)
   console.log(table.toString())
 }
 
-const filterProject = async (files, input) => 
-  new Promise((resolve, reject) => {
-    const projects = files.filter(isPart(input))
-    switch (projects.length) {
-      case 1: {
-        resolve(projects.pop())
-        break
-      }
-      case 0: {
-        reject('No specific project found.')
-        break
-      }
-      default: {
-        reject('Project not found!')
-      }
-    }
-  })
+const filterProject = (files, input) => {
+  const projects = files.filter(isPart(input))
+  if (projects.length === 1) {
+    return projects.pop()
+  } else {
+    throw new Error('Project not found!')
+  }
+}
+
+const pickProject = (files, data) => {
+  const input = data.toString().trim()
+  try {
+    return /^\d+$/.test(input) && parseInt(input) <= files.length
+      ? files[parseInt(input) - 1]
+      : filterProject(files, input)
+  } catch (e) { error(e) }
+}
 
 const chooseProject = async (files) =>
   new Promise((resolve, reject) => {
     listFiles(files)
     stdout.write('Choose a project: ')
     stdin.on('data', data => {
-      const input = data.toString().trim()
-      if (/^\d+$/.test(input)) {
-        const index = parseInt(input) - 1
-        if (index >= files.length) {
-          reject('This project does not exist')
-        } else {
-          resolve(files[index])
-        }
+      const project = pickProject(files, data)
+      if (project && typeof project === 'string') {
+        resolve(project)
       } else {
-        filterProject(files, input)
-        .then(resolve)
-        .catch(reject)
+        reject('Project not found!')
       }
     })
   })
@@ -157,12 +152,9 @@ projects
       ? files[0]
       : chooseProject(files))
   .then(project => {
-    const { cmd, cmdOptions } = OPTIONS
+    const { cmd, cmdOptions } = OPTIONS(project)
     stdin.destroy()
-    if (fs.existsSync(path.join(project, 'Session.vim'))) {
-      return spawn(cmd + ' -S', cmdOptions(project))
-    }
-    return spawn(cmd + ' -c Obsession', cmdOptions(project))
+    return spawn(cmd, cmdOptions)
   })
   .catch(e => {
     error(e)
