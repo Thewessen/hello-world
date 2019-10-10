@@ -58,7 +58,7 @@ const error = (e) => console.error(e)
 const listFiles = (files) => {
   const projects = [...files.map(file => path.basename(file)).entries()]
     .map(row => {
-      row[0] = row[0].toString().padStart(3).green
+      row[0] = (row[0] + 1).toString().padStart(3).green
       return row
     })
   const table = new Table({
