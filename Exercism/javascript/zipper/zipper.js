@@ -3,6 +3,7 @@
 const isNode = (node) => typeof(node) === 'object' && node !== null &&
   ['value', 'left', 'right'].every(prop => node.hasOwnProperty(prop))
 
+// TODO: Make this Zipper immutable
 export class Zipper {
   constructor (parent, focus) {
     this.parent = parent
@@ -17,11 +18,10 @@ export class Zipper {
   }
 
   toTree () {
-    let node = this
-    while(node.parent !== null) {
-      node = node.up()
+    if (this.parent === null) {
+      return this.focus
     }
-    return this.focus
+    return this.parent.toTree()
   }
 
   left () {
@@ -39,51 +39,24 @@ export class Zipper {
   }
 
   setValue (value) {
+    // TODO: This works, but...
+    // It changes t1 for the rest of the test.
+    // Data should be immutable
     this.focus.value = value
     return this
   }
 
   setLeft (node) {
-    this.focus.left = isNode(node) ? Object.assign({}, node) : null
+    this.focus.left = isNode(node) ? {...node} : null
     return this
   }
 
   setRight (node) {
-    this.focus.right = isNode(node) ? Object.assign({}, node) : null
+    this.focus.right = isNode(node) ? {...node} : null
     return this
   }
 
   up () {
-    return this.parent === null ? this : this.parent
+    return this.parent
   }
 }
-
-// function bt(value, left, right) {
-//   return {
-//     value,
-//     left,
-//     right,
-//   };
-// }
-
-// function leaf(value) {
-//   return bt(value, null, null);
-// }
-
-// const t1 = bt(1, bt(2, null, leaf(3)), leaf(4));
-// // const t2 = bt(1, bt(5, null, leaf(3)), leaf(4));
-// const t3 = bt(1, bt(2, leaf(5), leaf(3)), leaf(4));
-// const t4 = bt(1, leaf(2), leaf(4));
-// const t5 = bt(1, bt(2, null, leaf(3)), bt(6, leaf(7), leaf(8)));
-// const t6 = bt(1, bt(2, null, leaf(5)), leaf(4));
-// let z = Zipper.fromTree(t1)
-// console.log(z.left().setLeft(leaf(5)).toTree())
-// console.log(t3)
-// z = Zipper.fromTree(t1)
-// console.log(z.left().setRight(null).toTree())
-// console.log(t4)
-// console.log(z.parent)
-// z.focus = z.parent.left
-// console.log(z.parent)
-// console.log(z.focus)
-
