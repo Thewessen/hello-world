@@ -1,11 +1,25 @@
 'use strict'
 
-const isNode = (node) => typeof(node) === 'object' && node !== null &&
+const isObject = (obj) => typeof(obj) === 'object' && obj !== null
+const isNode = (node) => isObject(node) &&
   ['value', 'left', 'right'].every(prop => node.hasOwnProperty(prop))
 
 // TODO: Make this Zipper immutable
+// Could we do this differently?
+const deepCopy = (tree) => {
+  const newTree = {}
+  for (const [key, value] of Object.entries(tree)) {
+    if(isObject(value)) {
+      newTree[key] = deepCopy(value)
+    } else {
+      newTree[key] = value
+    }
+  }
+  return newTree
+}
+
 export class Zipper {
-  constructor (parent, focus) {
+  constructor (focus, parent = null) {
     this.parent = parent
     this.focus = focus
   }
@@ -14,7 +28,7 @@ export class Zipper {
     if (!isNode(tree)) {
       throw new Error('Input is not a Binary Tree')
     }
-    return new Zipper(null, tree)
+    return new Zipper(deepCopy(tree))
   }
 
   toTree () {
@@ -26,12 +40,12 @@ export class Zipper {
 
   left () {
     const { left } = this.focus
-    return isNode(left) ? new Zipper(this, left) : null
+    return isNode(left) ? new Zipper(left, this) : null
   }
 
   right () {
     const { right } = this.focus
-    return isNode(right) ? new Zipper(this, right) : null
+    return isNode(right) ? new Zipper(right, this) : null
   }
 
   value () {
@@ -39,20 +53,17 @@ export class Zipper {
   }
 
   setValue (value) {
-    // TODO: This works, but...
-    // It changes t1 for the rest of the test.
-    // Data should be immutable
     this.focus.value = value
     return this
   }
 
   setLeft (node) {
-    this.focus.left = isNode(node) ? {...node} : null
+    this.focus.left = isNode(node) ? deepCopy(node) : null
     return this
   }
 
   setRight (node) {
-    this.focus.right = isNode(node) ? {...node} : null
+    this.focus.right = isNode(node) ? deepCopy(node) : null
     return this
   }
 
