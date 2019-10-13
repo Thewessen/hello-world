@@ -13,8 +13,10 @@ const COLORS = new Map([
   'white'
 ].map((e, i) => [e, i]))
 
-export const value = (colors) => Number.parseInt(
-  colors.reduce(
-    (acc, curr) => acc + COLORS.get(curr.toLowerCase()).toString(),
-    ''
-  ))
+const value = colors => Number(colors
+  .map(COLORS.get.bind(COLORS)).join(''))
+
+export {
+  value,
+  COLORS
+}
