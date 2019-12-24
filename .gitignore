@@ -1,6 +1,8 @@
 # vim
 *.vim
 *.sw?
+tags*
+tags.*
 
 # Python
 *.py[cod]
