@@ -1,0 +1,20 @@
+# ninja log v5
+1	10	1575658526	src/HelloWorld.mliast	1128cb3b4e3a061d
+1	10	1575658526	HelloWorld.cmi	29174554c337b3ba
+1	11	1575658526	src/HelloWorld.mlast	bf2649ba23bb9821
+0	11	1575658526	__tests__/HelloWorld_test.mlast	817c4087bc29f9ed
+10	12	1575658526	src/HelloWorld.mliast.d	c76a5672eafaed6a
+11	13	1575658526	src/HelloWorld.mlast.d	dacd025159ea2845
+11	13	1575658526	__tests__/HelloWorld_test.mlast.d	28ac4fc073d67d6d
+0	6	1575658526	src/HelloWorld-HelloWorld.cmi	871baf0d7d499515
+6	14	1575658526	src/HelloWorld-HelloWorld.cmj	e4a89bc2da9a6e48
+6	14	1575658526	/home/sthewessen/Scripts/GIT/hello-world/Exercism/reasonml/hello-world/src/HelloWorld.bs.js	e4a89bc2da9a6e48
+14	22	1575658526	__tests__/HelloWorld_test-HelloWorld.cmj	1cb5e2355d797f6a
+14	22	1575658526	/home/sthewessen/Scripts/GIT/hello-world/Exercism/reasonml/hello-world/__tests__/HelloWorld_test.bs.js	1cb5e2355d797f6a
+14	22	1575658526	__tests__/HelloWorld_test-HelloWorld.cmi	1cb5e2355d797f6a
+0	6	1575658580	HelloWorld.cmi	29174554c337b3ba
+0	5	1575659228	HelloWorld.cmi	29174554c337b3ba
+0	9	1575659228	src/HelloWorld.mlast	bf2649ba23bb9821
+9	11	1575659228	src/HelloWorld.mlast.d	dacd025159ea2845
+0	7	1575659228	src/HelloWorld-HelloWorld.cmj	e4a89bc2da9a6e48
+0	7	1575659228	/home/sthewessen/Scripts/GIT/hello-world/Exercism/reasonml/hello-world/src/HelloWorld.bs.js	e4a89bc2da9a6e48
