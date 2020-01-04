@@ -1,28 +1,26 @@
-interface DB = {
-  [grade: number]: string[]
-}
+type Roster = Map<string, string[]>
 
 class GradeSchool {
-  private db: string[][]
+  private db: Roster = new Map()
 
-  constructor () {
-    this.db = []
-  }
+  constructor () {}
 
-  roster (): DB {
-    return {
-      ...this.db.map((e) => [...e.sort()])
+  studentRoster (): Roster {
+    const roster: Roster = new Map()
+    for (const [g, s] of this.db.entries()) {
+      roster.set(g, [...s])
     }
+    return roster
   }
 
-  add (student: string, grade: number) {
-    const grade = this.db[grade] || []
-    this.db[grade] = [...grade, student]
+  addStudent (student: string, grade: number) {
+    const g = this.db.get(String(grade)) || []
+    this.db.set(String(grade), [...g, student].sort())
   }
 
-  grade (grade: number): string[] {
-    const grade = this.db[grade] || []
-    return [...grade.sort()]
+  studentsInGrade (grade: number): string[] {
+    const g = this.db.get(String(grade)) || []
+    return [...g]
   }
 }
 

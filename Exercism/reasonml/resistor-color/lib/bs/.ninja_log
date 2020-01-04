@@ -1,0 +1,31 @@
+# ninja log v5
+# start_time end_time mtime command hash
+1	7	1577800337499815609	ResistorColor.cmi	c687876f04af287
+1	12	1577800337503815639	src/ResistorColor.reiast	683e43e243788e5
+1	13	1577800337507815669	src/ResistorColor.reast	6b276ac9241185e9
+0	13	1577800337507815669	__tests__/ResistorColor_test.reast	e76ba8eccaec859e
+13	15	1577800337507815669	src/ResistorColor.d	e6f6c976bfeefe5b
+13	15	1577800337507815669	__tests__/ResistorColor_test.d	db48fcb3840621c1
+15	20	1577800337511815698	src/ResistorColor-ResistorColor.cmi	ce3cdc99d700d377
+0	10	1577800393468234896	src/ResistorColor.reast	6b276ac9241185e9
+10	12	1577800393468234896	src/ResistorColor.d	e6f6c976bfeefe5b
+0	10	1577800457424715495	src/ResistorColor.reast	6b276ac9241185e9
+0	11	1577800465672777579	src/ResistorColor.reast	6b276ac9241185e9
+11	13	1577800465672777579	src/ResistorColor.d	e6f6c976bfeefe5b
+0	11	1577800549245407870	src/ResistorColor.reast	6b276ac9241185e9
+11	13	1577800549245407870	src/ResistorColor.d	e6f6c976bfeefe5b
+13	21	1577800549257407960	src/ResistorColor-ResistorColor.cmj	59718f974996db39
+13	21	1577800549257407960	/home/sthewessen/Scripts/GIT/hello-world/Exercism/reasonml/resistor-color/src/ResistorColor.bs.js	59718f974996db39
+21	29	1577800549265408021	__tests__/ResistorColor_test-ResistorColor.cmj	f363abf8ea2c0991
+21	29	1577800549265408021	__tests__/ResistorColor_test-ResistorColor.cmi	f363abf8ea2c0991
+21	29	1577800549265408021	/home/sthewessen/Scripts/GIT/hello-world/Exercism/reasonml/resistor-color/__tests__/ResistorColor_test.bs.js	f363abf8ea2c0991
+0	11	1577800619213937103	src/ResistorColor.reiast	683e43e243788e5
+11	13	1577800619213937103	src/ResistorColor.d	e6f6c976bfeefe5b
+0	11	1577800627618000755	src/ResistorColor.reiast	683e43e243788e5
+11	13	1577800627618000755	src/ResistorColor.d	e6f6c976bfeefe5b
+13	18	1577800627626000815	src/ResistorColor-ResistorColor.cmi	ce3cdc99d700d377
+18	24	1577800627626000815	src/ResistorColor-ResistorColor.cmj	59718f974996db39
+18	24	1577800627626000815	/home/sthewessen/Scripts/GIT/hello-world/Exercism/reasonml/resistor-color/src/ResistorColor.bs.js	59718f974996db39
+24	32	1577800627626000815	__tests__/ResistorColor_test-ResistorColor.cmj	f363abf8ea2c0991
+24	32	1577800627626000815	__tests__/ResistorColor_test-ResistorColor.cmi	f363abf8ea2c0991
+24	32	1577800627626000815	/home/sthewessen/Scripts/GIT/hello-world/Exercism/reasonml/resistor-color/__tests__/ResistorColor_test.bs.js	f363abf8ea2c0991
