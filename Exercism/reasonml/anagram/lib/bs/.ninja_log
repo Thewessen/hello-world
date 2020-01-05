@@ -1,0 +1,17 @@
+# ninja log v5
+0	12	1578228780023672309	__tests__/Anagram_test.reast	7d064b89b3cc8384
+42	58	1578237004870120225	/home/sthewessen/Scripts/GIT/hello-world/Exercism/reasonml/anagram/__tests__/Anagram_test.bs.js	702fee98ad9819b1
+52	86	1578238785473160286	/home/sthewessen/Scripts/GIT/hello-world/Exercism/reasonml/anagram/src/Anagram.bs.js	281a7797b0125bb
+45	52	1578238785473160286	src/Anagram.d	dde1820785491e3c
+52	86	1578238785473160286	src/Anagram-Anagram.cmj	281a7797b0125bb
+1	45	1578238785473160286	src/Anagram.reast	c5ffb188bcd140e5
+42	58	1578237004870120225	__tests__/Anagram_test-Anagram.cmi	702fee98ad9819b1
+22	29	1578228920544642434	src/Anagram-Anagram.cmi	1852779eaac16575
+1	11	1578228780023672309	src/Anagram.reiast	f812259225ccf77d
+1	7	1578228780015672255	Anagram.cmi	1fcc27734696b24e
+42	58	1578237004870120225	__tests__/Anagram_test-Anagram.cmj	702fee98ad9819b1
+1	6	1578228918548628493	__tests__/Anagram_test.d	1daf156f8005a536
+1	43	1578238848473651270	src/Anagram.reast	c5ffb188bcd140e5
+44	52	1578238848473651270	src/Anagram.d	dde1820785491e3c
+52	87	1578238848473651270	src/Anagram-Anagram.cmj	281a7797b0125bb
+52	87	1578238848473651270	/home/sthewessen/Scripts/GIT/hello-world/Exercism/reasonml/anagram/src/Anagram.bs.js	281a7797b0125bb
