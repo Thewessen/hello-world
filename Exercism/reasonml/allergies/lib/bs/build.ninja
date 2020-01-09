@@ -1,0 +1,53 @@
+g_std_incl = /home/sthewessen/Scripts/GIT/hello-world/Exercism/reasonml/allergies/node_modules/bs-platform/lib/ocaml
+g_pkg_flg = -bs-package-name allergies -bs-ns Allergies
+src_root_dir = /home/sthewessen/Scripts/GIT/hello-world/Exercism/reasonml/allergies
+bsc = /home/sthewessen/Scripts/GIT/hello-world/Exercism/reasonml/allergies/node_modules/bs-platform/lib/bsc.exe
+bsdep = /home/sthewessen/Scripts/GIT/hello-world/Exercism/reasonml/allergies/node_modules/bs-platform/lib/bsb_helper.exe
+warnings = -w -30-40+6+7+27+32..39+44+45+101 -warn-error +101
+bsc_flags = 
+ppx_flags = 
+g_dpkg_incls = -I /home/sthewessen/Scripts/GIT/hello-world/Exercism/reasonml/allergies/node_modules/@glennsl/bs-jest/lib/ocaml
+g_ns = -bs-ns Allergies
+bsb_dir_group = 0
+bsc_group_1_includes = -I __tests__
+g_lib_incls = -I . -I src
+rule build_ast_from_re
+  command = $bsc  $warnings -color always $bsc_flags -o $out -bs-syntax-only -bs-binary-ast $in
+  description = [34mBuilding[39m [2m${out}[22m
+build  __tests__/Allergies_test.reast : build_ast_from_re $src_root_dir/__tests__/Allergies_test.re
+rule build_deps
+  command = $bsdep -hash fe8cf02ac0f7bd6c082aae89d12a771e $g_ns -g $bsb_dir_group $in
+  restat = 1
+  description = [34mBuilding[39m [2m${out}[22m
+build  __tests__/Allergies_test.d : build_deps __tests__/Allergies_test.reast
+  bsb_dir_group = 1
+rule ml_cmj_cmi_dev
+  command = $bsc -nostdlib $g_pkg_flg -color always -bs-suffix $g_dev_incls $g_lib_incls $g_dpkg_incls -I $g_std_incl $warnings $bsc_flags -o $out $in
+  dyndep = $in_e.d
+  restat = 1
+  description = [34mBuilding[39m [2m${out}[22m
+build  __tests__/Allergies_test-Allergies.cmj |  __tests__/Allergies_test-Allergies.cmi $src_root_dir/__tests__/Allergies_test.bs.js : ml_cmj_cmi_dev __tests__/Allergies_test.reast ||  __tests__/Allergies_test.d
+  g_pkg_flg = $g_pkg_flg  -bs-package-output commonjs:__tests__
+  g_dev_incls = $bsc_group_1_includes
+build  src/Allergies.reast : build_ast_from_re $src_root_dir/src/Allergies.re
+build  src/Allergies.d : build_deps src/Allergies.reast src/Allergies.reiast
+build  src/Allergies.reiast : build_ast_from_re $src_root_dir/src/Allergies.rei
+rule ml_cmi
+  command = $bsc -nostdlib $g_pkg_flg -color always -bs-suffix $g_lib_incls -I $g_std_incl $warnings $bsc_flags -o $out $in
+  dyndep = $in_e.d
+  restat = 1
+  description = [34mBuilding[39m [2m${out}[22m
+build  src/Allergies-Allergies.cmi : ml_cmi src/Allergies.reiast ||  src/Allergies.d
+  g_pkg_flg = $g_pkg_flg  -bs-package-output commonjs:src
+rule ml_cmj_only
+  command = $bsc -nostdlib $g_pkg_flg -color always -bs-suffix -bs-read-cmi $g_lib_incls -I $g_std_incl $warnings $bsc_flags -o $out $in
+  dyndep = $in_e.d
+  restat = 1
+  description = [34mBuilding[39m [2m${out}[22m
+build  src/Allergies-Allergies.cmj |  $src_root_dir/src/Allergies.bs.js : ml_cmj_only src/Allergies.reast |  src/Allergies-Allergies.cmi ||  src/Allergies.d
+  g_pkg_flg = $g_pkg_flg  -bs-package-output commonjs:src
+rule build_package
+  command = $bsc -w -49 -color always -no-alias-deps  $in
+  restat = 1
+  description = [34mBuilding[39m [2m${out}[22m
+build  Allergies.cmi : build_package Allergies.mlmap

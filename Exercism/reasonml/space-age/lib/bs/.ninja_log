@@ -1,0 +1,32 @@
+# ninja log v5
+# start_time end_time mtime command hash
+1	10	1578255481994604308	Spaceage.cmi	b60f8a4a18129a74
+1	21	1578255482002604333	src/SpaceAge.reiast	df8caf17b09a1b46
+0	21	1578255482006604346	__tests__/SpaceAge_test.reast	55b4b1f9944b04c
+0	22	1578255482006604346	src/SpaceAge.reast	ad78fb8b4decd58e
+21	25	1578255482014604372	__tests__/SpaceAge_test.d	2018f5b2e09442ad
+22	26	1578255482014604372	src/SpaceAge.d	a3c34db9b9e3867d
+26	40	1578255482026604410	src/SpaceAge-Spaceage.cmi	dbb5d53eb352bfc2
+0	17	1578255506110684030	src/SpaceAge.reast	ad78fb8b4decd58e
+17	20	1578255506110684030	src/SpaceAge.d	a3c34db9b9e3867d
+0	82	1578255523090743676	src/SpaceAge.reast	ad78fb8b4decd58e
+82	94	1578255523090743676	src/SpaceAge.d	a3c34db9b9e3867d
+94	101	1578255523110743748	src/SpaceAge-Spaceage.cmj	c255cdc2cd052a8e
+94	101	1578255523110743748	/home/sthewessen/Scripts/GIT/hello-world/Exercism/reasonml/space-age/src/SpaceAge.bs.js	c255cdc2cd052a8e
+101	119	1578255523130743820	__tests__/SpaceAge_test-Spaceage.cmj	85f05843e1c7baaa
+101	119	1578255523130743820	__tests__/SpaceAge_test-Spaceage.cmi	85f05843e1c7baaa
+101	119	1578255523130743820	/home/sthewessen/Scripts/GIT/hello-world/Exercism/reasonml/space-age/__tests__/SpaceAge_test.bs.js	85f05843e1c7baaa
+0	18	1578255829632222776	src/SpaceAge.reast	ad78fb8b4decd58e
+18	21	1578255829632222776	src/SpaceAge.d	a3c34db9b9e3867d
+0	18	1578255843292302935	src/SpaceAge.reast	ad78fb8b4decd58e
+18	22	1578255843292302935	src/SpaceAge.d	a3c34db9b9e3867d
+22	44	1578255843292302935	src/SpaceAge-Spaceage.cmj	c255cdc2cd052a8e
+22	44	1578255843292302935	/home/sthewessen/Scripts/GIT/hello-world/Exercism/reasonml/space-age/src/SpaceAge.bs.js	c255cdc2cd052a8e
+0	32	1578256056625665578	src/SpaceAge.reast	ad78fb8b4decd58e
+33	38	1578256056625665578	src/SpaceAge.d	a3c34db9b9e3867d
+38	57	1578256056625665578	src/SpaceAge-Spaceage.cmj	c255cdc2cd052a8e
+38	57	1578256056625665578	/home/sthewessen/Scripts/GIT/hello-world/Exercism/reasonml/space-age/src/SpaceAge.bs.js	c255cdc2cd052a8e
+1	116	1578256061757700563	src/SpaceAge.reast	ad78fb8b4decd58e
+116	119	1578256061757700563	src/SpaceAge.d	a3c34db9b9e3867d
+119	184	1578256061757700563	src/SpaceAge-Spaceage.cmj	c255cdc2cd052a8e
+119	184	1578256061757700563	/home/sthewessen/Scripts/GIT/hello-world/Exercism/reasonml/space-age/src/SpaceAge.bs.js	c255cdc2cd052a8e
