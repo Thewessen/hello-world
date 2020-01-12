@@ -1,6 +1,7 @@
 'use strict'
 
 const enhance = (coin) => (change, total, solutions) => {
+  console.log(solutions)
   if (coin === total) {
     solutions[total] = [coin]
   } else if (coin < total) {

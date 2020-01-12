@@ -1,0 +1,17 @@
+# ninja log v5
+40	133	1578672796691926704	src/RunLengthEncoding-RunLengthEncoding.cmj	6a2fcf57d6d9eec6
+139	279	1578672584588615448	__tests__/RunLengthEncoding_test-RunLengthEncoding.cmj	26f465ea05b01ea7
+15	21	1578670637576569934	src/RunLengthEncoding-RunLengthEncoding.cmi	e1e31159b12b032e
+0	14	1578593743029173737	__tests__/RunLengthEncoding_test.reast	83dfc36b1e447353
+0	13	1578670637568569866	src/RunLengthEncoding.reiast	3ab13e67715bf683
+139	279	1578672584588615448	__tests__/RunLengthEncoding_test-RunLengthEncoding.cmi	26f465ea05b01ea7
+0	37	1578672796691926704	src/RunLengthEncoding.reast	7709760f7dd86a4c
+1	9	1578593743025173696	RunLengthEncoding.cmi	26014ad2994f22e6
+37	39	1578672796691926704	src/RunLengthEncoding.d	c6e2c5c433f8aa1f
+139	279	1578672584588615448	/home/sthewessen/Scripts/GIT/hello-world/Exercism/reasonml/run-length-encoding/__tests__/RunLengthEncoding_test.bs.js	26f465ea05b01ea7
+14	16	1578593743033173779	__tests__/RunLengthEncoding_test.d	e04e287cf5d06861
+40	133	1578672796691926704	/home/sthewessen/Scripts/GIT/hello-world/Exercism/reasonml/run-length-encoding/src/RunLengthEncoding.bs.js	6a2fcf57d6d9eec6
+1	22	1578672819223797744	src/RunLengthEncoding.reast	7709760f7dd86a4c
+22	24	1578672819223797744	src/RunLengthEncoding.d	c6e2c5c433f8aa1f
+25	40	1578672819223797744	src/RunLengthEncoding-RunLengthEncoding.cmj	6a2fcf57d6d9eec6
+25	40	1578672819223797744	/home/sthewessen/Scripts/GIT/hello-world/Exercism/reasonml/run-length-encoding/src/RunLengthEncoding.bs.js	6a2fcf57d6d9eec6

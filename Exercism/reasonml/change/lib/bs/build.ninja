@@ -1,0 +1,53 @@
+g_std_incl = /home/sthewessen/Scripts/GIT/hello-world/Exercism/reasonml/change/node_modules/bs-platform/lib/ocaml
+g_pkg_flg = -bs-package-name change -bs-ns Change
+src_root_dir = /home/sthewessen/Scripts/GIT/hello-world/Exercism/reasonml/change
+bsc = /home/sthewessen/Scripts/GIT/hello-world/Exercism/reasonml/change/node_modules/bs-platform/lib/bsc.exe
+bsdep = /home/sthewessen/Scripts/GIT/hello-world/Exercism/reasonml/change/node_modules/bs-platform/lib/bsb_helper.exe
+warnings = -w -30-40+6+7+27+32..39+44+45+101 -warn-error +101
+bsc_flags = 
+ppx_flags = 
+g_dpkg_incls = -I /home/sthewessen/Scripts/GIT/hello-world/Exercism/reasonml/change/node_modules/@glennsl/bs-jest/lib/ocaml
+g_ns = -bs-ns Change
+bsb_dir_group = 0
+bsc_group_1_includes = -I __tests__
+g_lib_incls = -I . -I src
+rule build_ast_from_re
+  command = $bsc  $warnings -color always $bsc_flags -o $out -bs-syntax-only -bs-binary-ast $in
+  description = [34mBuilding[39m [2m${out}[22m
+build  __tests__/Change_test.reast : build_ast_from_re $src_root_dir/__tests__/Change_test.re
+rule build_deps
+  command = $bsdep -hash d67dc4ae04859853232fc86702fd15c1 $g_ns -g $bsb_dir_group $in
+  restat = 1
+  description = [34mBuilding[39m [2m${out}[22m
+build  __tests__/Change_test.d : build_deps __tests__/Change_test.reast
+  bsb_dir_group = 1
+rule ml_cmj_cmi_dev
+  command = $bsc -nostdlib $g_pkg_flg -color always -bs-suffix $g_dev_incls $g_lib_incls $g_dpkg_incls -I $g_std_incl $warnings $bsc_flags -o $out $in
+  dyndep = $in_e.d
+  restat = 1
+  description = [34mBuilding[39m [2m${out}[22m
+build  __tests__/Change_test-Change.cmj |  __tests__/Change_test-Change.cmi $src_root_dir/__tests__/Change_test.bs.js : ml_cmj_cmi_dev __tests__/Change_test.reast ||  __tests__/Change_test.d
+  g_pkg_flg = $g_pkg_flg  -bs-package-output commonjs:__tests__
+  g_dev_incls = $bsc_group_1_includes
+build  src/Change.reast : build_ast_from_re $src_root_dir/src/Change.re
+build  src/Change.d : build_deps src/Change.reast src/Change.reiast
+build  src/Change.reiast : build_ast_from_re $src_root_dir/src/Change.rei
+rule ml_cmi
+  command = $bsc -nostdlib $g_pkg_flg -color always -bs-suffix $g_lib_incls -I $g_std_incl $warnings $bsc_flags -o $out $in
+  dyndep = $in_e.d
+  restat = 1
+  description = [34mBuilding[39m [2m${out}[22m
+build  src/Change-Change.cmi : ml_cmi src/Change.reiast ||  src/Change.d
+  g_pkg_flg = $g_pkg_flg  -bs-package-output commonjs:src
+rule ml_cmj_only
+  command = $bsc -nostdlib $g_pkg_flg -color always -bs-suffix -bs-read-cmi $g_lib_incls -I $g_std_incl $warnings $bsc_flags -o $out $in
+  dyndep = $in_e.d
+  restat = 1
+  description = [34mBuilding[39m [2m${out}[22m
+build  src/Change-Change.cmj |  $src_root_dir/src/Change.bs.js : ml_cmj_only src/Change.reast |  src/Change-Change.cmi ||  src/Change.d
+  g_pkg_flg = $g_pkg_flg  -bs-package-output commonjs:src
+rule build_package
+  command = $bsc -w -49 -color always -no-alias-deps  $in
+  restat = 1
+  description = [34mBuilding[39m [2m${out}[22m
+build  Change.cmi : build_package Change.mlmap

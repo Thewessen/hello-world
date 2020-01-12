@@ -1,0 +1,1 @@
+{ "dirs" : [ "__tests__" , "src" ] , "pkgs" : [ [ "@glennsl/bs-jest" , "/home/sthewessen/Scripts/GIT/hello-world/Exercism/reasonml/change/node_modules/@glennsl/bs-jest" ] , [ "bs-platform" , "/home/sthewessen/Scripts/GIT/hello-world/Exercism/reasonml/change/node_modules/bs-platform" ] ] , "generated" : [] }
