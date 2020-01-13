@@ -16,42 +16,50 @@ function min(a, b) {
 }
 
 function makeChange(value, change) {
-  var make = function (result, _ch) {
+  var make = function (results, _param) {
     while(true) {
-      var ch = _ch;
-      if (ch) {
-        var coin = ch[0];
+      var param = _param;
+      if (param) {
+        var coin = param[0];
         $$Array.iteri((function(coin){
-            return function (i, r) {
-              if (i >= coin) {
-                var match = Caml_array.caml_array_get(result, i - coin | 0);
-                if (match !== undefined) {
-                  var l = match;
-                  if (r !== undefined) {
-                    result[i] = min(Pervasives.$at(l, /* :: */[
-                              coin,
-                              /* [] */0
-                            ]), r);
-                    return /* () */0;
-                  } else {
-                    result[i] = Pervasives.$at(l, /* :: */[
-                          coin,
-                          /* [] */0
-                        ]);
-                    return /* () */0;
-                  }
+            return function (i) {
+              if (i !== 0) {
+                if (i < coin) {
+                  return (function (param) {
+                      return /* () */0;
+                    });
                 } else {
-                  return /* () */0;
+                  return (function (r) {
+                      var match = Caml_array.caml_array_get(results, i - coin | 0);
+                      if (match !== undefined) {
+                        var prev = match;
+                        if (r !== undefined) {
+                          return Caml_array.caml_array_set(results, i, min(Pervasives.$at(prev, /* :: */[
+                                              coin,
+                                              /* [] */0
+                                            ]), r));
+                        } else {
+                          return Caml_array.caml_array_set(results, i, Pervasives.$at(prev, /* :: */[
+                                          coin,
+                                          /* [] */0
+                                        ]));
+                        }
+                      } else {
+                        return /* () */0;
+                      }
+                    });
                 }
               } else {
-                return 0;
+                return (function (param) {
+                    return Caml_array.caml_array_set(results, 0, /* [] */0);
+                  });
               }
             }
-            }(coin)), result);
-        _ch = ch[1];
+            }(coin)), results);
+        _param = param[1];
         continue ;
       } else {
-        return result;
+        return results;
       }
     };
   };
@@ -59,7 +67,7 @@ function makeChange(value, change) {
   if (match) {
     return ;
   } else {
-    return Caml_array.caml_array_get(make(Caml_array.caml_make_vect(value + 1 | 0, /* [] */0), change), value);
+    return Caml_array.caml_array_get(make(Caml_array.caml_make_vect(value + 1 | 0, undefined), change), value);
   }
 }
 

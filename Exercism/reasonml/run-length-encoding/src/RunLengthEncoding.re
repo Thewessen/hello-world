@@ -1,17 +1,14 @@
 let tail = (str, n) => String.sub(str, n, String.length(str) - n)
 
-let rec encode = str =>
-  switch (str|>Js.String.match([%re "/(\D)(\1*)/"])) {
+let rec code = (regex, fn, str) =>
+  switch (str|>Js.String.match(regex)) {
   | None => ""
-  | Some([| f, g1, g2 |]) => g1
-      |> (++)(g2 == "" ? "" : String.length(f)->string_of_int)
-      |. (++)(str->tail(String.length(f))->encode)
+  | Some(result) => fn(result)
+    |. (++)(str->tail(String.length(result[0]))|>code(regex, fn))
   }
 
-let rec decode = str =>
-  switch(str|>Js.String.match([%re "/(\d*)(\D)/"])) {
-  | None => ""
-  | Some([| f, g1, g2 |]) => g2.[0]
-    |> String.make(g1 == "" ? 1 : int_of_string(g1))
-    |. (++)(str->tail(String.length(f))->decode)
-  }
+let encode = code([%re "/(\D)(\1*)/"], ([| f, g1, g2 |]) => g1
+      |> (++)(g2 == "" ? "" : String.length(f)->string_of_int))
+
+let decode = code([%re "/(\d*)(\D)/"], ([| _, g1, g2 |]) => g2.[0]
+    |> String.make(g1 == "" ? 1 : int_of_string(g1)))

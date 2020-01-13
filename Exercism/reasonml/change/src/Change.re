@@ -3,24 +3,23 @@ type coins = list(int);
 let min = (a, b) => List.length(a) < List.length(b) ? a : b
 
 let makeChange = (value, change) => {
-  let rec make = (result: array(option(coins)), ch: coins): array(option(coins)) =>
-    switch (ch) {
-    | [] => result
-    | [coin, ...rest] => result
-      |> Array.iteri((i, r) => {
-        if (i >= coin) {
-          switch(result[i - coin], r) {
+  let rec make = results =>
+    fun
+    | [] => results
+    | [coin, ...rest] => results
+      |> Array.iteri(
+        fun
+        | 0 => (_) => results[0] = Some([])
+        | i when i < coin => (_) => ()
+        | i => r =>
+          switch(results[i - coin], r) {
           | (None, _) => ()
-          | (Some(l), None) =>
-              Array.unsafe_set(result, i, Some(l @ [coin]))
-          | (Some(l), Some(r)) =>
-              Array.unsafe_set(result, i, Some(min(l @ [coin], r)))
+          | (Some(prev), None) => results[i] = Some(prev @ [coin])
+          | (Some(prev), Some(curr)) => results[i] = Some(min(prev @ [coin], curr))
           }
-        }
-      })
-    |> () => make(result, rest)
-  }
+      )
+    |> () => make(results, rest)
 
   value < 0 ? None :
-  make(Array.make(value + 1, Some([])), change)[value]
+  make(Array.make(value + 1, None), change)[value]
 }

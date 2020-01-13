@@ -1,0 +1,14 @@
+# ninja log v5
+# start_time end_time mtime command hash
+0	6	1578836945165456795	Accumulate.cmi	6d12bd7c1c7a05b7
+0	14	1578836945169456839	src/Accumulate.reiast	5756ffdbe49f15fd
+0	14	1578836945169456839	__tests__/Accumulate_test.reast	f1102e50e2af1236
+0	2	1578836974069769844	__tests__/Accumulate_test.d	f814a41547fb6720
+1	12	1578836974081769973	src/Accumulate.reast	5fc2201c5b88011
+12	14	1578836974081769973	src/Accumulate.d	f72ec280ec679f36
+14	20	1578836974089770059	src/Accumulate-Accumulate.cmi	e89624041b20be7
+20	26	1578836974093770102	src/Accumulate-Accumulate.cmj	212b4d2363e308b0
+20	26	1578836974093770102	/home/sthewessen/Scripts/GIT/hello-world/Exercism/reasonml/accumulate/src/Accumulate.bs.js	212b4d2363e308b0
+27	38	1578836974105770232	__tests__/Accumulate_test-Accumulate.cmj	bbda650cb78b155a
+27	38	1578836974105770232	__tests__/Accumulate_test-Accumulate.cmi	bbda650cb78b155a
+27	38	1578836974105770232	/home/sthewessen/Scripts/GIT/hello-world/Exercism/reasonml/accumulate/__tests__/Accumulate_test.bs.js	bbda650cb78b155a
