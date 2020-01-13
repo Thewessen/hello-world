@@ -21,3 +21,6 @@ yarn.lock
 
 # tern
 *tern-port
+
+# compilers
+lib
