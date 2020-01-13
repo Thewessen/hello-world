@@ -22,4 +22,4 @@ let makeChange = (value, change) => {
 
   value < 0 ? None :
   make(Array.make(value + 1, None), change)[value]
-}
+};
