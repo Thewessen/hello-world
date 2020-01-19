@@ -24,3 +24,6 @@ yarn.lock
 
 # compilers
 lib
+
+# haskell
+.stack-work
