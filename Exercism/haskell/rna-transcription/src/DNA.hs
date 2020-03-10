@@ -1,10 +1,11 @@
 module DNA (toRNA) where
 
 toRNA :: String -> Either Char String
-toRNA rna@(x:xs)
-  | rna == "" = Right ""
-  | x == 'C' = ('G'++) <$> toRNA xs
-  | x == 'G' = ('C'++) <$> toRNA xs
-  | x == 'T' = ('A'++) <$> toRNA xs
-  | x == 'A' = ('U'++) <$> toRNA xs
-  | otherwise = Left x
+toRNA = traverse transcribe
+
+transcribe :: Char -> Either Char Char
+transcribe 'C' = Right 'G'
+transcribe 'G' = Right 'C'
+transcribe 'T' = Right 'A'
+transcribe 'A' = Right 'U'
+transcribe x = Left x
