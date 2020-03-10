@@ -1,31 +1,43 @@
 'use strict'
 
 const count = function * (from) {
-  for (let n = from; ; n += 1) {
-    yield n
-  }
-}
-
-const filter = function * (fn, iter) {
-  for (const n of iter) {
-    if (fn(n)) {
-      yield n
-    }
-  }
-}
-
-const gen_primes = function * (till = Math.POSITIVE_INFINITY) {
-  let numbers = count(2)
   while (true) {
-    const p = numbers.next().value
-    if (p > till) {
-      break
-    }
-    yield p
-    numbers = filter((n) => n % p, numbers)
+    yield from
+    from += 1
   }
 }
 
-export const primes = (till) => {
-  return [...gen_primes(till)]
+const sieve = function * (numbers) {
+  const filters = []
+
+  while (true) {
+    const { value: p } = numbers.next()
+
+    if (filters.some(f => f(p))) continue
+
+    yield p
+    filters.push(n => n % p === 0)
+  }
 }
+
+const takeWhile = function * (fn, iter) {
+  let g = iter.next()
+  while (!g.done) {
+    if (!fn(g.value)) return
+    yield g.value
+    g = iter.next()
+  }
+}
+
+export const primes = till =>
+  [...takeWhile(n => n <= till, sieve(count(2)))]
+
+// const log = iter => {
+//   while (true) {
+//     const { value, done } = iter.next()
+//     if (done) break
+//     console.log(value)
+//   }
+// }
+
+// log(sieve(count(2)))
