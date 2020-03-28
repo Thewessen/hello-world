@@ -27,3 +27,6 @@ lib
 
 # haskell
 .stack-work
+
+# rust
+target
