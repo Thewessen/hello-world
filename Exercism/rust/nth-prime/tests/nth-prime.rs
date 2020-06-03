@@ -23,3 +23,9 @@ fn test_big_prime() {
     time_test!();
     assert_eq!(np::nth(10_000), 104_743);
 }
+
+#[test]
+fn test_very_big_prime() {
+    time_test!();
+    assert_eq!(np::nth(10_000_000), 160_481_183);
+}
