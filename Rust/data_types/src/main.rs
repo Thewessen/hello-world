@@ -1,3 +1,4 @@
+#![allow(unused_variables)]
 fn integers() {
     // note the different ways of writing numbers
 

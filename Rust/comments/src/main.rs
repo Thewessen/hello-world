@@ -1,3 +1,4 @@
+#![allow(unused_variables)]
 /// Documentation comment
 /// Start with three slashes
 /// and support markdown
