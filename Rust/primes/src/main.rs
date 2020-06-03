@@ -1,4 +1,4 @@
-use Primes;
+use primes::Primes;
 
 fn main() {
     let primes = Primes::new();

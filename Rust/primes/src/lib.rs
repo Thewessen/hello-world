@@ -1,9 +1,9 @@
-struct Primes {
+pub struct Primes {
     primes: Vec<u64>,
 }
 
 impl Primes {
-    fn new() -> Primes {
+    pub fn new() -> Primes {
         Primes { primes: vec![2] }
     }
 }
@@ -20,4 +20,3 @@ impl Iterator for Primes {
         Some(prime)
     }
 }
-

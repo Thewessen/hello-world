@@ -1,5 +1,5 @@
 [package]
-name = "iterators"
+name = "primes"
 version = "0.1.0"
 authors = ["Thewessen <sthewessen@gmail.com>"]
 edition = "2018"
