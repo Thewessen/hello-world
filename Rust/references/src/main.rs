@@ -34,6 +34,7 @@ fn only_one_mut_ref() {
     println!("r1 = {}", r2);
 }
 
+#[allow(unused_mut)]
 fn no_mut_and_imut_same_time() {
     let mut s = String::from("hello");
 

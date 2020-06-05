@@ -1,3 +1,4 @@
+#[allow(unconditional_recursion)]
 pub fn fibbonaci() {
     fn memo(x: u32, y: u32) {
         println!("{}", x + y);

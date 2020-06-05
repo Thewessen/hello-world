@@ -1,0 +1,23 @@
+[workspace]
+
+members = [
+  "adder",
+  "comments",
+  "control_flow",
+  "data_types",
+  "enums",
+  "exersise_rectangle_structs",
+  "functions",
+  "guessing_game",
+  "hello-rust",
+  "methods",
+  "modules",
+  "option",
+  "ownership",
+  "primes",
+  "references",
+  "slices",
+  "structs",
+  "variables",
+  "wrapping_parants",
+]

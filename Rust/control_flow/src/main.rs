@@ -1,5 +1,6 @@
 use control_flow::fibbonaci;
 
+#[allow(unused_variables)]
 fn main() {
     let b = if_else(10);
     keep_looping();
