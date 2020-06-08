@@ -51,17 +51,17 @@ const sieve = list => {
   })
 }
 
-const primes = till => toArray(
+export const primes = till => toArray(
   takeWhile(n => n <= till, sieve(count(() => 2)))
 )
 
-const printList = list => {
-  let l = list()
-  while (l !== null) {
-    console.log(l.head())
-    l = l.tail()
-  }
-}
+// const printList = list => {
+//   let l = list()
+//   while (l !== null) {
+//     console.log(l.head())
+//     l = l.tail()
+//   }
+// }
 
 
-printList(sieve(count(() => 2)))
+// printList(sieve(count(() => 2)))
