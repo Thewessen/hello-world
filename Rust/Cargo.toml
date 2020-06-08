@@ -10,6 +10,8 @@ members = [
   "functions",
   "guessing_game",
   "hello-rust",
+  "if_let",
+  "match_control_flow",
   "methods",
   "modules",
   "option",
