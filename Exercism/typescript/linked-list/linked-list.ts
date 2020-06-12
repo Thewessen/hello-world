@@ -1,29 +1,7 @@
-class LinkNode<T> {
-  constructor (
-    private value: T,
-    private previous: LinkNode<T> | null = null,
-    private next: LinkNode<T> | null = null,
-  ) {}
-  
-  getValue (): T {
-    return this.value
-  }
-
-  getPrevious (): LinkNode<T> | null {
-    return this.previous
-  }
-
-  setPrevious (value: LinkNode<T> | null): void {
-    this.previous = value
-  }
-
-  getNext (): LinkNode<T> | null {
-    return this.next
-  }
-
-  setNext (value: LinkNode<T> | null): void {
-    this.next = value
-  }
+interface LinkNode<T> {
+  value: T | null,
+  previous: LinkNode<T> | null,
+  next: LinkNode<T> | null
 }
 
 export default class LinkedList<T> {
@@ -34,20 +12,28 @@ export default class LinkedList<T> {
   last (): LinkNode<T> | null {
     let lastNode = this.head
     while (
-      lastNode instanceof LinkNode &&
-      lastNode.getNext() instanceof LinkNode
+      lastNode !== null &&
+      lastNode.next !== null
     ) {
-      lastNode = lastNode.getNext()
+      lastNode = lastNode.next
     }
     return lastNode
   }
 
   push (value: T): void {
     const lastNode = this.last()
-    if (lastNode instanceof LinkNode) {
-      lastNode.setNext(new LinkNode(value, lastNode, null))
+    if (lastNode !== null) {
+      lastNode.next = {
+        value,
+        previous: lastNode,
+        next: null 
+      }
     } else {
-      this.head = new LinkNode(value, null, null)
+      this.head = {
+        value,
+        previous: null,
+        next: null
+      }
     }
   }
 
@@ -56,11 +42,13 @@ export default class LinkedList<T> {
     if (lastNode === null) {
       throw new Error('Empty list!')
     }
-    const previous = lastNode.getPrevious()
-    if (previous instanceof LinkNode) {
-      previous.setNext(null)
+    const previous = lastNode.previous
+    if (previous !== null) {
+      previous.next = null
+    } else {
+      this.head = null
     }
-    return lastNode.getValue()
+    return lastNode.value
   }
 
   shift (): T {
@@ -69,19 +57,23 @@ export default class LinkedList<T> {
       throw new Error('List empty!')
     }
 
-    const next = firstNode.getNext()
-    if (next instanceof LinkedList) {
-      next.setPrevious(null)
+    const next = firstNode.next
+    if (next !== null) {
+      next.previous = null
     }
 
     this.head = next
-    return firstNode.getValue()
+    return firstNode.value
   }
 
   unshift (value: T): void {
-    const newNode = new LinkNode(value, null, this.head)
-    if (this.head instanceof LinkNode) {
-      this.head.setPrevious(newNode)
+    const newNode = {
+      value,
+      previous: null,
+      next: this.head
+    }
+    if (this.head !== null) {
+      this.head.previous = newNode
     }
     this.head = newNode
   }
@@ -89,25 +81,31 @@ export default class LinkedList<T> {
   count(): number {
     let count = 0
     let node = this.head
-    while (node instanceof LinkNode) {
+    while (node !== null) {
       count += 1
-      node = node.getNext()
+      node = node.next
     }
     return count
   }
-  // delete (value) {
-  //   const index = this.data.map(
-  //       (node) => node.value
-  //     ).indexOf(value)
-  //   if (index >= 0) {
-  //     const node = this.data.splice(index, 1)[0]
-  //     if (node.before !== null) {
-  //       this.data[index - 1].after = node.after
-  //     }
-  //     if (node.after !== null) {
-  //       this.data[index].before = node.before
-  //     }
-  //     return this.data.length
-  //   }
-  // }
+
+  delete (value: T): boolean {
+    let node = this.head
+    while (node !== null && node.value !== value) {
+      node = node.next
+    }
+    if (node !== null) {
+      const previous = node.previous
+      const next = node.next
+      if (previous !== null) {
+        previous.next = next
+      } else {
+        this.head = next
+      }
+      if (next !== null) {
+        next.previous = previous
+      }
+      return true
+    }
+    return false
+  }
 }
