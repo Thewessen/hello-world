@@ -22,4 +22,6 @@ members = [
   "structs",
   "variables",
   "wrapping_parants",
+  "grrs",
+  "logging",
 ]
