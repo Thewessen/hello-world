@@ -1,0 +1,28 @@
+{
+  "name": "webpack-basics",
+  "version": "1.0.0",
+  "description": "basics",
+  "main": "index.js",
+  "scripts": {
+    "test": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Thewessen/hello-world.git"
+  },
+  "keywords": [
+    "test",
+    "webpack",
+    "basic"
+  ],
+  "author": "sthewessen",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Thewessen/hello-world/issues"
+  },
+  "homepage": "https://github.com/Thewessen/hello-world#readme",
+  "devDependencies": {
+    "webpack": "^5.3.1",
+    "webpack-cli": "^4.1.0"
+  }
+}
