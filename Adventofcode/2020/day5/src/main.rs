@@ -9,6 +9,8 @@ struct Cli {
     // Input file
     #[structopt(parse(from_os_str))]
     file: PathBuf,
+    #[structopt(short = "p", long = "part-two")]
+    part_two: bool,
 }
 
 /// PART 1:
@@ -26,23 +28,48 @@ struct Cli {
 /// region the seat is in, and so on until you're left with exactly one row.
 ///
 /// PART 2:
-/// It's a completely full flight, so your seat should be the only missing boarding pass in your list. However, there's a catch: some of the seats at the very front and back of the plane don't exist on this aircraft, so they'll be missing from your list as well.
+/// It's a completely full flight, so your seat should be the only missing boarding pass in your
+/// list. However, there's a catch: some of the seats at the very front and back of the plane don't
+/// exist on this aircraft, so they'll be missing from your list as well.
 /// 
-/// Your seat wasn't at the very front or back, though; the seats with IDs +1 and -1 from yours will be in your list.
+/// Your seat wasn't at the very front or back, though; the seats with IDs +1 and -1 from yours
+/// will be in your list.
 /// 
 /// What is the ID of your seat?
 fn main() -> io::Result<()> {
     let args = Cli::from_args();
     let file = File::open(args.file)?;
     let reader = BufReader::new(file);
-    let result = reader
+    let mut result = Seat::new(0);
+    let seats = reader
         .lines()
         .map(|line| line.unwrap_or(String::new()))
         .filter(|line| !line.is_empty())
-        .map(|seat| Seat::from_binary_space(&seat))
-        .fold(Seat { row: 0, column: 0, id: 0 }, |a, b| {
+        .map(|seat| Seat::from_binary_space(&seat));
+
+    if args.part_two {
+        let mut plain = (0..(1 << 11))
+            .map(|i| Seat::new(i))
+            .collect::<Vec<Seat>>();
+
+        // sort seats
+        seats.for_each(|seat| {
+            let id = seat.id as usize;
+            plain[id] = seat.to_owned();
+        });
+
+        let mut iter = plain.iter().skip_while(|seat| seat.free).peekable();
+        result = loop {
+            let seat = iter.next().unwrap();
+            if seat.free && !iter.peek().unwrap().free {
+                break seat.to_owned();
+            }
+        }
+    } else {
+        result = seats.fold(result, |a, b| {
             if a >= b { a } else { b }
         });
+    }
     println!("{:?}", result.id);
     Ok(())
 }
@@ -60,19 +87,21 @@ fn bin_from_space(s: &str) -> u32 {
     u32::from_str_radix(&bin, 2).unwrap_or(0)
 }
 
-#[derive(Eq)]
+#[derive(Eq, Debug)]
 struct Seat {
-    row: u32,
-    column: u32,
     id: u32,
+    free: bool,
 }
 
 impl Seat {
+    fn new(id: u32) -> Self {
+        Seat { id, free: true }
+    }
+
     fn from_binary_space(s: &str) -> Self {
         Seat {
-            row: bin_from_space(&s[..8]),
-            column: bin_from_space(&s[8..]),
             id: bin_from_space(&s),
+            free: false
         }
     }
 }
@@ -92,6 +121,13 @@ impl PartialOrd for Seat {
 impl PartialEq for Seat {
     fn eq(&self, other: &Self) -> bool {
         self.id == other.id
+    }
+}
+
+impl Copy for Seat { }
+impl Clone for Seat {
+    fn clone(&self) -> Seat {
+        *self
     }
 }
 
