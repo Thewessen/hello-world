@@ -12,28 +12,6 @@ struct Cli {
     part_two: bool,
 }
 
-/// PART 1:
-/// From your starting position at the top-left, check the position that is right 3 and down 1.
-/// Then, check the position that is right 3 and down 1 from there, and so on until you go past the
-/// bottom of the map.
-///
-/// The locations you'd check in the above example are marked here with O where there was an open
-/// square and X where there was a tree:
-///
-///```
-///..##.........##.........##.........##.........##.........##.......  --->
-///#..O#...#..#...#...#..#...#...#..#...#...#..#...#...#..#...#...#..
-///.#....X..#..#....#..#..#....#..#..#....#..#..#....#..#..#....#..#.
-///..#.#...#O#..#.#...#.#..#.#...#.#..#.#...#.#..#.#...#.#..#.#...#.#
-///.#...##..#..X...##..#..#...##..#..#...##..#..#...##..#..#...##..#.
-///..#.##.......#.X#.......#.##.......#.##.......#.##.......#.##.....  --->
-///.#.#.#....#.#.#.#.O..#.#.#.#....#.#.#.#....#.#.#.#....#.#.#.#....#
-///.#........#.#........X.#........#.#........#.#........#.#........#
-///#.##...#...#.##...#...#.X#...#...#.##...#...#.##...#...#.##...#...
-///#...##....##...##....##...#X....##...##....##...##....##...##....#
-///.#..#...#.#.#..#...#.#.#..#...X.#.#..#...#.#.#..#...#.#.#..#...#.#  --->
-///```
-/// In this example, traversing the map using this slope would cause you to encounter 7 trees.
 fn main() -> io::Result<()> {
     let args = Cli::from_args();
     let file = File::open(args.file)?;
