@@ -65,14 +65,12 @@ fn count_all_answered(total: &str) -> u32 {
     total
         .split("\n\n")
         .map(|group| {
-            println!("{}", group);
             let mut persons = group.split('\n').filter(|person| !person.is_empty());
             let first = persons.next().unwrap_or("");
             let rest = persons.collect::<Vec<&str>>();
             let count = first.chars().fold(0, |count, ans| {
                 count + rest.iter().all(|answers| answers.contains(ans)) as u32
             });
-            println!("{:?}", count);
             count
         })
         .fold(0, |a, b| a + b)
