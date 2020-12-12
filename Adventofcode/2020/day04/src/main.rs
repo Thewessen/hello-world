@@ -2,11 +2,11 @@ use std::io::{self};
 use std::path::PathBuf;
 use structopt::StructOpt;
 use std::fs::read_to_string;
-use regex::Regex;
+use std::convert::TryFrom;
+use std::mem::discriminant;
 
 #[derive(StructOpt, Debug)]
 struct Cli {
-    // Input file
     #[structopt(parse(from_os_str))]
     file: PathBuf,
     #[structopt(short = "s", long = "strict")]
@@ -19,207 +19,228 @@ fn main() -> io::Result<()> {
     let content = read_to_string(args.file)?;
     let result = content
         .split("\n\n")
-        .filter(|passport| !passport.is_empty())
-        .map(Passport::from_str)
-        .filter(|p| {
-            if strict {
-                p.is_strict_valid()
-            } else {
-                p.is_valid()
-            }
+        .map(Passport::from)
+        .filter(|p| match strict {
+            true => p.is_strict_valid(),
+            false => p.is_valid()
         })
         .count();
+
     println!("{}", result);
     Ok(())
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
+enum PasswordField {
+    BirthYear(u16),
+    IssueYear(u16),
+    ExpirationYear(u16),
+    Height(String),
+    HairColor(String),
+    EyeColor(String),
+    PassportID(String),
+    CountryID(String),
+}
+
+impl PasswordField {
+    fn is_valid(&self) -> bool {
+        match self {
+            Self::BirthYear(value) => &1920 <= value && value <= &2002,
+            Self::IssueYear(value) => &2010 <= value && value <= &2020,
+            Self::ExpirationYear(value) => &2020 <= value && value <= &2030,
+            Self::Height(value) => {
+                let height = value.chars()
+                        .take_while(|ch| ch.is_numeric())
+                        .collect::<String>()
+                        .parse::<u8>();
+                if value.ends_with("cm") {
+                    match height {
+                        Ok(n) => 150 <= n && n <= 193,
+                        Err(_) => false,
+                    }
+                } else if value.ends_with("in") {
+                    match height {
+                        Ok(n) => 59 <= n && n <= 76,
+                        Err(_) => false,
+                    }
+                } else { false }
+            },
+            Self::HairColor(value) => value.starts_with("#") &&
+                value.chars().skip(1).all(|ch| match ch {
+                    'a'..='f' | '0'..='9' => true,
+                    _ => false,
+                }),
+            Self::EyeColor(value) => ["amb", "blu", "brn", "gry", "grn", "hzl", "oth"]
+                .iter().any(|color| color == value),
+            Self::PassportID(value) => value.chars().all(|ch| ch.is_numeric()),
+            Self::CountryID(_) => true,
+        }
+    }
+}
+
+impl TryFrom<&str> for PasswordField {
+    type Error = &'static str;
+
+    fn try_from(field: &str) -> Result<Self, Self::Error> {
+        let mut iter = field.split(':');
+        match iter.next() {
+            Some("byr") => match iter.next().and_then(|n| n.parse::<u16>().ok()) {
+                Some(n) => Ok(Self::BirthYear(n)),
+                None => Err("invalid value for byr field")
+            },
+            Some("iyr") => match iter.next().and_then(|n| n.parse::<u16>().ok()) {
+                Some(n) => Ok(Self::IssueYear(n)),
+                None => Err("invalid value for iyr field")
+            },
+            Some("eyr") => match iter.next().and_then(|n| n.parse::<u16>().ok()) {
+                Some(n) => Ok(Self::ExpirationYear(n)),
+                None => Err("invalid value for eyr field")
+            },
+            Some("hgt") => match iter.next() {
+                Some(v) => Ok(Self::Height(v.to_string())),
+                None => Err("invalid value for hgt field")
+            },
+            Some("hcl") => match iter.next() {
+                Some(v) => Ok(Self::HairColor(v.to_string())),
+                None => Err("invalid value for hcl field")
+            },
+            Some("ecl") => match iter.next() {
+                Some(v) => Ok(Self::EyeColor(v.to_string())),
+                None => Err("invalid value for ecl field")
+            },
+            Some("pid") => match iter.next() {
+                Some(v) => Ok(Self::PassportID(v.to_string())),
+                None => Err("invalid value for pid field")
+            },
+            Some("cid") => match iter.next() {
+                Some(v) => Ok(Self::CountryID(v.to_string())),
+                None => Err("invalid value for cid field")
+            },
+            Some(_) => Err("no field for type found"),
+            None => Err("field looks empty")
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
 struct Passport {
-    byr: Option<String>,
-    iyr: Option<String>,
-    eyr: Option<String>,
-    hgt: Option<String>,
-    hcl: Option<String>,
-    ecl: Option<String>,
-    pid: Option<String>,
-    cid: Option<String>,
+    fields: Vec<PasswordField>
+}
+
+impl Default for Passport {
+    fn default() -> Self {
+        Passport { fields: vec![] }
+    }
+}
+
+impl From<&str> for Passport {
+    fn from(passport: &str) -> Self {
+        let fields: Vec<PasswordField> = passport
+            .split(|ch| ch == ' ' || ch == '\n') 
+            .filter(|field| !field.is_empty())
+            .filter_map(|field| PasswordField::try_from(field).ok())
+            .collect();
+        Passport { fields }
+    }
 }
 
 impl Passport {
-    fn new() -> Self {
-        Passport {
-            byr: None,
-            iyr: None,
-            eyr: None,
-            hgt: None,
-            hcl: None,
-            ecl: None,
-            pid: None,
-            cid: None,
-        }
+    fn is_valid(&self) -> bool {
+        use PasswordField::*;
+        [ BirthYear(0), IssueYear(0), ExpirationYear(0),
+          Height(String::default()),
+          HairColor(String::default()),
+          EyeColor(String::default()),
+          PassportID(String::default())
+        ].iter().all(|t| self.fields.iter().any(|f| discriminant(f) == discriminant(t)))
     }
 
-    fn from_str(passport: &str) -> Self {
-        let mut p = Self::new();
-        passport
-            .split(|ch| ch == ' ' || ch == '\n') 
-            .filter(|field| !field.is_empty())
-            .map(|field| field.split(':'))
-            .for_each(|mut field| {
-                match field.next().unwrap() {
-                    "byr" => p.byr = Some(field.next().unwrap().to_owned()),
-                    "iyr" => p.iyr = Some(field.next().unwrap().to_owned()),
-                    "eyr" => p.eyr = Some(field.next().unwrap().to_owned()),
-                    "hgt" => p.hgt = Some(field.next().unwrap().to_owned()),
-                    "hcl" => p.hcl = Some(field.next().unwrap().to_owned()),
-                    "ecl" => p.ecl = Some(field.next().unwrap().to_owned()),
-                    "pid" => p.pid = Some(field.next().unwrap().to_owned()),
-                    "cid" => p.cid = Some(field.next().unwrap().to_owned()),
-                    _ => (),
-                }
-            });
-        p
+    fn is_strict_valid(&self) -> bool {
+        self.is_valid() && self.fields.iter()
+            .all(|field| field.is_valid())
     }
-
-    pub fn is_valid(&self) -> bool {
-        self.byr != None &&
-        self.iyr != None &&
-        self.eyr != None &&
-        self.hgt != None &&
-        self.hcl != None &&
-        self.ecl != None &&
-        self.pid != None
-    }
-
-    pub fn is_strict_valid(&self) -> bool {
-        // println!("{:#?}", self);
-        // println!("byr: {:?}", matches_number(&self.byr.as_ref().unwrap(), 1920, 2002));
-        // println!("iyr: {:?}", matches_number(&self.iyr.as_ref().unwrap(), 2010, 2020));
-        self.is_valid() &&
-        matches_number(&self.byr.as_ref().unwrap(), 1920, 2002) &&
-        matches_number(&self.iyr.as_ref().unwrap(), 2010, 2020) &&
-        matches_number(&self.eyr.as_ref().unwrap(), 2020, 2030) &&
-        {
-            let height = self.hgt.as_ref().unwrap();
-            let ln = height.len() - 2;
-            let result = {
-                if height.ends_with("cm") {
-                    matches_number(&height[..ln], 150, 193)
-                } else if height.ends_with("in") {
-                    matches_number(&height[..ln], 59, 76)
-                } else {
-                    false
-                }
-            };
-            // println!("hgt: {:?}", result);
-            result
-        } && {
-            let re = Regex::new(r"^#[0-9a-f]{6}$").unwrap();
-            let result = re.is_match(&self.hcl.as_ref().unwrap());
-            // println!("hcl: {:?}", result);
-            result
-        } && {
-            let ecl = self.ecl.as_ref().unwrap();
-            let result = ecl == "amb" ||
-                ecl == "blu" ||
-                ecl == "brn" ||
-                ecl == "gry" ||
-                ecl == "grn" ||
-                ecl == "hzl" ||
-                ecl == "oth";
-            // println!("ecl: {:?}", result);
-            result
-        } && {
-            let re = Regex::new(r"^[0-9]{9}$").unwrap();
-            let result = re.is_match(&self.pid.as_ref().unwrap());
-            // println!("pid: {:?}", result);
-            result
-        }
-    }
-}
-
-impl PartialEq for Passport {
-    fn eq(&self, other: &Self) -> bool {
-        self.byr == other.byr &&
-        self.iyr == other.iyr &&
-        self.eyr == other.eyr &&
-        self.hgt == other.hgt &&
-        self.hcl == other.hcl &&
-        self.ecl == other.ecl &&
-        self.pid == other.pid
-    }
-}
-impl Eq for Passport {}
-
-fn matches_number(s: &str, least: u16, most: u16) -> bool {
-    let digit = s.parse::<u16>().unwrap();
-    least <= digit && digit <= most
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use PasswordField::*;
+
+    #[test]
+    fn test_match_equal_variants() {
+        let n = IssueYear(100);
+        let m = IssueYear(200);
+        assert_eq!(discriminant(&n), discriminant(&m));
+    }
+
+    #[test]
+    fn test_not_equal_variants() {
+        let n = IssueYear(100);
+        let m = ExpirationYear(200);
+        assert_ne!(discriminant(&n), discriminant(&m));
+    }
 
     #[test]
     fn parse_from_str() {
         let p = Passport {
-            byr: Some(String::from("1966")),
-            iyr: Some(String::from("2012")),
-            eyr: Some(String::from("2020")),
-            hgt: Some(String::from("151cm")),
-            hcl: Some(String::from("#ceb3a1")),
-            ecl: Some(String::from("grn")),
-            pid: Some(String::from("947726115")),
-            cid: Some(String::from("105")),
+            fields: vec![
+                ExpirationYear(2020),
+                CountryID(String::from("105")),
+                IssueYear(2012),
+                PassportID(String::from("947726115")),
+                HairColor(String::from("#ceb3a1")),
+                EyeColor(String::from("grn")),
+                BirthYear(1966),
+                Height(String::from("151cm")),
+            ]
         };
-        let r = Passport::from_str("eyr:2020 cid:105 iyr:2012 pid:947726115\nhcl:#ceb3a1 ecl:grn byr:1966 hgt:151cm");
+        let r = Passport::from("eyr:2020 cid:105 iyr:2012 pid:947726115\nhcl:#ceb3a1 ecl:grn byr:1966 hgt:151cm");
         assert_eq!(p, r);
     }
 
     #[test]
     fn is_valid() {
         let p = Passport {
-            byr: Some(String::new()),
-            iyr: Some(String::new()),
-            eyr: Some(String::new()),
-            hgt: Some(String::new()),
-            hcl: Some(String::new()),
-            ecl: Some(String::new()),
-            pid: Some(String::new()),
-            cid: None,
+            fields: vec![
+                ExpirationYear(2020),
+                CountryID(String::from("105")),
+                IssueYear(2012),
+                PassportID(String::from("947726115")),
+                HairColor(String::from("#ceb3a1")),
+                EyeColor(String::from("grn")),
+                BirthYear(1966),
+                Height(String::from("151cm")),
+            ]
         };
         assert!(p.is_valid());
     }
 
     #[test]
-    fn match_number() {
-        assert!(matches_number("206", 200, 208));
-    }
-
-    #[test]
     fn is_strict_valid() {
         let p = Passport {
-            byr: Some(String::from("1966")),
-            iyr: Some(String::from("2012")),
-            eyr: Some(String::from("2020")),
-            hgt: Some(String::from("151cm")),
-            hcl: Some(String::from("#ceb3a1")),
-            ecl: Some(String::from("grn")),
-            pid: Some(String::from("947726115")),
-            cid: Some(String::from("105")),
+            fields: vec![
+                ExpirationYear(2020),
+                CountryID(String::from("105")),
+                IssueYear(2012),
+                PassportID(String::from("947726115")),
+                HairColor(String::from("#ceb3a1")),
+                EyeColor(String::from("grn")),
+                BirthYear(1966),
+                Height(String::from("151cm")),
+            ]
         };
         assert!(p.is_strict_valid());
     }
 
     #[test]
     fn invalid_passpords() {
-        let p = Passport::from_str("eyr:1972 cid:100\nhcl:#18171d ecl:amb hgt:170 pid:186cm iyr:2018 byr:1926");
+        let p = Passport::from("eyr:1972 cid:100\nhcl:#18171d ecl:amb hgt:170 pid:186cm iyr:2018 byr:1926");
         assert_eq!(p.is_strict_valid(), false);
-        let p = Passport::from_str("iyr:2019\nhcl:#602927 eyr:1967 hgt:170cm\necl:grn pid:012533040 byr:1946");
+        let p = Passport::from("iyr:2019\nhcl:#602927 eyr:1967 hgt:170cm\necl:grn pid:012533040 byr:1946");
         assert_eq!(p.is_strict_valid(), false);
-        let p = Passport::from_str("hcl:dab227 iyr:2012\necl:brn hgt:182cm pid:021572410 eyr:2020 byr:1992 cid:277");
+        let p = Passport::from("hcl:dab227 iyr:2012\necl:brn hgt:182cm pid:021572410 eyr:2020 byr:1992 cid:277");
         assert_eq!(p.is_strict_valid(), false);
-        let p = Passport::from_str("hgt:59cm ecl:zzz\neyr:2038 hcl:74454a iyr:2023\npid:3556412378 byr:2007");
+        let p = Passport::from("hgt:59cm ecl:zzz\neyr:2038 hcl:74454a iyr:2023\npid:3556412378 byr:2007");
         assert_eq!(p.is_strict_valid(), false);
     }
 }
