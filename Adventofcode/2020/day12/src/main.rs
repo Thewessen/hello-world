@@ -21,7 +21,7 @@ fn main() -> io::Result<()> {
         .map(|line| line.unwrap_or(String::new()))
         .filter(|line| !line.is_empty())
         .collect::<Vec<String>>();
-    let mut ferry = Ferry::new();
+    let mut ferry = Ferry::default();
     process_instructs(&instructs, &mut ferry, args.waypoint);
     println!("{}", ferry.calculate_distance());
     Ok(())
@@ -38,6 +38,23 @@ enum Move {
     Forward(u32),
 }
 
+impl From<&str> for Move {
+    fn from(s: &str) -> Self {
+        let mut chrs = s.chars();
+        match chrs.next() {
+            Some('N') => Move::North(chrs.as_str().parse::<u32>().unwrap_or(0)),
+            Some('E') => Move::East(chrs.as_str().parse::<u32>().unwrap_or(0)),
+            Some('S') => Move::South(chrs.as_str().parse::<u32>().unwrap_or(0)),
+            Some('W') => Move::West(chrs.as_str().parse::<u32>().unwrap_or(0)),
+            Some('L') => Move::Left(chrs.as_str().parse::<u32>().unwrap_or(0)),
+            Some('R') => Move::Right(chrs.as_str().parse::<u32>().unwrap_or(0)),
+            Some('F') => Move::Forward(chrs.as_str().parse::<u32>().unwrap_or(0)),
+            Some(ch) => panic!("unrecognized direction {}", ch),
+            None => panic!("no direction found in {}", s)
+        }
+    }
+}
+
 #[derive(Debug, PartialEq)]
 enum Direction {
     North,
@@ -51,11 +68,13 @@ struct Waypoint {
     y: i32,
 }
 
-impl Waypoint {
-    fn new() -> Self {
+impl Default for Waypoint {
+    fn default() -> Self {
         Waypoint { x: 10, y: 1 }
     }
+}
 
+impl Waypoint {
     fn move_north(&mut self, value: i32) -> () {
         self.y += value;
     }
@@ -95,16 +114,17 @@ struct Ferry {
     waypoint: Waypoint,
 }
 
-
-impl Ferry {
-    fn new () -> Self {
+impl Default for Ferry {
+    fn default() -> Self {
         Ferry {
             x: 0, y: 0,
             facing: Direction::East,
-            waypoint: Waypoint::new(),
+            waypoint: Waypoint::default(),
         }
     }
+}
 
+impl Ferry {
     pub fn process_move(&mut self, m: Move) -> () {
         match m {
             Move::North(value) => self.move_north(value as i32),
@@ -185,25 +205,10 @@ impl Ferry {
     }
 }
 
-fn move_from_str(s: &str) -> Move {
-    let mut chrs = s.chars();
-    match chrs.next() {
-        Some('N') => Move::North(chrs.as_str().parse::<u32>().unwrap_or(0)),
-        Some('E') => Move::East(chrs.as_str().parse::<u32>().unwrap_or(0)),
-        Some('S') => Move::South(chrs.as_str().parse::<u32>().unwrap_or(0)),
-        Some('W') => Move::West(chrs.as_str().parse::<u32>().unwrap_or(0)),
-        Some('L') => Move::Left(chrs.as_str().parse::<u32>().unwrap_or(0)),
-        Some('R') => Move::Right(chrs.as_str().parse::<u32>().unwrap_or(0)),
-        Some('F') => Move::Forward(chrs.as_str().parse::<u32>().unwrap_or(0)),
-        Some(ch) => panic!("unrecognized direction {}", ch),
-        None => panic!("no direction found in {}", s)
-    }
-}
-
 fn process_instructs(instructs: &Vec<String>, ferry: &mut Ferry, with_waypoint: bool) -> () {
    instructs
        .iter()
-       .map(|instruct| move_from_str(instruct))
+       .map(|instruct| Move::from(instruct.as_ref()))
        .for_each(|m| {
            if with_waypoint {
                ferry.process_move_waypoint(m);
@@ -219,49 +224,49 @@ mod tests {
 
     #[test]
     fn test_move_south_from_string() {
-        assert_eq!(move_from_str("S4"), Move::South(4));
+        assert_eq!(Move::from("S4"), Move::South(4));
     }
 
     #[test]
     fn test_move_forward_from_string() {
-        assert_eq!(move_from_str("F10"), Move::Forward(10));
+        assert_eq!(Move::from("F10"), Move::Forward(10));
     }
 
     #[test]
     fn test_move_ship_south() {
         let m = Move::South(10);
-        let mut f = Ferry::new();
+        let mut f = Ferry::default();
         f.process_move(m);
-        assert_eq!(f, Ferry { facing: Direction::East, x: 0, y: -10, waypoint: Waypoint::new() });
+        assert_eq!(f, Ferry { facing: Direction::East, x: 0, y: -10, waypoint: Waypoint::default() });
     }
 
     #[test]
     fn test_turn_ship_right() {
         let m = Move::Right(90);
-        let mut f = Ferry::new();
+        let mut f = Ferry::default();
         f.process_move(m);
-        assert_eq!(f, Ferry { facing: Direction::South, x: 0, y: 0, waypoint: Waypoint::new() });
+        assert_eq!(f, Ferry { facing: Direction::South, x: 0, y: 0, waypoint: Waypoint::default() });
     }
 
     #[test]
     fn test_turn_ship_left() {
         let m = Move::Left(360);
-        let mut f = Ferry::new();
+        let mut f = Ferry::default();
         f.process_move(m);
-        assert_eq!(f, Ferry { facing: Direction::East, x: 0, y: 0, waypoint: Waypoint::new() });
+        assert_eq!(f, Ferry { facing: Direction::East, x: 0, y: 0, waypoint: Waypoint::default() });
     }
 
     #[test]
     fn test_move_ship_forward() {
         let m = Move::Forward(10);
-        let mut f = Ferry::new();
+        let mut f = Ferry::default();
         f.process_move(m);
-        assert_eq!(f, Ferry { facing: Direction::East, x: 10, y: 0, waypoint: Waypoint::new() });
+        assert_eq!(f, Ferry { facing: Direction::East, x: 10, y: 0, waypoint: Waypoint::default() });
     }
 
     #[test]
     fn test_process_instructions() {
-        let mut f = Ferry::new();
+        let mut f = Ferry::default();
         let instructs = vec![
             String::from("F10"),
             String::from("N3"),
@@ -270,12 +275,12 @@ mod tests {
             String::from("F11")
         ];
         process_instructs(&instructs, &mut f, false);
-        assert_eq!(f, Ferry { facing: Direction::South, x: 17, y: -8, waypoint: Waypoint::new() });
+        assert_eq!(f, Ferry { facing: Direction::South, x: 17, y: -8, waypoint: Waypoint::default() });
     }
 
     #[test]
     fn test_calculate_distance() {
-        let f = Ferry { facing: Direction::South, x: 17, y: -8, waypoint: Waypoint::new() };
+        let f = Ferry { facing: Direction::South, x: 17, y: -8, waypoint: Waypoint::default() };
         assert_eq!(f.calculate_distance(), 25);
     }
 
@@ -333,7 +338,7 @@ mod tests {
 
     #[test]
     fn test_process_instructions_with_waypoint() {
-        let mut f = Ferry::new();
+        let mut f = Ferry::default();
         let instructs = vec![
             String::from("F10"),
             String::from("N3"),
