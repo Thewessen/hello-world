@@ -21,7 +21,7 @@ fn main() -> io::Result<()> {
         .lines()
         .filter_map(|line| line.ok())
         .filter(|line| !line.is_empty())
-        .map(|seat| Seat::from_space(&seat));
+        .map(|seat| Seat::from(seat.as_str()));
 
     let result = match args.part_two {
         true => owned_seat(&mut seats),
@@ -51,7 +51,7 @@ fn owned_seat<I>(seats: &mut I) -> Seat
 where I: Iterator<Item = Seat>
 {
     let mut plain = (0..(1 << 11))
-        .map(|i| Seat::new(i))
+        .map(|i| Seat::from(i))
         .collect::<Vec<Seat>>();
 
     // sort seats
@@ -81,16 +81,16 @@ impl Default for Seat {
     }
 }
 
-impl Seat {
-    fn new(id: u32) -> Seat {
-        Seat { id, free: true }
+impl From<u32> for Seat {
+    fn from(id: u32) -> Self {
+        Seat { id, ..Seat::default() }
     }
+}
 
-    fn from_space(s: &str) -> Self {
-        Seat {
-            id: id_from_space(&s),
-            free: false
-        }
+impl From<&str> for Seat {
+    fn from(s: &str) -> Self {
+        let id = id_from_space(s);
+        Seat { id, ..Seat::default() }
     }
 }
 
