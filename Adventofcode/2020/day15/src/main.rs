@@ -24,7 +24,7 @@ fn main() {
 }
 
 fn solve_puzzle(numbers: Vec<u64>, till: usize) -> u64 {
-    if numbers.len() == 0 {
+    if numbers.is_empty() {
         panic!("no puzzle input");
     }
     let mut spoken: u64 = *numbers.iter().last().unwrap();
