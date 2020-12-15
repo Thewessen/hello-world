@@ -57,10 +57,10 @@ fn count_diffs(diffs: Vec<u8>) -> (u32, u32) {
     (a, b)
 }
 
-fn possible_routes(mut numbers: Vec<u64>) -> u64 {
-    numbers.reverse();
+fn possible_routes(numbers: Vec<u64>) -> u64 {
     numbers
         .iter()
+        .rev()
         .fold(Vec::<(u64, u64)>::with_capacity(3), |mut mem, curr| {
             if mem.is_empty() { mem.push((1, *curr)); }
             else {
@@ -79,6 +79,7 @@ fn possible_routes(mut numbers: Vec<u64>) -> u64 {
         .fold(0, |curr, (routes, _)| curr + routes)
 }
 
+#[cfg(test)]
 mod tests {
     use super::*;
 
@@ -90,14 +91,16 @@ mod tests {
 
     #[test]
     fn test_small_joltage_difference() {
-        let a = vec![16, 10, 15, 5, 1, 11, 7, 19, 6, 12, 4];
+        let mut a = vec![16, 10, 15, 5, 1, 11, 7, 19, 6, 12, 4];
+        a.sort();
         assert_eq!(joltage_differences(a), vec![1, 3, 1, 1, 1, 3, 1, 1, 3, 1, 3, 3]);
     }
 
     #[test]
     fn test_large_joltage_difference() {
-        let a = vec![28, 33, 18, 42, 31, 14, 46, 20, 48, 47, 24, 23, 49, 45, 19,
+        let mut a = vec![28, 33, 18, 42, 31, 14, 46, 20, 48, 47, 24, 23, 49, 45, 19,
                      38, 39, 11, 1, 32, 25, 35, 8, 17, 7, 9, 4, 2, 34, 10, 3];
+        a.sort();
         let mut answ = joltage_differences(a);
         answ.sort();
         let mut s = vec![1; 22];
@@ -114,14 +117,13 @@ mod tests {
 
     #[test]
     fn test_simple_possible_routes() {
-        assert_eq!(possible_routes(vec![5,4,3,2,1]), 13);
+        assert_eq!(possible_routes(vec![1, 2, 3, 4, 5]), 13);
     }
 
     #[test]
     fn test_real_possible_routes() {
         let mut a = vec![16, 10, 15, 5, 1, 11, 7, 19, 6, 12, 4];
         a.sort();
-        a.reverse();
         assert_eq!(possible_routes(a), 8);
     }
 
@@ -130,7 +132,6 @@ mod tests {
         let mut a = vec![28, 33, 18, 42, 31, 14, 46, 20, 48, 47, 24, 23, 49, 45, 19,
                      38, 39, 11, 1, 32, 25, 35, 8, 17, 7, 9, 4, 2, 34, 10, 3];
         a.sort();
-        a.reverse();
         assert_eq!(possible_routes(a), 19_208);
     }
 }
