@@ -22,19 +22,16 @@ fn main() -> io::Result<()> {
         Space::from(space.as_str(), args.n)
             .nth(5)
             .expect("6th cycle")
-            .active()
     } else if args.part_two {
         // input2: 1980
         Space::from(space.as_str(), 4)
             .nth(5)
             .expect("6th cycle")
-            .active()
     } else {
         // input2: 362
         Space::from(space.as_str(), 3)
             .nth(5)
             .expect("6th cycle")
-            .active()
     };
     println!("{}", result);
     Ok(())
@@ -45,17 +42,25 @@ type Coords = Vec<Vec<isize>>;
 struct Space(Coords);
 
 impl Iterator for Space {
-    type Item = Self;
+    type Item = usize;
 
-    fn next(&mut self) -> Option<Self> {
+    fn next(&mut self) -> Option<Self::Item> {
         let d = self.dimension();
         let new_space = self.0.iter()
             .fold(vec![-1..=1; d], |acc, coords| {
                 acc.iter()
                     .enumerate()
                     .map(|(i, r)| {
-                        let lb = if &coords[i] <= r.start() { coords[i] - 1 } else { *r.start() };
-                        let ub = if &coords[i] >= r.end() { coords[i] + 1 } else { *r.end() };
+                        let lb = if &coords[i] <= r.start() {
+                            coords[i] - 1
+                        } else {
+                            *r.start()
+                        };
+                        let ub = if &coords[i] >= r.end() {
+                            coords[i] + 1
+                        } else {
+                            *r.end()
+                        };
                         lb..=ub
                     })
                     .collect()
@@ -87,7 +92,7 @@ impl Iterator for Space {
                 acc
             });
     
-        Some(Space(self.0.clone()))
+        Some(self.active())
     }
 }
 
@@ -140,7 +145,8 @@ mod tests {
     #[test]
     fn test_cycle_one() {
         let mut space = Space::from(".#.\n..#\n###", 3);
-        assert_eq!(space.next().unwrap().0, vec![
+        space.next();
+        assert_eq!(space.0, vec![
             vec![0, 1, -1],
             vec![0, 1, 0],
             vec![0, 1, 1],
@@ -158,18 +164,18 @@ mod tests {
     #[test]
     fn test_active_coords() {
         let mut space = Space::from(".#.\n..#\n###", 3);
-        assert_eq!(space.next().unwrap().active(), 11);
+        assert_eq!(space.next().unwrap(), 11);
     }
 
     #[test]
     fn test_full_cycle() {
         let mut space = Space::from(".#.\n..#\n###", 3);
-        assert_eq!(space.nth(5).unwrap().active(), 112);
+        assert_eq!(space.nth(5).unwrap(), 112);
     }
 
-    #[test]
+    #[test] #[ignore]
     fn test_full_cycle_part_two() {
         let mut space = Space::from(".#.\n..#\n###", 4);
-        assert_eq!(space.nth(5).unwrap().active(), 848);
+        assert_eq!(space.nth(5).unwrap(), 848);
     }
 }
