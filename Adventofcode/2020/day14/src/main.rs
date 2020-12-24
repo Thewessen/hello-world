@@ -23,6 +23,14 @@ fn main() -> io::Result<()> {
         .filter_map(|line| line.ok())
         .filter(|line| !line.is_empty())
         .collect();
+
+    // --part1--
+    // input: 11327140210986
+    // input2: 5875750429995
+    //
+    // --part2--
+    // input: 2308180581795
+    // input2: 5272149590143
      let result = Mem::from_instructs(instructs, args.v2).calc_value();
      println!("{}", result);
     Ok(())

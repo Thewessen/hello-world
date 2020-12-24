@@ -22,6 +22,13 @@ fn main() -> io::Result<()> {
         .filter(|line| !line.is_empty())
         .collect::<Vec<String>>();
 
+    // --part1--
+    // input: 2338
+    // input2: 2386
+    //
+    // --part2--
+    // input: 2134
+    // input2: 2091
     let result = stable_free(&seats, &args.new_rules);
     println!("{}", result);
 

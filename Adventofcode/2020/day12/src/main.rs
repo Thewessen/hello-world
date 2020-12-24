@@ -23,6 +23,14 @@ fn main() -> io::Result<()> {
         .collect::<Vec<String>>();
     let mut ferry = Ferry::default();
     process_instructs(&instructs, &mut ferry, args.waypoint);
+
+    // --part1--
+    // input: 1457
+    // input2: 882
+    //
+    // --part2--
+    // input: 106860
+    // input2: 28885
     println!("{}", ferry.calculate_distance());
     Ok(())
 }

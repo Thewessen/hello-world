@@ -25,6 +25,7 @@ fn main() -> io::Result<()> {
         .filter_map(|line| line.ok());
     let ticket_data = TicketData::from(data);
     let result = if args.part_two {
+        // input: 279139880759
         // input2: 3765150732757
         ticket_data
             .your_fields()
@@ -33,6 +34,7 @@ fn main() -> io::Result<()> {
             .map(|f| f.value)
             .fold(1, |a, b| a * b)
     } else {
+        // input: 27802
         // input2: 23044
         ticket_data.sum_invalid_nearby()
     };

@@ -32,8 +32,12 @@ fn main() -> io::Result<()> {
         .collect();
 
     if args.part_two {
+        // input: 560214575859998
+        // input2: 230903629977901
         println!("{}", first_special_timestamp(schema));
     } else {
+        // input: 2238
+        // input2: 4938
         let depart = depart
             .trim()
             .parse::<u32>()

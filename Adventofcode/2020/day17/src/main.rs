@@ -23,11 +23,13 @@ fn main() -> io::Result<()> {
             .nth(5)
             .expect("6th cycle")
     } else if args.part_two {
+        // input: 1492
         // input2: 1980
         Space::from(space.as_str(), 4)
             .nth(5)
             .expect("6th cycle")
     } else {
+        // input: 209
         // input2: 362
         Space::from(space.as_str(), 3)
             .nth(5)
