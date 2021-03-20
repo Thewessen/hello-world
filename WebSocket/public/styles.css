@@ -1,0 +1,27 @@
+.hidden {
+  visibility: hidden;
+}
+.messages {
+  width: 350px;
+  padding: 8px;
+  overflow: auto;
+}
+.message {
+  padding: 4px 16px;
+  border: 1px solid #b0b0b0;
+  border-radius: 8px;
+  box-shadow: 0px 0px 10px 0 #b0b0b0;
+  font-family: 'sans-serif';
+}
+.client {
+  background-color: #afd1a3;
+  width: 40px;
+  margin-right: 270px;
+  float: left;
+  text-align: center;
+}
+.server {
+  background-color: #f9f9f9;
+  width: 300px;
+  float: right;
+}
