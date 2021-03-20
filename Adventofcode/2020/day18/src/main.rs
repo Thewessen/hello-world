@@ -21,7 +21,9 @@ fn main() -> io::Result<()> {
     let data = reader
         .lines()
         .filter_map(|line| line.ok());
+    // input (part-one): 3348222486398
     // input2 (part-one): 12918250417632
+    // input (part-two): 43423343619505
     // input2 (part-two): 171259538712010
     let result = data
         .map(|line| eval(line.as_str(), part_two))

@@ -24,9 +24,13 @@ fn main() -> io::Result<()> {
         .collect::<Vec<u64>>();
     numbers.sort();
     if args.part_two {
+        // input: 113387824750592
+        // input2: 48358655787008
         let result = possible_routes(numbers);
         println!("{}", result);
     } else {
+        // input: 1917
+        // input2: 2380
         let diffs = joltage_differences(numbers);
         let (a, b) = count_diffs(diffs);
         println!("{}", a * b);
