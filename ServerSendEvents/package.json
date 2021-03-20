@@ -1,6 +1,7 @@
 {
   "name": "serversendevents",
   "version": "1.0.0",
+  "private": true,
   "description": "A SSE implementation with express in node",
   "main": "index.js",
   "scripts": {

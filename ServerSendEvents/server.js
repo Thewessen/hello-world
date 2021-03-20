@@ -1,14 +1,13 @@
-// @repl-it-link:https://repl.it/@4shub/server-sent-events-node
 const express = require('express');
 
-const server = express();
+const app = express();
 const port = 3000;
 
-server.get('/', (req, res) => {
+app.get('/', (req, res) => {
   res.sendFile('./index.html', { root: __dirname });
 });
 
-server.get('/stream-random-numbers', (req, res) => {
+app.get('/stream-random-numbers', (req, res) => {
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
 
@@ -39,6 +38,6 @@ server.get('/stream-random-numbers', (req, res) => {
 });
 
 
-server.listen(port, () => console.log(`Example app listening at 
+app.listen(port, () => console.log(`Example app listening at 
     http://localhost:${port}`));
 
