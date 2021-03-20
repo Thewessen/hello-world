@@ -1,0 +1,14 @@
+{
+  "name": "serversendevents",
+  "version": "1.0.0",
+  "description": "A SSE implementation with express in node",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "sthewessen@gmail.com",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}

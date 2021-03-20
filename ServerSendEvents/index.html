@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title></title>
+</head>
+<div id="root"></div>
+<body>
+  <script>
+    (function () {
+      const source = new EventSource('/stream-random-numbers');
+      source.onmessage = function (message) {
+        const root = document.getElementById('root');
+        const { value } = JSON.parse(message.data);
+        const p = document.createElement('p');
+        p.innerHTML = value;
+        root.appendChild(p);
+      };
+    })()
+  </script>
+</body>
+</html>
