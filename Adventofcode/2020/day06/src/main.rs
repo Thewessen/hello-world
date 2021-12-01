@@ -1,7 +1,8 @@
-use std::io::{Result};
+use std::io::{self, BufRead, BufReader};
 use std::path::PathBuf;
 use structopt::StructOpt;
-use std::fs::read_to_string;
+use std::fs::File;
+use itertools::Itertools;
 
 #[derive(StructOpt, Debug)]
 struct Cli {
@@ -12,47 +13,60 @@ struct Cli {
     part_two: bool,
 }
 
-fn main() -> Result<()> {
+fn main() -> io::Result<()> {
     let args = Cli::from_args();
-    let content = read_to_string(args.file)?;
+    let file = File::open(args.file)?;
+    let reader = BufReader::new(file);
+    let mut groups = reader.lines()
+        .filter_map(|line| line.ok())
+        .batching(|total| {
+            let group: Vec<String> = total
+                .take_while(|line| !line.is_empty())
+                .collect();
+            match group.is_empty() {
+                true => None,
+                false => Some(group),
+            }
+        });
     if args.part_two {
-        println!("{:?}", count_all_answered(&content));
+        // input2: 3356
+        println!("{:?}", count_all_answered(&mut groups));
     } else {
-        println!("{:?}", count_answered(&content));
+        // input2: 6775
+        println!("{:?}", count_answered(&mut groups));
     }
     Ok(())
 }
 
-fn count_answered(total: &str) -> u32 {
-    total
-        .split("\n\n")
-        .map(|group| group
+fn count_answered<I>(groups: &mut I) -> u32
+where I: Iterator<Item = Vec<String>> {
+    groups.fold(0, |count, group| {
+        count + group
+            .iter()
+            .join("")
             .chars()
-            .filter(|ch| ch != &'\n')
-            .fold(&mut vec![], |acc, curr| {
-                if !acc.contains(&curr) {
-                    acc.push(curr);
-                }
-                acc
-            })
-            .len() as u32
-        )
-        .fold(0, |a, b| a + b)
+            .unique()
+            .count() as u32
+    })
 }
 
-fn count_all_answered(total: &str) -> u32 {
-    total
-        .split("\n\n")
-        .map(|group| {
-            let mut persons = group.split('\n').filter(|person| !person.is_empty());
-            let first = persons.next().unwrap_or("");
-            let rest = persons.collect::<Vec<&str>>();
-            let count = first.chars().fold(0, |count, ans| {
-                count + rest.iter().all(|answers| answers.contains(ans)) as u32
-            });
-            count
-        })
-        .fold(0, |a, b| a + b)
+fn count_all_answered<I>(groups: &mut I) -> u32
+where I: Iterator<Item = Vec<String>> {
+    groups.fold(0, |count, group| {
+        if group.is_empty() { count }
+        else {
+            let mut persons = group.iter();
+            let first = persons.next().unwrap();
+            count + first.chars().fold(0, |c, ans| {
+                c + persons.clone()
+                    .all(|answers| answers.contains(ans)) as u32
+            })
+        }
+    })
+}
+
+trait IteratorExt: Iterator {
+    fn into_groups(&mut self) -> Self;
 }
 
 #[cfg(test)]
@@ -61,37 +75,51 @@ mod tests {
 
     #[test]
     fn count_empty_lines() {
-        let s = "\n\n\n\n\n\n\n\n";
-        assert_eq!(count_answered(s), 0);
+        let s = vec![vec![]];
+        assert_eq!(count_answered(&mut s.iter().cloned()), 0);
     }
 
     #[test]
     fn count_one_group() {
-        let s = "abcx\nabcy\nabcz";
-        assert_eq!(count_answered(s), 6);
+        let s = vec![vec![
+            "abcx".to_string(),
+            "abcy".to_string(),
+            "abcz".to_string()
+        ]];
+        assert_eq!(count_answered(&mut s.iter().cloned()), 6);
     }
 
     #[test]
     fn count_answered_true() {
-        let s = "abc\n\na\nb\nc\n\nab\nac\n\na\na\na\na\n\nb";
-        assert_eq!(count_answered(s), 11);
-    }
-
-    #[test]
-    fn count_all_empty_lines() {
-        let s = "\n\n\n\n\n\n\n\n";
-        assert_eq!(count_all_answered(s), 0);
+        let s = vec![
+            vec!["abc".to_string()],
+            vec!["a".to_string(), "b".to_string(), "c".to_string()],
+            vec!["ab".to_string(), "ac".to_string()],
+            vec!["a".to_string(), "a".to_string(), "a".to_string(), "a".to_string()],
+            vec!["b".to_string()]
+        ];
+        assert_eq!(count_answered(&mut s.iter().cloned()), 11);
     }
 
     #[test]
     fn count_all_one_group() {
-        let s = "abcx\nabcy\nabcz";
-        assert_eq!(count_all_answered(s), 3);
+        let s = vec![vec![
+            "abcx".to_string(),
+            "abcy".to_string(),
+            "abcz".to_string()
+        ]];
+        assert_eq!(count_all_answered(&mut s.iter().cloned()), 3);
     }
 
     #[test]
     fn count_all_answered_true() {
-        let s = "abc\n\na\nb\nc\n\nab\nac\n\na\na\na\na\n\nb";
-        assert_eq!(count_all_answered(s), 6);
+        let s = vec![
+            vec!["abc".to_string()],
+            vec!["a".to_string(), "b".to_string(), "c".to_string()],
+            vec!["ab".to_string(), "ac".to_string()],
+            vec!["a".to_string(), "a".to_string(), "a".to_string(), "a".to_string()],
+            vec!["b".to_string()]
+        ];
+        assert_eq!(count_all_answered(&mut s.iter().cloned()), 6);
     }
 }
