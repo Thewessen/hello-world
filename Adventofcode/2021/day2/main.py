@@ -34,15 +34,19 @@ class BaseSubState:
         """Increases depth by s"""
         self.depth += s
 
-    def process_instructions(self, instructions: Iterable):
+    def process_instructions(self, instructions: Iterable, verbose = False):
         """Calls corresponding class method for each instruction"""
+        if verbose:
+            print(self)
         for instr in instructions:
             d, s = instr.split(' ')
             if hasattr(self, d):
                 getattr(self, d)(int(s))
             else:
-                print(f'Unknown instruction {d}. Terminating...')
+                print(f"Unknown instruction '{instr}'. Terminating...")
                 exit(1)
+            if verbose:
+                print(f'{instr} -> {self}')
 
     def sol(self) -> int:
         """Returns the solution of the current state"""
@@ -90,20 +94,18 @@ def main():
                         help=("Print the solution for part 2 "
                               "(default: part 1 is printed)"))
     parser.add_argument('-v', '--verbose', action='store_true',
-                        help=("Also prints the last state of the submarine"
+                        help=("Also prints the end-state of the submarine"
                               "(default: False)"))
     args = parser.parse_args()
 
-    with open(args.path, 'r') as data:
-        if args.part2:
-            state = AdvSubState(0, 0, 0)
-            state.process_instructions(data.readlines())
-        else:
-            state = BaseSubState(0, 0)
-            state.process_instructions(data.readlines())
+    if args.part2:
+        state = AdvSubState(0, 0, 0)
+    else:
+        state = BaseSubState(0, 0)
 
-    if args.verbose:
-        print(state)
+    with open(args.path, 'r') as data:
+        state.process_instructions(data, args.verbose)
+
     print(state.sol())
 
 

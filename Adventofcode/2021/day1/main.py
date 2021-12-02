@@ -2,37 +2,45 @@
 
 from argparse import ArgumentParser
 from typing import Callable, Optional
-from collections.abc import Iterable
+from collections.abc import Iterator
+from functools import reduce
+from more_itertools import take
 
 
-def create_filter_incr() -> Callable[[str], bool]:
-    """Filter function for increasing data"""
+def sum_increasing() -> Callable[[int, str], int]:
+    """Counts when data is increasing"""
     mem: Optional[int] = None
-    def increasing(data):
+    def increasing(acc, curr):
         nonlocal mem
         prev = mem
-        mem = int(data)
-        return prev is not None and prev < int(data)
+        mem = int(curr)
+        return acc + int(prev is not None and prev < int(curr))
     return increasing
 
 
-def count_increasing(measurements: Iterable) -> int:
+def count_increasing(measurements: Iterator) -> int:
     """Count the number of times the measurement is increasing
     (see README part 1)"""
-    data = filter(create_filter_incr(), measurements)
-    return sum(1 for _ in data)
+    return reduce(sum_increasing(), measurements, 0)
 
 
-def window_sum(data: list[str], size=1):
+def window_sum(data: Iterator[str], size=1) -> Iterator[int]:
     """Sum the data for a given window"""
-    for i in range(0, len(data) - size + 1):
-        yield sum(int(d) for d in data[i:i+size])
+    window = take(size, data) 
+    lines = enumerate(data) 
+
+    if len(window) == size:
+        yield sum(int(d) for d in window)
+
+    for index, line in lines:
+        window[index % size] = line
+        yield sum(int(d) for d in window)
 
 
-def count_windowed_increasing(measurements: list[str]) -> int:
+def count_windowed_increasing(measurements: Iterator[str], window_size: int) -> int:
     """Count the number of times the sanitized measurement is increasing
     (see README part 2)"""
-    return count_increasing(window_sum(measurements, 3))
+    return count_increasing(window_sum(measurements, window_size))
 
 
 def main():
@@ -45,9 +53,9 @@ def main():
     args = parser.parse_args()
     with open(args.path, 'r') as data:
         if args.part2:
-            print(count_windowed_increasing(data.readlines()))
+            print(count_windowed_increasing(data, 3))
         else:
-            print(count_increasing(data.readlines()))
+            print(count_increasing(data))
 
 
 if __name__ == '__main__':

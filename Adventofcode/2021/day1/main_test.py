@@ -9,7 +9,7 @@ class MainTest(unittest.TestCase):
 
     def test_part_2_example(self):
         exmpl = ['199', '200', '208', '210', '200', '207', '240', '269', '260', '263']
-        self.assertIs(count_windowed_increasing(exmpl), 5)
+        self.assertIs(count_windowed_increasing(exmpl, 3), 5)
 
 
 if __name__ == '__main__':
