@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 from typing import Callable, Optional
 from collections.abc import Iterator
 from functools import reduce
-from more_itertools import take
+from more_itertools import triplewise
 
 
 def sum_increasing() -> Callable[[int, str], int]:
@@ -24,23 +24,16 @@ def count_increasing(measurements: Iterator) -> int:
     return reduce(sum_increasing(), measurements, 0)
 
 
-def window_sum(data: Iterator[str], size=1) -> Iterator[int]:
+def window_sum(data: Iterator[str]) -> Iterator[int]:
     """Sum the data for a given window"""
-    window = take(size, data) 
-    lines = enumerate(data) 
-
-    if len(window) == size:
-        yield sum(int(d) for d in window)
-
-    for index, line in lines:
-        window[index % size] = line
+    for window in triplewise(data):
         yield sum(int(d) for d in window)
 
 
-def count_windowed_increasing(measurements: Iterator[str], window_size: int) -> int:
+def count_windowed_increasing(measurements: Iterator[str]) -> int:
     """Count the number of times the sanitized measurement is increasing
     (see README part 2)"""
-    return count_increasing(window_sum(measurements, window_size))
+    return count_increasing(window_sum(measurements))
 
 
 def main():
@@ -53,7 +46,7 @@ def main():
     args = parser.parse_args()
     with open(args.path, 'r') as data:
         if args.part2:
-            print(count_windowed_increasing(data, 3))
+            print(count_windowed_increasing(data))
         else:
             print(count_increasing(data))
 
