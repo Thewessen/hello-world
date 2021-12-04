@@ -1,8 +1,6 @@
 #!/usr/bin/env python3.9
 
-import os
-import sys
-import requests
+import os, subprocess, requests
 from bs4 import BeautifulSoup
 from markdownify import markdownify
 from dotenv import load_dotenv
@@ -27,10 +25,7 @@ def get_base_url(day: int) -> str:
 def get_session():
     """So the servers knows who I am..."""
     s = requests.session()
-    c = requests.cookies.create_cookie(
-        name='session',
-        value=os.environ.get('SESSION'))
-    s.cookies.set_cookie(c)
+    s.cookies.set('session', os.environ.get('SESSION'))
     return s
 
 
@@ -70,7 +65,7 @@ def main():
         print("Only positive intergers are allowed")
         exit(1)
 
-    path = os.path.join(os.environ.get('ROOT'), f'day{args.day}')
+    path = os.path.join(os.environ.get('ROOT', './'), f'day{args.day}')
     if not os.path.isdir(path):
         os.mkdir(path)
 
@@ -80,8 +75,7 @@ def main():
         with open(docpath, 'w') as doc:
             doc.write(desc)
     else:
-        with open(docpath, 'r') as doc:
-            print(doc.read())
+        print('Puzzle description file already exists')
 
     inputpath = os.path.join(path, 'input')
     if not os.path.isfile(inputpath) or args.force:
@@ -91,6 +85,8 @@ def main():
     else:
         print('Puzzle input file already exists')
 
+    subprocess.call('/usr/bin/bat --style=plain,rule --terminal-width=80 '
+                    + docpath, shell=True)
 
 if __name__ == '__main__':
     main()
