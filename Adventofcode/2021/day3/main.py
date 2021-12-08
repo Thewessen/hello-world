@@ -76,7 +76,7 @@ def calc_oxygen_co2_rate(data: list[str]) -> tuple[int, int]:
 
 
 def main():
-    parser = ArgumentParser(description="Day 2 solution")
+    parser = ArgumentParser(description="Day 3 solution")
     parser.add_argument('path', nargs='?', type=str, default='./input',
                         help="The path to the input file (default: ./input)")
     parser.add_argument('-2', '--part2', action='store_true',
