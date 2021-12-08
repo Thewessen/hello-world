@@ -1,16 +1,16 @@
 import unittest
-from main import get_card
+from main2 import get_card_score
 
 class MainTest(unittest.TestCase):
     def test_part_1_example(self):
         with open('./test_input') as data:
-            best = get_card(data, min)
-        self.assertEqual(best.score(), 4512)
+            r = get_card_score(data, min)
+        self.assertEqual(r, 4512)
                     
     def test_part_2_example(self):
         with open('./test_input') as data:
-            best = get_card(data, max)
-        self.assertEqual(best.score(), 1924)
+            r = get_card_score(data, max)
+        self.assertEqual(r, 1924)
 
 if __name__ == '__main__':
     unittest.main()

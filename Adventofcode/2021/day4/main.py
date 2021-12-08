@@ -2,11 +2,12 @@
 
 import re
 from argparse import ArgumentParser
-from typing import Iterator, Generator, Optional
+from typing import Iterator, Generator, Optional, Callable
 from itertools import groupby
 
 
 class BingoCard:
+    """A 5x5 card containing some given numbers."""
     def __init__(self, card):
         if len(card) != 5 or any(len(row) != 5 for row in card):
             print('Invalid bingo card', card)
@@ -23,14 +24,15 @@ class BingoCard:
 
     def get_numbers(self):
         for row in self.get_rows():
-            for number in row:
-                yield number
+            for n in row:
+                yield n
 
 
 class FilledBingoCard(BingoCard):
+    """A 5x5 card where bingo is reach after x numbers are drawn."""
     def __init__(self, card, numbers: list[int]):
         super().__init__(card)
-        self._numbers = []
+        self._filled = []
         bingo = self._bingo()
         bingo.send(None)
         for n in numbers:
@@ -40,66 +42,49 @@ class FilledBingoCard(BingoCard):
     def _bingo(self) -> Generator[bool, Optional[int], None]:
         while True:
             n = yield self.has_bingo()
-            self._numbers.append(n)
+            self._filled.append(n)
 
     def turns(self):
-        return len(self._numbers)
+        return len(self._filled)
 
     def has_bingo(self) -> bool:
-        def can_fill(line):
-            return all(map(lambda i: i in self._numbers, line))
+        def is_filled(line):
+            return all(map(lambda i: i in self._filled, line))
 
-        return (any(can_fill(row) for row in self.get_rows())
-                or any(can_fill(column) for column in self.get_columns()))
+        return (any(is_filled(row) for row in self.get_rows())
+                or any(is_filled(column) for column in self.get_columns()))
 
     def score(self):
-        return (sum(filter(lambda n: n not in self._numbers,
-                           self.get_numbers()))
-                * self._numbers[-1])
+        unfilled = filter(lambda n: n not in self._filled, self.get_numbers())
+        return sum(unfilled) * self._filled[-1]
 
-
-
-def chunk(pred, it):
-    l = []
-    for value in it:
-        if pred(value):
-            yield l
-            l = []
-        else:
-            l.append(value)
 
 
 def get_cards(data: Iterator[str]) -> Iterator[list[list[int]]]:
+    """Yields all containing 5x5 bingo cards in given data.
+    Assumes the data contains only bingo cards."""
     for card in (g for k, g in groupby(data, lambda line: line != '\n') if k):
-        num_card = []
-        for row in card:
-            num_card.append([int(d) for d in re.findall(r'\d+', row)])
-        yield num_card
+        yield [[int(d) for d in re.findall(r'\d+', row)] for row in card]
         
 
 def parse_input(data: Iterator[str])\
 -> tuple[list[int], Iterator[list[list[int]]]]:
-    numbers = list(map(lambda x: int(x), next(data).split(',')))
+    """Splits data in drawn numbers and bingo cards"""
+    numbers = [int(x) for x in next(data).split(',')]
     next(data)
     return numbers, get_cards(data)
 
 
-def get_best_card(data: Iterator[str]) -> FilledBingoCard:
+def get_card(data: Iterator[str], pred: Callable) -> FilledBingoCard:
+    """Pick a filled bingo card by min (best) or max (least best) turns until
+    bingo. (see README)"""
     numbers, cards = parse_input(data)
-    best = min(map(lambda card: FilledBingoCard(card, numbers), cards),
+    return pred((FilledBingoCard(card, numbers) for card in cards),
                 key=lambda c: c.turns())
-    return best
-
-
-def get_least_best_card(data: Iterator[str]) -> FilledBingoCard:
-    numbers, cards = parse_input(data)
-    least = max(map(lambda card: FilledBingoCard(card, numbers), cards),
-                key=lambda c: c.turns())
-    return least
 
 
 def main():
-    parser = ArgumentParser(description="Day 2 solution")
+    parser = ArgumentParser(description="Day 4 solution")
     parser.add_argument('path', nargs='?', type=str, default='./input',
                         help="The path to the input file (default: ./input)")
     parser.add_argument('-2', '--part2', action='store_true',
@@ -109,9 +94,9 @@ def main():
 
     with open(args.path, 'r') as data:
         if args.part2:
-            card = get_least_best_card(data)
+            card = get_card(data, max)
         else:
-            card = get_best_card(data)
+            card = get_card(data, min)
     print(card.score())
 
 
