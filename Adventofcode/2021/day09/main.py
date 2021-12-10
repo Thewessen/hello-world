@@ -4,66 +4,75 @@ from argparse import ArgumentParser
 from typing import Iterator
 from functools import reduce
 
+class Cloud:
+    """A helper class for easily retrieving data and checking conditions
+    from a grid like data structure."""
+    def __init__(self, data: Iterator[str]):
+        self._cloud = [[int(i) for i in line.strip()]
+                       for line in data]
 
-def parse_input(data: Iterator[str]) -> list[list[int]]:
-    return [[int(i) for i in line.strip()]
-            for line in data]
+    def in_bound(self, point) -> bool:
+        x, y = point
+        return x >= 0 and x < len(self._cloud) and y >= 0 and y < len(self._cloud[x])
+    
+    def get(self, point: tuple[int, int]) -> int:
+        x, y = point
+        return self._cloud[x][y]
 
-def lowest_points(cloud: list[list[int]]) -> Iterator[tuple[int, int]]:
-    for i, row in enumerate(cloud):
-        for j, _ in enumerate(row):
-            if is_lowest_point(cloud, (i, j), [(i - 1, j), (i + 1, j), (i, j - 1), (i, j + 1)]):
+    def all_coords(self):
+        for i, row in enumerate(self._cloud):
+            for j, _ in enumerate(row):
                 yield (i, j)
 
-def is_lowest_point(cloud: list[list[int]], coord: tuple[int, int], surr: list[tuple[int, int]], strict = True) -> bool:
-    x, y = coord
-    curr = cloud[x][y]
-    return all((i < 0 or i == len(cloud) or j < 0 or j == len(cloud[i])
-               or (strict and cloud[i][j] > curr)
-               or (not strict and cloud[i][j] >= curr) for i, j in surr))
+    def is_low_point(self, coord) -> bool:
+        if not self.in_bound(coord):
+            raise ValueError("Lowest point coord not in cloud")
 
-def get_basin(cloud: list[list[int]], coord: tuple[int, int]):
-    basin: list[tuple[int, int]] = [coord]
-    while True:
-        ext = []
-        for point in basin:
-            i, j = point
-            s = list(filter(lambda p: p not in basin and p not in ext,
-                       [(i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)]))
-            # print(s)
-            for p in s:
-                k, l = p
-                s_p = list(filter(lambda o: o not in basin and o not in ext,
-                    [(k + 1, l), (k - 1, l), (k, l + 1), (k, l - 1)]))
-                # print(p, s_p)
-                # print(p, s_p, k >= 0, l >= 0, k < len(coord), l < len(coord),
-                #         cloud[k][l])
-                if (k >= 0 and l >= 0 and k < len(cloud) and l < len(cloud[k])
-                    and cloud[k][l] != 9
-                    and is_lowest_point(cloud, p, s_p, False)):
-                    # print(p)
-                    ext.append(p)
-        if len(ext) == 0:
-            break
-        basin += ext
-    return basin
+        return all((not self.in_bound(surr)
+                    or self.get(surr) > self.get(coord)
+                    for surr in surrounding_points(coord)))
+
+    def lowest_points(self) -> Iterator[tuple[int, int]]:
+        for point in self.all_coords():
+            if self.is_low_point(point):
+                yield point
+
+    def get_basin(self, coord: tuple[int, int]):
+        basin: list[tuple[int, int]] = [coord]
+        while True:
+            ext = []
+            for point in basin:
+                surroundings = filter(lambda p: p not in basin and p not in ext,
+                                      surrounding_points(point))
+                for surr in surroundings:
+                    if (self.in_bound(surr) and self.get(surr) != 9):
+                        ext.append(surr)
+            if len(ext) == 0:
+                break
+            basin += ext
+        return basin
+
+
+def surrounding_points(point: tuple[int, int]) -> Iterator[tuple[int, int]]:
+    """Yields all points (coords) surrounding a given point."""
+    x, y = point
+    yield x - 1, y
+    yield x + 1, y
+    yield x, y - 1
+    yield x, y + 1
 
 
 def calc_total_risk(data: Iterator[str]) -> int:
-    cloud = parse_input(data)
-    return sum(cloud[x][y] + 1 for x, y in lowest_points(cloud))
+    """Calculates the total risk. (see README part 1)"""
+    cloud = Cloud(data)
+    return sum(cloud.get(point) + 1 for point in cloud.lowest_points())
 
 
-def get_basins(cloud: list[list[int]]) -> Iterator[list[tuple[int, int]]]:
-    for point in lowest_points(cloud):
-        # print(point)
-        # print(get_basin(cloud, point))
-        yield get_basin(cloud, point)
-
-
-def sol_2(data: Iterator[str]):
-    cloud = parse_input(data)
-    basins = sorted(get_basins(cloud), key=len)
+def three_largest_basins(data: Iterator[str]):
+    """Multiplies the size of the three largest basins. (see README part 2)"""
+    cloud = Cloud(data)
+    basins = sorted((cloud.get_basin(point)
+                     for point in cloud.lowest_points()), key=len)
     return reduce(lambda acc, curr: acc * len(curr), basins[-3:], 1)
 
 
@@ -78,7 +87,7 @@ def main():
 
     with open(args.path, 'r') as data:
         if args.part2:
-            r = sol_2(data)
+            r = three_largest_basins(data)
         else:
             r = calc_total_risk(data)
     print(r)
