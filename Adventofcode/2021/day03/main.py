@@ -33,8 +33,9 @@ def calc_gamma_epsilon_bin(acc: tuple[str, str], curr: tuple[int, int]) -> tuple
 
 def calc_gamma_epsilon_rate(data: Iterator[str]) -> tuple[int, int]:
     """Given lines of binary string, returns the gamma-, epsilon-rates as tuple."""
+    sannitized = (line.strip() for line in data)
     bit_balance = (reduce(calc_bit_balance, position, 0)
-                   for position in zip(*data))
+                   for position in zip(*sannitized))
     gamm_eps_bits = map(gamma_epsilon_bits, bit_balance)
     gamma_bin, epsilon_bin = reduce(calc_gamma_epsilon_bin, gamm_eps_bits, ('', '')) 
     return int(gamma_bin, 2), int(epsilon_bin, 2)

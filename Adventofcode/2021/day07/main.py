@@ -2,6 +2,7 @@
 
 from argparse import ArgumentParser
 from typing import Iterator
+from math import ceil, floor
 
 def calc_cheapest_horz_position(data: Iterator[str]) -> int:
     """Finds a point which requires all points in a given input to travel the
@@ -16,10 +17,10 @@ def calc_cheapest_horz_position_crab_engineering(data: Iterator[str]) -> int:
     least amount of distance"""
     positions = list(int(h) for h in next(data).split(','))
     # I would suspect round here ?!?
-    b = int(sum(positions) / len(positions))
-    return sum(int(abs(p - b) * (abs(p - b) + 1) / 2)
-               for p in positions)
-
+    low = floor(sum(positions) / len(positions))
+    high = ceil(sum(positions) / len(positions))
+    return min(sum(int(abs(p - low) * (abs(p - low) + 1) / 2) for p in positions),
+               sum(int(abs(p - high) * (abs(p - high) + 1) / 2) for p in positions))
 def main():
     parser = ArgumentParser(description="Day 7 solution")
     parser.add_argument('path', nargs='?', type=str, default='./input',

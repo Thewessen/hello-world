@@ -65,7 +65,7 @@ def main():
         print("Only positive intergers are allowed")
         exit(1)
 
-    path = os.path.join(os.environ.get('ROOT', './'), f'day{args.day}')
+    path = os.path.join(os.environ.get('ROOT', './'), f'day{args.day:02}')
     if not os.path.isdir(path):
         os.mkdir(path)
 
