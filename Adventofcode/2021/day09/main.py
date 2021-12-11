@@ -2,7 +2,7 @@
 
 from argparse import ArgumentParser
 from typing import Iterator
-from functools import reduce
+from numpy import prod
 
 class Cloud:
     """A helper class for easily retrieving data and checking conditions
@@ -38,19 +38,18 @@ class Cloud:
                 yield point
 
     def get_basin(self, coord: tuple[int, int]):
-        basin: list[tuple[int, int]] = [coord]
-        while True:
-            ext = []
-            for point in basin:
-                surroundings = filter(lambda p: p not in basin and p not in ext,
-                                      surrounding_points(point))
-                for surr in surroundings:
-                    if (self.in_bound(surr) and self.get(surr) != 9):
-                        ext.append(surr)
-            if len(ext) == 0:
-                break
-            basin += ext
+        basin = {coord}
+        ext = self._extra_basin_coords(basin)
+        while len(ext) > 0:
+            basin |= ext
+            ext = self._extra_basin_coords(basin)
         return basin
+
+    def _extra_basin_coords(self, basin: set[tuple[int, int]]):
+        return {s for point in basin
+                  for s in filter(lambda p: p not in basin,
+                                  surrounding_points(point))
+                  if (self.in_bound(s) and self.get(s) != 9)}
 
 
 def surrounding_points(point: tuple[int, int]) -> Iterator[tuple[int, int]]:
@@ -73,7 +72,7 @@ def three_largest_basins(data: Iterator[str]):
     cloud = Cloud(data)
     basins = sorted((cloud.get_basin(point)
                      for point in cloud.lowest_points()), key=len)
-    return reduce(lambda acc, curr: acc * len(curr), basins[-3:], 1)
+    return prod([len(basin) for basin in basins[-3:]])
 
 
 def main():
