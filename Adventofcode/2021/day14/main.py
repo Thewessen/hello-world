@@ -4,9 +4,24 @@ from argparse import ArgumentParser
 from typing import Iterator
 from more_itertools import sliding_window
 from collections import Counter
+from functools import wraps
 
-def count_elements(polymer: tuple[str, str], rules: dict, steps: int) -> Counter:
-    a, b = polymer
+def cached(fn):
+    """A cache decorator specially designed for the count_elements function."""
+    cache = dict()
+    @wraps(fn)
+    def counter(*args):
+        a, b = args[0]
+        cache_key = a + b + str(args[2])
+        if cache.get(cache_key) is None:
+            cache[cache_key] = fn(*args)
+        return cache[cache_key]
+    return counter
+
+@cached
+def count_elements(polymer_pair: tuple[str, str], rules: dict, steps: int) -> Counter:
+    """Returns a Counter for a single polymer pair after n `steps`."""
+    a, b = polymer_pair
     if steps == 0:
         return Counter(a)
     return (count_elements((a, rules[a + b]), rules, steps - 1) +
@@ -14,6 +29,7 @@ def count_elements(polymer: tuple[str, str], rules: dict, steps: int) -> Counter
 
 
 def count_polymer(polymer: str, rules: dict, steps: int) -> Counter:
+    """Returns a Counter for all elements in the polymer after n `steps`."""
     c = Counter(polymer[-1])
     for a, b in sliding_window(polymer, 2):
         c += count_elements((a, b), rules, steps)
@@ -21,32 +37,16 @@ def count_polymer(polymer: str, rules: dict, steps: int) -> Counter:
 
 
 def parse_input(data: Iterator[str]) -> tuple[str, dict]:
+    """Splits the given input-data into a starting polymer and a rules dict."""
     polymer = next(data).strip()
     next(data)
-    rules = dict()
-    for line in data:
-        k, v = line.strip().split(' -> ')
-        rules[k] = v
+    rules = dict(line.strip().split(' -> ') for line in data)
     return polymer, rules
 
 
-# def apply_pair_insertion(p: Iterator[str], rules: dict) -> Iterator[str]:
-#     inc_first = True
-#     for a, b in sliding_window(p, 2):
-#         if inc_first:
-#             yield a
-#         yield rules[a + b]
-#         yield b
-#         inc_first = False
-    
-
-# def pair_insertion(data: Iterator[str], steps: int) -> Iterator[str]:
-#     polymer, rules = parse_input(data)
-#     for _ in range(steps):
-#         polymer = apply_pair_insertion(polymer, rules)
-#     return polymer
-    
 def score_polymer(data: Iterator[str], steps: int) -> int:
+    """Returns the different between the max occuring elements and min occuring
+    elements in a polymer (see README)."""
     polymer, rules = parse_input(data)
     c = count_polymer(polymer, rules, steps)
     return max(c.values()) - min(c.values())
