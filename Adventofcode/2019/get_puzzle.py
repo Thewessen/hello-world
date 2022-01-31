@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
-import os, subprocess, requests
+import os, subprocess
 from bs4 import BeautifulSoup
 from markdownify import markdownify
 from dotenv import load_dotenv
 from argparse import ArgumentParser
 from datetime import date
+from api import intro, get_input
 
 
 def create_cli():
@@ -16,45 +17,11 @@ def create_cli():
     return parser.parse_args()
 
 
-def get_base_url(day: int) -> str:
-    """The default formatted url for adventofcode. Partially stored in env."""
-    url = os.environ.get('BASE_URL')
-    return f'{url}/day/{day}'
-
-
-def get_session():
-    """So the servers knows who I am..."""
-    s = requests.session()
-    s.cookies.set('session', os.environ.get('SESSION'))
-    return s
-
-
-def get_puzzle_description(day: int) -> str:
-    """Get the description for todays puzzle"""
-    s = get_session()
-    url = get_base_url(day)
-    print(f'Getting puzzle description for day {day} from {url}...')
-    r = s.get(url)
-    if r.status_code != 200:
-        print(r)
-        exit(1)
-    soup = BeautifulSoup(r.text, features="html.parser")
-    articles = ''.join(str(art) for art in soup.find_all('article'))
+def html_to_md(text: str, root = 'article') -> str:
+    soup = BeautifulSoup(text, features="html.parser")
+    articles = ''.join(str(art) for art in soup.find_all(root))
     md = markdownify(articles)
-    return md.replace('\n\n\n', '\n\n').strip()
-
-
-def get_puzzle_input(day: int) -> str:
-    """Get the user input for todays puzzle"""
-    s = get_session()
-    url = f'{get_base_url(day)}/input'
-    print(f'Getting puzzle input for day {day} from {url}...')
-    r = s.get(url)
-    if r.status_code != 200:
-        print(r)
-        exit(1)
-
-    return r.text.strip()
+    return  md.replace('\n\n\n', '\n\n').strip()
 
 
 def main():
@@ -65,13 +32,20 @@ def main():
         print("Only positive intergers are allowed")
         exit(1)
 
-    path = os.path.join(os.environ.get('ROOT', './'), f'day{args.day:02}')
+    root = os.environ.get('ROOT', './')
+    year = os.environ.get('YEAR', date.today().year)
+    path = os.path.join(root, str(year), f'day{args.day:02}')
     if not os.path.isdir(path):
         os.mkdir(path)
 
     docpath = os.path.join(path, 'README.md')
     if not os.path.isfile(docpath) or args.force:
-        desc = get_puzzle_description(args.day)
+        print(f'Getting puzzle description for day {args.day}...')
+        r = intro(args.day)
+        if r.status_code != 200:
+            print(r)
+            exit(1)
+        desc = html_to_md(r.text)
         with open(docpath, 'w') as doc:
             doc.write(desc)
     else:
@@ -79,7 +53,12 @@ def main():
 
     inputpath = os.path.join(path, 'input')
     if not os.path.isfile(inputpath) or args.force:
-        puzzle = get_puzzle_input(args.day)
+        print(f'Getting puzzle input for day {args.day}...')
+        r = get_input(args.day)
+        if r.status_code != 200:
+            print(r)
+            exit(1)
+        puzzle = r.text.strip()
         with open(inputpath, 'w') as i:
             i.write(puzzle)
     else:
@@ -87,6 +66,7 @@ def main():
 
     subprocess.call('/usr/bin/bat --style=plain,rule --terminal-width=80 '
                     + docpath, shell=True)
+
 
 if __name__ == '__main__':
     main()

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
-from argparse import ArgumentParser
+import sys
+sys.path.append('..')
+from cli import create_cli
 from typing import Iterator
 
 
@@ -35,24 +37,5 @@ def exact_fuel_requirements(data: Iterator[str]) -> int:
     return sum(calc_exact_fuel(mass) for mass in parse_input(data))
 
 
-def main():
-    parser = ArgumentParser(description="Day 1 solution")
-    parser.add_argument('path', nargs='?', type=str, default='./input',
-                        help="The path to the input file (default: ./input)")
-    parser.add_argument('-2', '--part2', action='store_true',
-                        help=("Print the solution for part 2 " +
-                              "(default: part 1 is printed)"))
-    parser.add_argument('-p', '--post', action='store_true',
-                        help=("Print the solution for part 2 " +
-                              "(default: part 1 is printed)"))
-    args = parser.parse_args()
-    with open(args.path, 'r') as data:
-        if args.part2:
-            r = exact_fuel_requirements(data)
-        else:
-            r = fuel_requirements(data)
-    print(r)
-
-
 if __name__ == '__main__':
-    main()
+    create_cli(1, part1=fuel_requirements, part2=exact_fuel_requirements)
