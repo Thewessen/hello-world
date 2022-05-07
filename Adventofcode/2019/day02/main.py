@@ -2,48 +2,27 @@
 
 import sys
 sys.path.append('..')
+sys.path.append('../intcode_computer')
 from cli import create_cli
-from typing import Iterator, List
-from itertools import count, tee, product
+from Program import Program
+from typing import Iterator
+from itertools import tee, product
+from more_itertools import consume
 
 
-def parse_input(data: str) -> List[int]:
-    """Parses module mass from puzzle input"""
-    return [int(n) for n in data.split(',')]
-
-
-def program(mem: List[int]) -> List[int]:
-    """Executes an int list of memory and returns the memory after the program
-    finishes. Mutates the memory."""
-    for c in count(0, 4):
-        op = mem[c]
-        if op == 99:
-            break
-        a = mem[mem[c + 1]]
-        b = mem[mem[c + 2]]
-        if op == 1:
-            mem[mem[c + 3]] = a + b
-        elif op == 2:
-            mem[mem[c + 3]] = a * b
-        else:
-            raise ValueError(f"Unknown opcode {op}")
-    return mem
-
-
-def program_init_state(mem: List[int], noun = 12, verb = 2) -> List[int]:
+def program_init_state(program: Program, noun = 12, verb = 2) -> None:
     """Initializes memory with given state. Defaults to the 1202 program alarm
     state (see README part 1)"""
-    mem[1] = noun
-    mem[2] = verb
-    return mem
+    program.mem.write(1, noun)
+    program.mem.write(2, verb)
 
 
 def solve_puzzle(data: Iterator[str], noun = 12, verb = 2) -> int:
     """Restore state and run program. Return first opcode."""
-    mem = parse_input(next(data))
-    mem = program_init_state(mem, noun, verb)
-    mem = program(mem)
-    return mem[0]
+    program = Program.from_str(next(data))
+    program_init_state(program, noun, verb)
+    consume(program)
+    return program.mem.read(0)
 
 
 def solve_part_2(data: Iterator[str]) -> int:
