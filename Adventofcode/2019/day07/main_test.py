@@ -1,5 +1,5 @@
 import unittest
-from main import part_1
+from main import part_1, part_2
 
 
 class MainTest(unittest.TestCase):
@@ -18,11 +18,27 @@ class MainTest(unittest.TestCase):
         res = part_1(iter([p]))
         self.assertEqual(res, 65210)
 
+    def test_example_1_part_2(self):
+        p = '3,26,1001,26,-4,26,3,27,1002,27,2,27,1,27,26,27,4,27,1001,28,-1,28,1005,28,6,99,0,0,5'
+        res = part_2(iter([p]))
+        self.assertEqual(res, 139629729)
+
+    def test_example_2_part_2(self):
+        p = ('3,52,1001,52,-5,52,3,53,1,52,56,54,1007,54,5,55,1005,55,26,1001,54,'  
+             '-5,54,1105,1,12,1,53,54,53,1008,54,0,55,1001,55,1,55,2,53,55,53,4,'  
+             '53,1001,56,-1,56,1005,56,6,99,0,0,0,0,10')
+        res = part_2(iter([p]))
+        self.assertEqual(res, 18216)
+
     def test_solution_part_1(self):
         with open('./input', 'r') as data:
             r = part_1(data)
         self.assertEqual(r, 298586)
 
+    def test_solution_part_2(self):
+        with open('./input', 'r') as data:
+            r = part_2(data)
+        self.assertEqual(r, 9246095)
 
 
 if __name__ == '__main__':
