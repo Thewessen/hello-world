@@ -26,10 +26,15 @@ class Memory:
         elif mode == ParamMode.RELATIVE:
             return int(self.mem.get(self.rel_base + int(a), 0))
         else:
-            raise ValueError('Unsupported mode: ' + mode)
+            raise ValueError('Unsupported mode for reading: ' + repr(mode))
 
-    def write(self, address: int, value: int) -> None:
-        self.mem[address] = str(value)
+    def write(self, address: int, value: int, mode = ParamMode.POSITION) -> None:
+        if mode == ParamMode.POSITION:
+            self.mem[address] = str(value)
+        elif mode == ParamMode.RELATIVE:
+            self.mem[self.rel_base + address] = str(value)
+        else:
+            raise ValueError('Unsupported mode for writing: ' + repr(mode))
 
     def adj_base(self, distance: int) -> None:
         self.rel_base += distance
