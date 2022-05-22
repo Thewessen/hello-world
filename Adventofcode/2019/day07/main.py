@@ -31,11 +31,11 @@ def create_feedback_loop(program: str, settings: tuple[int, ...]) -> Optional[in
     for s in settings:
         a = Program.from_str(program, s, out)
         amplifiers.append(a)
-        out = a.jump()
+        out = next(a)
     for amplifier in cycle(amplifiers):
         amplifier.args.append(out)
         try:
-            out = amplifier.jump()
+            out = next(amplifier)
         except StopIteration:
             return out
 
