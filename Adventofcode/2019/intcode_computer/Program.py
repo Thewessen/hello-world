@@ -9,7 +9,8 @@ class Program:
     def __init__(self, mem: list[str], *args):
         self.mem = Memory(mem)
         self.pointer = 0
-        self.args = args
+        self.args = list(args)
+        self.done = False
 
     @classmethod
     def from_str(cls, data: str, *args):
@@ -22,7 +23,7 @@ class Program:
         return self
     
     def __next__(self):
-        while True:
+        while not self.done:
             self.opcode = Opcode(self.mem.read(self.pointer))
             i = self.opcode.instruction
             if i == Instruction.SUM:
@@ -44,6 +45,7 @@ class Program:
             if i == Instruction.ADJ_MEM:
                 self.adj_mem_base()
             if i == Instruction.HALT:
+                self.done = True
                 raise StopIteration("End of program")
 
     def sum(self):
