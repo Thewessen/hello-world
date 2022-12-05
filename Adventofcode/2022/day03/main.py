@@ -38,10 +38,8 @@ def duplicate_item_in_rucksacks(*rucksacks: str) -> str:
     if len(rucksacks) < 2:
         raise ValueError(f"Two or more rucksacks should be provided")
 
-    rucksacks_iter = iter(rucksacks)
-    intersect = set(next(rucksacks_iter)).intersection(set(next(rucksacks_iter)))
-    for rucksack in rucksacks_iter:
-        intersect = intersect.intersection(set(rucksack))
+    rucksacks_sets = (set(rucksack) for rucksack in rucksacks)
+    intersect = next(rucksacks_sets).intersection(*rucksacks_sets)
 
     if len(intersect) != 1:
         raise ValueError(f"""More than one duplicate item found:
