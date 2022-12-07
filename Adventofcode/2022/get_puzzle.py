@@ -58,7 +58,7 @@ def main():
         if r.status_code != 200:
             print(r)
             exit(1)
-        puzzle = r.text.strip()
+        puzzle = r.text
         with open(inputpath, 'w') as i:
             i.write(puzzle)
     else:
