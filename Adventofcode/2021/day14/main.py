@@ -2,9 +2,10 @@
 
 from argparse import ArgumentParser
 from typing import Iterator
-from more_itertools import sliding_window
 from collections import Counter
 from functools import wraps
+from more_itertools import sliding_window
+
 
 def cached(fn):
     """A cache decorator specially designed for the count_elements function."""
@@ -18,14 +19,16 @@ def cached(fn):
         return cache[cache_key]
     return counter
 
+
 @cached
 def count_elements(polymer_pair: tuple[str, str], rules: dict, steps: int) -> Counter:
     """Returns a Counter for a single polymer pair after n `steps`."""
     a, b = polymer_pair
     if steps == 0:
         return Counter(a)
-    return (count_elements((a, rules[a + b]), rules, steps - 1) +
-            count_elements((rules[a + b], b), rules, steps - 1))
+    new_el = rules[a + b]
+    return (count_elements((a, new_el), rules, steps - 1) +
+            count_elements((new_el, b), rules, steps - 1))
 
 
 def count_polymer(polymer: str, rules: dict, steps: int) -> Counter:

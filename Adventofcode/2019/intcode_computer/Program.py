@@ -61,6 +61,7 @@ class Program:
         self.pointer += 4
 
     def inp(self):
+        print('INPUT')
         if len(self.args) < 1:
             raise ValueError('Insufficient arguments for program')
         value, *args = self.args

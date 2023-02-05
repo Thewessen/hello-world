@@ -125,7 +125,7 @@ def main():
             r = first_step_synced(data)
         else:
             r = count_flashes(data, 100)
-        print(r)
+    print(r)
 
 
 if __name__ == '__main__':

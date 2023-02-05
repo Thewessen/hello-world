@@ -11,6 +11,7 @@ tags.*
 *.py[cod]
 __pycache__/
 **/__pycache__/
+env/
 
 # links
 *.ln
@@ -37,3 +38,4 @@ target
 
 # mac 
 .DS_Store
+

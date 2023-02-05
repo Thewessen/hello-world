@@ -2,7 +2,8 @@
 
 from argparse import ArgumentParser
 from typing import Iterator, Iterable
-from operator import attrgetter
+from dataclasses import dataclass, field
+from heapq import heapify, heappush, heappop
 import math
 
 
@@ -61,6 +62,11 @@ class Grid:
             for j, _ in enumerate(row):
                 yield (i, j)
 
+    def values(self):
+        for row in self._grid:
+            for v in row:
+                yield v
+
     def get_surrounding(self, coord: tuple[int, int]) -> Iterator[tuple[int, int]]:
         x, y = coord
         for coord in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
@@ -68,16 +74,13 @@ class Grid:
                 yield coord
 
 
+@dataclass(order=True)
 class Node:
     """A single point in the density map, containing the lowest possible risk
     value to get to this point and the corresponding coords in the cloud."""
-    def __init__(self, coord: tuple[int, int]):
-        self.value = math.inf
-        self.coord = coord
-
-    def __repr__(self):
-        x, y = self.coord
-        return f'Node({{ coord: ({x}, {y}), value: {self.value} }})'
+    coord: tuple[int, int] = field(compare=False)
+    value: float = field(init=False, default=math.inf)
+    visited: bool = field(init=False, default=False, compare=False)
 
     def is_finish(self, grid: Grid) -> bool:
         height, width = grid.size
@@ -88,26 +91,28 @@ def find_shortest_path(grid: Grid) -> int:
     """An implementatio of Dijkstra's algoritm."""
     height, width = grid.size
     nodes = Grid([[Node((i, j)) for j in range(width)]
-                      for i in range(height)])
+                  for i in range(height)])
     curr_node = nodes.get((0, 0))
     curr_node.value = 0
-    unvisited = set(nodes.get(coord) for coord in nodes.all_coords()
-                    if coord != (0, 0))
+    curr_node.visited = True
+    heap = list(nodes.values())
+    heapify(heap)
 
-    while len(unvisited) > 0:
+    while True:
         for coord in grid.get_surrounding(curr_node.coord):
-            v = grid.get(coord)
             surr_node = nodes.get(coord)
+            if surr_node.visited:
+                continue
+            v = grid.get(coord)
             if surr_node.value > curr_node.value + v:
                 surr_node.value = curr_node.value + v
 
         if curr_node.is_finish(grid):
             return curr_node.value
-
-        unvisited.discard(curr_node)
-        curr_node = min(unvisited, key=attrgetter('value'))
-
-    return int(math.inf)
+        
+        curr_node.visited = True
+        heap.sort()
+        curr_node = heappop(heap)
 
 
 def enhance_data(data: Iterator[str]) -> Iterator[Iterator[int]]:
@@ -115,11 +120,10 @@ def enhance_data(data: Iterator[str]) -> Iterator[Iterator[int]]:
     dat = list(data)
     for i in range(5):
         for line in dat:
-            yield ((int(d) + i + j) % 9
-                   if int(d) + i + j != 9
-                   else 9
-                   for j in range(5)
-                   for d in line.strip())
+            yield (d if d != 0 else 9
+                   for d in ((int(d) + i + j) % 9
+                             for j in range(5)
+                             for d in line.strip()))
 
 
 def main():
@@ -141,4 +145,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
