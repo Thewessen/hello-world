@@ -26,7 +26,7 @@ class Mapping:
 
     def reverse(self) -> Self:
         """Reverse the mappings tar and dest"""
-        return Mapping(self.dest, self.tar, self.length)
+        return Mapping(self.dest, self.tar)
 
     def __getitem__(self, key: int|Range):
         """Map item or Range"""
