@@ -5,8 +5,14 @@ from dotenv import load_dotenv
 from api import submit
 from get_puzzle import html_to_md
 
+def read_char_by_char(data):
+    while True:
+        c = data.read(1)
+        if not c:
+            break
+        yield c
 
-def create_cli(day: int, part1 = None, part2 = None):
+def create_cli(day: int, part1 = None, part2 = None, charbychar = False):
     load_dotenv()
     parser = ArgumentParser(description=f"Day {day} solution")
     parser.add_argument('path', nargs='?', type=str, default='./input',
@@ -21,10 +27,13 @@ def create_cli(day: int, part1 = None, part2 = None):
                              
     args = parser.parse_args()
     with open(args.path, 'r') as data:
+        d = data
+        if charbychar:
+            d = read_char_by_char(data)
         if args.part2 and part2 is not None:
-            r = part2(data, args.debug)
+            r = part2(d, args.debug)
         elif not args.part2 and part1 is not None:
-            r = part1(data, args.debug)
+            r = part1(d, args.debug)
         else:
             exit(1)
     print(r)
