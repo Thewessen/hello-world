@@ -2,7 +2,6 @@ import sys
 sys.path.append('..')
 from cli import create_cli
 from typing import Iterator
-from functools import partial
 from enum import StrEnum
 
 
